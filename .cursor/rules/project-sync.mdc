@@ -1,0 +1,30 @@
+---
+description: なんしよ？プロジェクトの共通前提と自動共有ルール
+alwaysApply: true
+---
+
+# 必読・強制ルール
+
+作業を始める前に、必ず `AGENTS.md`（プロジェクト共通の正）を読み、その内容に従うこと。
+
+## デプロイ
+
+- **Netlify は使用禁止。** 公開は **GitHub Pages のみ**。
+- 変更を反映する唯一の方法:
+
+```bash
+git add -A && git commit -m "変更内容" && git push origin main
+```
+
+- push 後、本番 https://nanshiyo.com に自動反映される旨をユーザーに伝える。
+
+## 共有の徹底（強制）
+
+1. セットアップ / デプロイ / URL / バックエンドに変更が生じたら、**同じ内容で `AGENTS.md` を必ず更新**してから作業を終える（`CLAUDE.md` は `AGENTS.md` を読み込むso更新不要）。
+2. そのような変更を行ったら、ユーザーに **「Claudeアプリ用のコピペ共有文」** を提示し、共有を促す。
+3. コードの「正」は常にこのリポジトリ（`C:\Users\iwskn\Projects\nanshiyo`）。Claudeアプリの旧サンドボックス内ファイルは使わない・信用しない。
+
+## 秘密情報
+
+- `SUPABASE_ANON_KEY`（公開キー）はコード内でOK。
+- service_role 等の秘密キーは**絶対にコミットしない**。
