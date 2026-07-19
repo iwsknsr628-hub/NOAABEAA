@@ -369,9 +369,9 @@
   .sns-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:800;font-size:.85rem;
     padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:#fff;transition:.15s}
   .sns-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
-  .card .author-link{cursor:pointer;display:inline-flex;align-items:center;gap:5px;max-width:60%}
+  .card .author-link{cursor:pointer;display:inline-flex;align-items:center;gap:5px;min-width:0}
   .card .author-link span:last-child{text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    overflow-wrap:anywhere;word-break:break-word}
   .card .author-link:hover span:last-child{color:var(--accent)}
   .mini-av{display:inline-grid;place-items:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;
     background:var(--bg2) center/cover no-repeat;font-size:.72rem;color:var(--ink-soft);border:1px solid var(--line)}
@@ -714,8 +714,9 @@
           自分のアフィリンクを貼ると、この投稿の「おすすめリンク」ボタンがあなたの成果になります。空のままなら運営のリンクを自動で表示します。</span>
       </div>
       <div class="field">
-        <label>ニックネーム（任意）</label>
-        <input type="text" name="author" maxlength="40" placeholder="匿名">
+        <label>投稿者名（ユーザー名） <span class="req">必須</span></label>
+        <input type="text" name="author" maxlength="40" placeholder="あなたのユーザー名">
+        <span style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:4px">投稿に表示される名前です。通常はアカウントのユーザー名が入ります。</span>
       </div>
       <button type="submit" class="btn btn-primary">この内容で投稿する</button>
     </form>
@@ -745,7 +746,7 @@
     <h2 id="authTitle">アカウント登録</h2>
     <p class="msub" id="authSub">登録すると、投稿にあなたの名前が付きます。</p>
     <div class="field">
-      <label>ニックネーム（登録時のみ）</label>
+      <label>ニックネーム（ユーザー名） <span class="req">必須</span></label>
       <input type="text" id="authName" maxlength="40" placeholder="表示名（例: たびすき）">
     </div>
     <div class="field">
@@ -764,6 +765,21 @@
     <p style="font-size:.85rem;text-align:center;margin-top:4px">
       <span id="authSwitch" style="color:var(--accent);cursor:pointer;font-weight:700" onclick="toggleAuthMode()">すでにアカウントをお持ちの方はこちら</span>
     </p>
+  </div>
+</div>
+
+<!-- USERNAME PROMPT -->
+<div class="modal-bg" id="unameBg">
+  <div class="modal" style="max-width:420px">
+    <button class="close" onclick="closeUsernamePrompt()">&times;</button>
+    <h2>ユーザー名を設定</h2>
+    <p class="msub">投稿やコメントに表示される名前です。あとから変更できます。</p>
+    <div class="field">
+      <label>ユーザー名 <span class="req">必須</span></label>
+      <input type="text" id="unameInput" maxlength="40" placeholder="例: たびすき">
+    </div>
+    <p id="unameMsg" style="font-size:.82rem;color:var(--ink-soft);min-height:1.1em;margin:0 0 10px"></p>
+    <button class="btn btn-primary" style="width:100%" onclick="saveUsername()">この名前で決定</button>
   </div>
 </div>
 
@@ -1945,6 +1961,7 @@ function resetPhoto(){pendingPhotos=[];const p=document.getElementById('photoPre
 let editingPostId=null;
 function openModal(){
   if(!session){alert("投稿するにはログインが必要です。");openAuth();return;}
+  if(needsUsername()){showToast("先にユーザー名を設定してください");promptUsername();return;}
   editingPostId=null;
   resetPhoto();resetPin();
   const affEl=document.getElementById('affInput');if(affEl)affEl.value="";
@@ -2040,9 +2057,52 @@ function requireLogin(msg){
   openAuth();
   return false;
 }
+/* ユーザー名（表示名）が未設定か？ メールのローカル部から自動生成された名前は「未設定」扱い。 */
+function needsUsername(){
+  if(!session)return false;
+  const nm=(session.name||"").trim();
+  if(!nm)return true;
+  const local=((session.email||"").split("@")[0]||"").trim().toLowerCase();
+  if(nm.toLowerCase()===local)return true;
+  return false;
+}
+function promptUsername(){
+  if(!session)return;
+  const inp=document.getElementById('unameInput');
+  const cur=(session.name||"").trim();
+  const local=((session.email||"").split("@")[0]||"").toLowerCase();
+  inp.value=(cur&&cur.toLowerCase()!==local)?cur:"";
+  const msg=document.getElementById('unameMsg');if(msg)msg.textContent="";
+  document.getElementById('unameBg').classList.add('open');
+  setTimeout(()=>{try{inp.focus();}catch(e){}},100);
+}
+function closeUsernamePrompt(){document.getElementById('unameBg').classList.remove('open');}
+function maybePromptUsername(){if(session&&needsUsername())setTimeout(promptUsername,900);}
+async function saveUsername(){
+  const name=document.getElementById('unameInput').value.trim();
+  const msg=document.getElementById('unameMsg');
+  if(name.length<2){msg.style.color="#d33";msg.textContent="2文字以上で入力してください";return;}
+  if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため保存できません";return;}
+  const token=await freshToken();
+  if(!token){msg.style.color="#d33";msg.textContent="ログインの有効期限が切れました。再度ログインしてください";return;}
+  msg.style.color="";msg.textContent="保存中…";
+  try{
+    try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(token),body:JSON.stringify({data:{name}})});}catch(e){}
+    const row={user_id:session.uid,name,updated_at:new Date().toISOString()};
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
+      headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
+    if(r.ok){myProfile=(await r.json())[0]||myProfile;}
+    session.name=name;saveSession(session);
+    updateAcctUI();
+    if(typeof render==='function')render();
+    closeUsernamePrompt();
+    showToast("ユーザー名を設定しました");
+  }catch(e){msg.style.color="#d33";msg.textContent="保存に失敗しました";}
+}
 function openAuth(){authMode="signup";applyAuthMode();document.getElementById('authMsg').textContent="";document.getElementById('authBg').classList.add('open');}
 function closeAuth(){document.getElementById('authBg').classList.remove('open');}
 document.getElementById('authBg').addEventListener('click',e=>{if(e.target.id==="authBg")closeAuth();});
+document.getElementById('unameBg').addEventListener('click',e=>{if(e.target.id==="unameBg")closeUsernamePrompt();});
 function toggleAuthMode(){authMode=authMode==="signup"?"login":"signup";applyAuthMode();}
 function applyAuthMode(){
   const s=authMode==="signup";
@@ -2057,6 +2117,7 @@ async function submitAuth(){
   const pass=document.getElementById('authPass').value;
   const name=document.getElementById('authName').value.trim();
   const msg=document.getElementById('authMsg');
+  if(authMode==="signup"&&name.length<2){msg.style.color="#d33";msg.textContent="ニックネーム（ユーザー名）を2文字以上で入力してください";return;}
   if(!email||!pass){msg.style.color="#d33";msg.textContent="メールとパスワードを入力してください";return;}
   if(pass.length<6){msg.style.color="#d33";msg.textContent="パスワードは6文字以上にしてください";return;}
   if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため利用できません";return;}
@@ -2522,6 +2583,7 @@ async function submitComment(){
   const input=document.getElementById('cmtInput');if(!input)return;
   const body=input.value.trim();if(!body)return;
   if(!session){openAuth();return;}
+  if(needsUsername()){showToast("先にユーザー名を設定してください");closeComments();promptUsername();return;}
   const token=await freshToken();
   if(!token){alert("ログインの有効期限が切れました。もう一度ログインしてください。");closeComments();openAuth();return;}
   const btn=document.querySelector('#cmtCompose button');if(btn){btn.disabled=true;btn.textContent="送信中…";}
@@ -2558,9 +2620,10 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
   const cat=f.cat.value;
   const post={
     cat,title:f.title.value.trim(),spot:f.spot.value.trim(),desc:f.desc.value.trim(),
-    author:f.author.value.trim()||"匿名",likes:0,user_id:session?session.uid:null,
+    author:f.author.value.trim(),likes:0,user_id:session?session.uid:null,
     tags:f.tags.value.split(',').map(t=>t.trim().replace(/^#+/,'')).filter(Boolean)
   };
+  if(!post.author){alert("投稿者名（ユーザー名）を入力してください。");return;}
   const affRaw=(f.aff_url&&f.aff_url.value||"").trim();
   if(affRaw){
     const aff=normalizeAffUrl(affRaw);
@@ -2713,12 +2776,13 @@ async function init(){
     : "※ 現在はお試し表示（この端末のみ）。Supabaseを設定すると、みんなの投稿が全国で共有されます。";
   countEl.textContent="読み込み中…";
   await handleAuthRedirect();
-  loadMyProfile();
+  await loadMyProfile();
   try{await fetchPosts();}
   catch(err){console.warn(err);seedLocal();
     if(note)note.textContent="※ サーバーに接続できませんでした。お試し表示に切り替えています。";}
   render();
   requestLoc();
+  maybePromptUsername();
 }
 init();
 
