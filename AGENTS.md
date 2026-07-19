@@ -49,15 +49,18 @@ git push origin main   # → GitHub Pages が自動デプロイ
   ```
 - Claudeは毎回の変更後、上記コマンドを案内すること。
 
-## 収益化（アフィリエイト）
+## 収益化（アフィリエイト＆広告）
 
-- 投稿カード／ガチャ結果に **楽天アフィリエイト** の送客ボタンを表示（`affButtonsHTML()`）。
-  - travel → 楽天トラベル（宿）＋楽天市場、food/drink → 周辺の宿＋楽天市場、その他 → 楽天市場。
-- `index.html` の `const RAKUTEN_AFFILIATE_ID=""` に楽天アフィリエイトID（`affiliate.rakuten.co.jp` で無料・即時取得）を入れると、全リンクが自動で成果報酬化される。
-  - 形式: `https://hb.afl.rakuten.co.jp/hgc/{ID}/?pc={enc}&m={enc}`。
-  - IDが空でも通常の楽天リンクとして動作する（成果は付かない）。**公開してよいIDなのでコードに直書きOK。**
-- 表示には `PR` ラベルと `rel="sponsored"` を付与済み（規約・景表法対策）。
-- 今後の候補: Amazonアソシエイト/A8.net（要審査）、金融系（楽天カード/証券は高単価）、AdSense（要審査・要トラフィック）。
+`index.html` 冒頭の定数に各IDを入れるだけで有効化。**空でも壊れない**（通常リンク/枠非表示で動作）。公開前提のIDなので直書きOK。
+
+- `RAKUTEN_AFFILIATE_ID` … 楽天アフィリエイト（`affiliate.rakuten.co.jp`・審査なし/即時）。入れると全楽天リンクが成果報酬化。形式 `https://hb.afl.rakuten.co.jp/hgc/{ID}/?pc={enc}&m={enc}`。
+- `AMAZON_ASSOCIATE_TAG` … Amazonアソシエイト（要審査）。例 `yourtag-22`。`amazonSearch()` の `&tag=` に付与。
+- `ADSENSE_CLIENT` / `ADSENSE_SLOT` … Google AdSense（要審査）。入れると投稿一覧に6件ごとに広告枠を表示（`adSlotHTML()`/`activateAds()`、スクリプトは動的読み込み）。
+  - ※AdSense審査時はサイト所有確認用スニペットを `<head>` に貼る必要が出る場合あり。
+
+送客ボタン: `affButtonsHTML()`。travel → 楽天トラベル(宿)＋楽天市場、その他 → 楽天市場＋Amazon。投稿カードとガチャ結果に表示。`PR` ラベル＋`rel="sponsored"` 付与済み（規約・景表法対策）。
+
+- 今後の候補: A8.net/もしも/バリューコマース（個別リンク）、金融系（楽天カード/証券=高単価）。
 
 ## Google Maps / Places
 
