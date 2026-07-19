@@ -448,7 +448,14 @@
   .handle-input{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
   .handle-input span{padding:0 4px 0 12px;color:var(--ink-soft);font-weight:800}
   .handle-input input{flex:1;border:none;outline:none;padding:11px 12px 11px 2px;font-family:inherit;font-size:1rem;background:transparent}
-  .mp-handle-view{font-size:.85rem;color:var(--accent);font-weight:700;margin-top:2px}
+  .mp-handle-view{font-size:.85rem;color:var(--accent);font-weight:700;margin-top:2px;min-height:20px}
+  .handle-copy{display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent);font-weight:700;
+    font-size:.85rem;background:none;border:none;font-family:inherit;padding:2px 6px;border-radius:7px;transition:background .15s}
+  .handle-copy:hover{background:var(--bg2)}
+  .handle-copy:active{transform:scale(.96)}
+  .handle-copy svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+  .handle-set-link{display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent);font-weight:700;
+    font-size:.82rem;text-decoration:underline;text-underline-offset:2px}
   .notif-empty{text-align:center;color:var(--ink-soft);font-size:.9rem;padding:26px 0}
   .notif-item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--line);
     border-radius:14px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
@@ -2456,7 +2463,7 @@ function myPostList(){return session?POSTS.filter(p=>p.user_id===session.uid):[]
 function notifUnreadCount(){return NOTIFS.filter(n=>n.unread).length;}
 function updateNotifBadge(){
   const dot=document.getElementById('notifDot');if(!dot)return;
-  const n=notifUnreadCount()+((session&&needsUsername())?1:0);
+  const n=notifUnreadCount()+((session&&(needsUsername()||needsHandle()))?1:0);
   if(session&&n>0){dot.style.display="";dot.textContent=n>9?"9+":String(n);}
   else dot.style.display="none";
 }
@@ -2508,7 +2515,9 @@ function renderNotifs(){
   if(!session){el.innerHTML='<div class="notif-empty">通知を見るにはログインが必要です。</div>';return;}
   const nudge=needsUsername()
     ?'<div class="notif-item unread" data-act="username"><span class="notif-ic system">!</span><div class="notif-tx"><div class="t">ユーザー名を設定してください</div><div class="w">タップして登録・他の人と同じ名前は使えません</div></div></div>'
-    :'';
+    :(needsHandle()
+      ?'<div class="notif-item unread" data-act="handle"><span class="notif-ic system">@</span><div class="notif-tx"><div class="t">ユーザーID（@〜）を設定しましょう</div><div class="w">タップして登録・検索やプロフィールで使えます</div></div></div>'
+      :'');
   if(!NOTIFS.length&&!nudge){el.innerHTML='<div class="notif-empty">まだ通知はありません。<br>投稿にいいねやコメントが付くとここに表示されます。</div>';return;}
   el.innerHTML=nudge+NOTIFS.map(n=>{
     const ic=n.type==="like"?'<span class="notif-ic like">Like</span>':'<span class="notif-ic comment">C</span>';
@@ -2516,7 +2525,7 @@ function renderNotifs(){
   }).join('');
   el.querySelectorAll('.notif-item').forEach(it=>{
     it.addEventListener('click',()=>{
-      if(it.dataset.act==="username"){closeNotifs();promptUsername();return;}
+      if(it.dataset.act==="username"||it.dataset.act==="handle"){closeNotifs();promptUsername();return;}
       const pid=it.dataset.pid;closeNotifs();const p=POSTS.find(x=>String(x.id)===pid);if(p)openPostView(p.id);
     });
   });
@@ -2612,10 +2621,29 @@ async function loadMyProfile(){
   if(!session||!SERVER)return;
   try{const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=eq.${session.uid}&select=*`,{headers:sbHeaders});
     if(r.ok){myProfile=(await r.json())[0]||null;}}catch(e){console.warn(e);}
+  updateNotifBadge();
+  if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
 }
 /* ---------- @ハンドル（一意のユーザーID） ---------- */
 function normHandle(v){return (v||"").trim().replace(/^@+/,"").toLowerCase();}
 function validHandle(h){return /^[a-z0-9_]{3,20}$/.test(h);}
+function needsHandle(){return !!session && !!myProfile && !((myProfile.handle||"").trim());}
+function handleViewHTML(handle){
+  if(!handle)return"";
+  const h=esc(handle);
+  return `<button type="button" class="handle-copy" onclick="copyHandle('${h}')" title="ユーザーIDをコピー">@${h}<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>`;
+}
+function copyHandle(h){
+  const txt="@"+h;
+  const done=()=>showToast("ユーザーIDをコピーしました");
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>legacyCopy(txt,done));}
+  else legacyCopy(txt,done);
+}
+function legacyCopy(txt,done){
+  try{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);done&&done();}
+  catch(e){showToast('コピーできませんでした');}
+}
 async function handleTaken(h){
   if(!SERVER||!h)return false;
   try{
@@ -2783,7 +2811,8 @@ async function isFollowing(uid){
 function renderMyProfileView(){
   const p=myProfile||{};
   document.getElementById('mpNameView').textContent=p.name||currentName()||"匿名";
-  const mh=document.getElementById('mpHandleView');if(mh)mh.textContent=p.handle?("@"+p.handle):"";
+  const mh=document.getElementById('mpHandleView');
+  if(mh)mh.innerHTML=p.handle?handleViewHTML(p.handle):'<span class="handle-set-link" onclick="promptUsername()">＋ ユーザーID（@〜）を設定</span>';
   document.getElementById('mpBioView').textContent=p.bio||"自己紹介はまだ設定されていません。";
   const av=document.getElementById('mpAvatar');
   if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="";}
@@ -3096,7 +3125,7 @@ async function openProfileView(userId,fallbackName){
     const pvh=document.getElementById('pvHandle');
     if(!p){document.getElementById('pvName').textContent=fallbackName||"匿名";if(pvh)pvh.textContent="";document.getElementById('pvBio').textContent="プロフィール未設定です。";return;}
     document.getElementById('pvName').textContent=p.name||fallbackName||"匿名";
-    if(pvh)pvh.textContent=p.handle?("@"+p.handle):"";
+    if(pvh)pvh.innerHTML=p.handle?handleViewHTML(p.handle):"";
     if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}
 
     if(p.is_private&&!isSelf&&!amFollowing){
