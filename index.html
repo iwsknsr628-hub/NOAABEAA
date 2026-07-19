@@ -194,6 +194,12 @@
   .card .maps-btn.g{color:#1a73e8;background:#eaf1fe;border-color:#d3e3fd}
   .card .maps-btn.y{color:#e8322f;background:#fdeceb;border-color:#f8d3d1}
   .card .maps-btn.a{color:#444;background:#f1f1f3;border-color:#e2e2e6}
+  .card .aff-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .card .aff-label{font-size:.6rem;font-weight:800;color:#b26a00;background:#fff5e6;border:1px solid #ffe0b2;
+    border-radius:6px;padding:2px 6px;letter-spacing:.05em}
+  .aff-btn{font-size:.78rem;font-weight:800;text-decoration:none;padding:5px 12px;border-radius:999px;
+    color:#bf0000;background:#fff0f0;border:1px solid #ffd0d0;transition:transform .15s,box-shadow .2s}
+  .aff-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
   .leaflet-container{font:inherit}
   .pin-page{position:fixed;inset:0;z-index:220;background:var(--bg);display:none;flex-direction:column}
   .pin-page.open{display:flex}
@@ -355,6 +361,8 @@
     .maps-row{gap:4px}
     .maps-label{display:none}
     .card .maps-btn{padding:4px 8px;font-size:.68rem}
+    .card .aff-row{gap:4px}
+    .aff-btn{padding:4px 10px;font-size:.7rem}
     .card .meta{font-size:.7rem;padding-top:7px}
     .card .meta-actions{gap:8px}
     .sec-head h2{font-size:1.5rem}
@@ -1271,6 +1279,40 @@ function mapLinks(p){
   return {google:"https://www.google.com/maps/search/?api=1&query="+gq, yahoo, apple};
 }
 function mapPref(){try{return localStorage.getItem('nanshiyo_map_pref')||'google';}catch(e){return 'google';}}
+
+/* ---------- 収益化：楽天アフィリエイト ----------
+   affiliate.rakuten.co.jp で無料・即時にIDを取得し、下に貼るだけで全リンクが成果報酬化される。
+   IDが空でも通常の楽天リンクとして動作する（成果は付かない）。 */
+const RAKUTEN_AFFILIATE_ID="";
+function rakutenAff(url){
+  if(!RAKUTEN_AFFILIATE_ID)return url;
+  const e=encodeURIComponent(url);
+  return "https://hb.afl.rakuten.co.jp/hgc/"+RAKUTEN_AFFILIATE_ID+"/?pc="+e+"&m="+e;
+}
+function rakutenTravel(kw){return rakutenAff("https://kw.travel.rakuten.co.jp/keyword/Search.do?f_query="+encodeURIComponent(kw));}
+function rakutenIchiba(kw){return rakutenAff("https://search.rakuten.co.jp/search/mall/"+encodeURIComponent(kw)+"/");}
+function affButtonsHTML(p){
+  const spot=(p.spot||"").trim();
+  const area=(p.pref||"").trim();
+  const genre=(p.genre||"").trim();
+  const tag=((p.tags&&p.tags[0])||"").toString().replace(/^#+/,'').trim();
+  const out=[];
+  if(p.cat==="travel"){
+    const kw=`${area} ${spot}`.trim()||area||spot;
+    if(kw)out.push(`<a class="aff-btn" href="${rakutenTravel(kw)}" target="_blank" rel="noopener sponsored">🏨 宿・ホテルを探す</a>`);
+    if(spot)out.push(`<a class="aff-btn" href="${rakutenIchiba(spot)}" target="_blank" rel="noopener sponsored">🛍 関連を楽天で</a>`);
+  }else if(p.cat==="food"||p.cat==="drink"){
+    if(area)out.push(`<a class="aff-btn" href="${rakutenTravel(area)}" target="_blank" rel="noopener sponsored">🏨 周辺の宿</a>`);
+    const kw=[spot,genre].filter(Boolean).join(" ")||spot;
+    if(kw)out.push(`<a class="aff-btn" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">🛍 お取り寄せ</a>`);
+  }else{
+    const kw=[spot,genre||tag].filter(Boolean).join(" ")||spot||genre||tag;
+    if(kw)out.push(`<a class="aff-btn" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">🛍 楽天で探す</a>`);
+  }
+  if(!out.length)return "";
+  return `<div class="aff-row"><span class="aff-label">PR</span>${out.join('')}</div>`;
+}
+
 function cardHTML(p){
   let dist="";
   if(p.loc&&userLoc){const d=distKm(userLoc,p.loc);dist=`<span class="badge sub">🧭 約${d<10?d.toFixed(1):Math.round(d)}km</span>`;}
@@ -1298,6 +1340,7 @@ function cardHTML(p){
     ${addr}
     ${p.desc?`<p>${esc(p.desc)}</p>`:""}
     ${maps}
+    ${affButtonsHTML(p)}
     <div class="tags">${tags}</div>
     <div class="meta">
       <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">by ${esc(p.author||"匿名")}</span>
@@ -2226,7 +2269,8 @@ function pullGacha(){
     const where=pick.pref?`📍${pick.pref}`:(pick.genre?`📖${pick.genre}`:CAT_LABEL[pick.cat]);
     box.innerHTML=`<span style="font-size:.78rem;font-weight:800;color:var(--accent)">${where}</span>
       <div class="g-title">${esc(pick.title)}</div>
-      <div class="g-desc">▷ ${esc(pick.spot)}${pick.desc?"<br>"+esc(pick.desc):""}</div>`;
+      <div class="g-desc">▷ ${esc(pick.spot)}${pick.desc?"<br>"+esc(pick.desc):""}</div>
+      ${affButtonsHTML(pick)}`;
     box.classList.add('show');
   },120);
 }
