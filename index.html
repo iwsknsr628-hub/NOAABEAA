@@ -870,6 +870,11 @@
       <label>ニックネーム（ユーザー名） <span class="req">必須</span></label>
       <input type="text" id="authName" maxlength="40" placeholder="表示名（例: たびすき）">
     </div>
+    <div class="field" id="authHandleField">
+      <label>ユーザーID（@ハンドル・任意）</label>
+      <div class="handle-input"><span>@</span><input type="text" id="authHandle" maxlength="20" placeholder="taro_123（英小文字・数字・_）" autocomplete="off"></div>
+      <p style="font-size:.74rem;color:var(--ink-soft);margin-top:6px">検索やプロフィールで使えます。後から設定・変更もできます。</p>
+    </div>
     <div class="field">
       <label>メールアドレス</label>
       <input type="email" id="authEmail" placeholder="you@example.com">
@@ -2368,14 +2373,19 @@ function promptUsername(){
   const inp=document.getElementById('unameInput');
   const cur=(session.name||"").trim();
   const local=((session.email||"").split("@")[0]||"").toLowerCase();
-  inp.value=(cur&&cur.toLowerCase()!==local)?cur:"";
+  const hasName=!!(cur&&cur.toLowerCase()!==local);
+  inp.value=hasName?cur:"";
   const h=document.getElementById('unameHandle');if(h)h.value=(myProfile&&myProfile.handle)||"";
   const msg=document.getElementById('unameMsg');if(msg)msg.textContent="";
+  const sub=document.querySelector('#unameBg .msub');
+  if(sub)sub.textContent=(hasName&&needsHandle())
+    ?"ユーザーID（@〜）を設定すると、検索やプロフィールで見つけてもらいやすくなります。"
+    :"投稿やコメントに表示される名前です。他の人と同じ名前は使えません。あとから変更できます。";
   document.getElementById('unameBg').classList.add('open');
-  setTimeout(()=>{try{inp.focus();}catch(e){}},100);
+  setTimeout(()=>{try{(hasName&&h?h:inp).focus();}catch(e){}},100);
 }
 function closeUsernamePrompt(){document.getElementById('unameBg').classList.remove('open');}
-function maybePromptUsername(){if(session&&needsUsername())setTimeout(promptUsername,900);}
+function maybePromptUsername(){if(session&&(needsUsername()||needsHandle()))setTimeout(promptUsername,900);}
 async function saveUsername(){
   const name=document.getElementById('unameInput').value.trim();
   const msg=document.getElementById('unameMsg');
@@ -2419,17 +2429,23 @@ function applyAuthMode(){
   document.getElementById('authSubmit').textContent=s?"登録する":"ログイン";
   document.getElementById('authSwitch').textContent=s?"すでにアカウントをお持ちの方はこちら":"新規登録はこちら";
   document.getElementById('authName').parentElement.style.display=s?"":"none";
+  const hf=document.getElementById('authHandleField');if(hf)hf.style.display=s?"":"none";
 }
 async function submitAuth(){
   const email=document.getElementById('authEmail').value.trim();
   const pass=document.getElementById('authPass').value;
   const name=document.getElementById('authName').value.trim();
+  const handle=normHandle((document.getElementById('authHandle')||{}).value);
   const msg=document.getElementById('authMsg');
   if(authMode==="signup"&&name.length<2){msg.style.color="#d33";msg.textContent="ニックネーム（ユーザー名）を2文字以上で入力してください";return;}
   if(!email||!pass){msg.style.color="#d33";msg.textContent="メールとパスワードを入力してください";return;}
   if(pass.length<6){msg.style.color="#d33";msg.textContent="パスワードは6文字以上にしてください";return;}
   if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため利用できません";return;}
   if(authMode==="signup"&&await nameTaken(name)){msg.style.color="#d33";msg.textContent="そのユーザー名は既に使われています。別の名前にしてください";return;}
+  if(authMode==="signup"&&handle){
+    if(!validHandle(handle)){msg.style.color="#d33";msg.textContent="ユーザーID（@〜）は英小文字・数字・_ の3〜20文字にしてください";return;}
+    if(await handleTaken(handle)){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";return;}
+  }
   const btn=document.getElementById('authSubmit');btn.disabled=true;const orig=btn.textContent;btn.textContent="処理中…";
   try{
     if(authMode==="signup"){
@@ -2437,7 +2453,7 @@ async function submitAuth(){
       const d=await r.json();
       if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"登録に失敗しました");
       if(d.access_token){saveSession(sessionFrom(email,name,d));
-        try{await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,updated_at:new Date().toISOString()})});}catch(e){}
+        try{await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,handle:handle||null,updated_at:new Date().toISOString()})});}catch(e){}
         loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
         setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);}
       else{msg.style.color="#3a7";msg.textContent="確認メールを送りました。メール内のリンクを開くとログインできます。";authMode="login";}
