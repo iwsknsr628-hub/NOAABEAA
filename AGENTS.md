@@ -38,6 +38,17 @@ git push origin main   # → GitHub Pages が自動デプロイ
 2. セットアップ/デプロイ/URL/バックエンドに変更があったら、**この AGENTS.md を更新**する。
 3. 変更を push したら、ユーザーに「本番へ自動反映される」旨を伝える。
 
+### 補足: Claude（Cowork）からの制約
+
+- Claude（Cowork）はこのフォルダのファイルを直接読み書きできるが、実行環境（サンドボックス）から `github.com` へのネットワークアクセスができないため、**`git push` を代行できない**。
+- そのためClaudeが編集した後は、ユーザー自身に以下を実行してもらう必要がある:
+  ```bash
+  git add -A
+  git commit -m "変更内容"
+  git push origin main
+  ```
+- Claudeは毎回の変更後、上記コマンドを案内すること。
+
 ## 今後の予定（参考）
 
 - アプリ化: PWA → 将来 Capacitor でストアアプリ
