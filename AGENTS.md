@@ -63,6 +63,16 @@ git push origin main   # → GitHub Pages が自動デプロイ
 
 送客ボタン: `affButtonsHTML()`。travel → 楽天トラベル(宿)＋楽天市場、その他 → 楽天市場＋Amazon。投稿カードとガチャ結果に表示。`PR` ラベル＋`rel="sponsored"` 付与済み（規約・景表法対策）。
 
+### 投稿者アフィリンク（`posts.aff_url`）
+
+投稿フォームに「🔗 アフィリエイトリンク（任意）」欄あり。投稿者が自分のアフィリンク（楽天/Amazon/A8等）を貼ると、その投稿の送客ボタンは**投稿者の成果**になる（`affButtonsHTML()` は `p.aff_url` があればそれ1つだけ表示、無ければ運営の自動リンク）。ドメインでラベル自動判定（`affLinkMeta()`）、`http/https` のみ許可（`normalizeAffUrl()`）。
+
+- **要スキーマ**: `posts` に `aff_url text` 列が必要。Supabase → SQL Editor で:
+  ```sql
+  alter table posts add column if not exists aff_url text;
+  ```
+- 列が無い間も**通常投稿・編集は壊れない**設計（`toRow`/`toPatchRow` は値があるとき/明示クリア時のみ `aff_url` を送る）。列追加後にアフィリンク付き投稿が保存可能になる。
+
 - 今後の候補: A8.net/もしも/バリューコマース（個別リンク）、金融系（楽天カード/証券=高単価）。
 
 ## Google Maps / Places

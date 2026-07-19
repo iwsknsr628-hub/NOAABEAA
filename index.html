@@ -683,6 +683,13 @@
         <div class="tags-preview" id="tagsPreview"></div>
       </div>
       <div class="field">
+        <label>🔗 アフィリエイトリンク（任意）</label>
+        <input type="url" name="aff_url" id="affInput" maxlength="1000" inputmode="url"
+          placeholder="例: https://... （楽天・Amazon・A8 などご自身のリンク）">
+        <span id="affMsg" style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:4px">
+          自分のアフィリンクを貼ると、この投稿の「おすすめリンク」ボタンがあなたの成果になります。空のままなら運営のリンクを自動で表示します。</span>
+      </div>
+      <div class="field">
         <label>ニックネーム（任意）</label>
         <input type="text" name="author" maxlength="40" placeholder="匿名">
       </div>
@@ -981,14 +988,17 @@ function mapRow(r){
   return {id:r.id,ts:new Date(r.created_at).getTime(),cat:r.cat,pref:r.pref||undefined,
     genre:r.genre||undefined,title:r.title,spot:r.spot,desc:r.descr,author:r.author||"匿名",
     likes:r.likes||0,reports:r.reports||0,tags:r.tags||[],address:r.address||undefined,user_id:r.user_id||undefined,
+    aff_url:r.aff_url||undefined,
     photos:(r.photos&&r.photos.length)?r.photos:(r.photo?[r.photo]:[]),
     loc:(r.lat!=null&&r.lng!=null)?[r.lat,r.lng]:undefined};
 }
 function toRow(p){
-  return {cat:p.cat,pref:p.pref||null,genre:p.genre||null,title:p.title,spot:p.spot,
+  const row={cat:p.cat,pref:p.pref||null,genre:p.genre||null,title:p.title,spot:p.spot,
     descr:p.desc||"",author:p.author||"匿名",tags:p.tags||[],address:p.address||null,user_id:p.user_id||null,
     photos:p.photos||[],photo:(p.photos&&p.photos[0])||null,
     lat:p.loc?p.loc[0]:null,lng:p.loc?p.loc[1]:null};
+  if(p.aff_url)row.aff_url=p.aff_url; // 列が無い環境でも通常投稿が壊れないよう、値があるときだけ送る
+  return row;
 }
 async function geocode(q){
   try{
@@ -1197,6 +1207,7 @@ async function addPostServer(post){
 function toPatchRow(p){
   const row={cat:p.cat,pref:p.pref||null,genre:p.genre||null,title:p.title,spot:p.spot,
     descr:p.desc||"",author:p.author||"匿名",tags:p.tags||[],address:p.address||null};
+  if('aff_url' in p)row.aff_url=p.aff_url||null; // 値あり/明示クリア時のみ送る
   if(p.loc){row.lat=p.loc[0];row.lng=p.loc[1];}
   if(p.photos){row.photos=p.photos;row.photo=p.photos[0]||null;}
   return row;
@@ -1410,7 +1421,28 @@ function amazonSearch(kw){
   if(AMAZON_ASSOCIATE_TAG)u+="&tag="+encodeURIComponent(AMAZON_ASSOCIATE_TAG);
   return u;
 }
+/* アフィリエイトURLの簡易バリデーション。http/httpsのみ許可。OKなら整えたURLを、NGならnull。 */
+function normalizeAffUrl(u){
+  const s=(u||"").trim();
+  if(!s)return null;
+  try{const url=new URL(s);if(url.protocol==="http:"||url.protocol==="https:")return url.href;}catch(e){}
+  return null;
+}
+/* 投稿者が貼ったリンク用のラベル/アイコン（ドメインで判定） */
+function affLinkMeta(u){
+  let host="";try{host=new URL(u).hostname.replace(/^www\./,"");}catch(e){}
+  if(/rakuten|hb\.afl/.test(host))return {icon:"🛍",label:"楽天で見る"};
+  if(/amazon|amzn/.test(host))return {icon:"🛒",label:"Amazonで見る"};
+  if(/a8\.net|px\.a8|moshimo|valuecommerce|linksynergy/.test(host))return {icon:"🔗",label:"公式・詳細を見る"};
+  return {icon:"🔗",label:"おすすめリンク"};
+}
 function affButtonsHTML(p){
+  /* 投稿者が自分のアフィリンクを貼っていれば、それを最優先（投稿者の成果）。運営リンクは出さない。 */
+  if(p.aff_url){
+    const m=affLinkMeta(p.aff_url);
+    return `<div class="aff-row"><span class="aff-label">PR</span>`
+      +`<a class="aff-btn r" href="${esc(p.aff_url)}" target="_blank" rel="noopener sponsored">${m.icon} ${m.label}</a></div>`;
+  }
   const spot=(p.spot||"").trim();
   const area=(p.pref||"").trim();
   const genre=(p.genre||"").trim();
@@ -1852,6 +1884,7 @@ function openModal(){
   if(!session){alert("投稿するにはログインが必要です。");openAuth();return;}
   editingPostId=null;
   resetPhoto();resetPin();
+  const affEl=document.getElementById('affInput');if(affEl)affEl.value="";
   const a=document.querySelector('#postForm [name=author]');if(a)a.value=currentName();
   document.querySelector('#modalBg h2').textContent="おすすめを投稿";
   document.querySelector('#postForm button[type="submit"]').textContent="この内容で投稿する";
@@ -1870,6 +1903,7 @@ function openEditModal(post){
   f.desc.value=post.desc||"";
   f.author.value=post.author||currentName()||"";
   f.tags.value=(post.tags||[]).join(', ');
+  if(f.aff_url)f.aff_url.value=post.aff_url||"";
   renderTagsPreview();
   if(LOCATION_CATS.includes(post.cat)){
     if(post.pref)f.pref.value=post.pref;
@@ -2440,6 +2474,15 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
     author:f.author.value.trim()||"匿名",likes:0,user_id:session?session.uid:null,
     tags:f.tags.value.split(',').map(t=>t.trim().replace(/^#+/,'')).filter(Boolean)
   };
+  const affRaw=(f.aff_url&&f.aff_url.value||"").trim();
+  if(affRaw){
+    const aff=normalizeAffUrl(affRaw);
+    if(!aff){alert("アフィリエイトリンクは http:// または https:// で始まるURLを入力してください。（空欄でもOKです）");return;}
+    post.aff_url=aff;
+  }else if(editingPostId){
+    const orig=POSTS.find(x=>x.id===editingPostId);
+    if(orig&&orig.aff_url)post.aff_url=null; // 既存リンクを空にした → クリア
+  }
   if(LOCATION_CATS.includes(cat)){post.pref=f.pref.value;post.address=(f.address.value||"").trim()||null;}
   if(cat==="study")post.genre=f.genre.value;
   if(!post.title||!post.spot){alert("スポット名とタイトルは必須です。");return;}
