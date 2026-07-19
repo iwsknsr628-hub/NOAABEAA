@@ -98,6 +98,38 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - **写真ビューア（ライトボックス）** `#lightboxBg`：スワイプ操作対応。横スワイプ＝写真切替、下スワイプ/タップ＝閉じる（PCは画像クリックで閉じる、←→キーで切替）。
 - カード/ポップアップ内の操作は共通ハンドラ `handleCardInteractions(e,rerender)` に集約（著者リンク/コメント/編集/いいね/通報/カードタップ）。
 
+## 認証・アカウント（ログイン / ユーザー名 / @ID）
+
+- **ログイン方法**: メール＋パスワード、および **Googleログイン（Supabase OAuth）**。
+  - 認証モーダル `#authBg` に「Googleで続ける」ボタン（`oauthLogin('google')`）。OAuthコールバックは `handleAuthRedirect()`。
+  - Google Cloud の OAuth 同意画面は **本番公開済み**（全Googleアカウントでログイン可）。SupabaseのGoogleプロバイダに Client ID / Secret 設定済み。**Client Secret はリポジトリに置かない**（Supabase側に保存）。
+  - Supabase: Site URL = `https://nanshiyo.com`、Redirect許可 = `https://nanshiyo.com/**`。
+- **表示名（ユーザー名）**: 全アカウントで一意（`nameTaken()` が自分以外の重複を拒否）。必須。
+- **@ID（ハンドル / `profiles.handle`）**: 全アカウントで一意・必須。英小文字/数字/`_` の3〜20文字（`validHandle()`）。
+  - 登録フォーム・設定モーダル・プロフィール編集では **最初からランダムID（`randomHandle()` = `user_xxxxxxxx`）が入力済み**。変えたい人だけ書き換える方式（空欄不可）。
+  - **Googleログインの新規ユーザー**は、表示名＝`ユーザーxxxxxxxx`／@ID＝`user_xxxxxxxx` を**自動付与**（`handleAuthRedirect()` 内）。後からプロフィール編集で変更可。
+  - プロフィールの表示名の下に `@ID` を表示。横のコピーボタン（`handleViewHTML()`/`copyHandle()`）でコピー可。
+  - @ID 未設定の既存ユーザーには通知タブでナッジ＋赤バッジ＋起動時プロンプト（`needsHandle()` / `maybePromptUsername()`）。
+- **ユーザー名・@IDの変更は10日に1回まで**（`USERNAME_COOLDOWN_DAYS=10` / `usernameCooldownLeft()`）。
+  - 名前 or @ID を変更した時刻を `profiles.username_changed_at` に記録し、10日未満なら保存を拒否。自己紹介/アイコン/SNSリンクは制限なし。
+  - 初回設定・登録時の自動付与はカウントしない（ユーザー自身の最初の変更から起算）。
+- **要スキーマ**（Supabase → SQL Editor、いずれも安全な冪等 SQL）:
+  ```sql
+  alter table public.profiles add column if not exists handle text;
+  alter table public.profiles add column if not exists username_changed_at timestamptz;
+  ```
+  ※ `handle` の一意インデックス（大文字小文字無視）も設定済み。
+
+## メール（送信 / 受信 / 問い合わせ）
+
+- **ドメイン**: `nanshiyo.com`（Cloudflare で DNS 管理）。
+- **受信**: Cloudflare Email Routing で `support@nanshiyo.com` → `syallman28@gmail.com` へ転送。
+- **送信（システムメール）**: **Resend + Supabase Custom SMTP**。登録確認メール等は `support@nanshiyo.com` から送信。
+  - Resend で `nanshiyo.com` をドメイン認証済み（DKIM/SPF/DMARC/MX を Cloudflare に設定済み）。
+  - SMTP: `smtp.resend.com` / 587(TLS) / user `resend` / パスワード=Resend APIキー。**APIキーはリポジトリに置かない**（Supabase/Gmail設定側に保存）。
+- **問い合わせ返信**: Gmail(`syallman28`) の「他のアドレスから送信（Send mail as）」で `support@nanshiyo.com` を追加・確認済み。差出人名「なんしよ運営事務局」。「受信したアドレスから返信」ON なので、`support@` 宛の転送メールに返信すると差出人が自動で `support@nanshiyo.com` になる。
+- **サイト内の問い合わせフォーム**: フッター（`#contact`）に設置。`sendContact()` が `mailto:support@nanshiyo.com` を件名・本文付きで起動。
+
 ## 今後の予定（参考）
 
 - アプリ化: PWA → 将来 Capacitor でストアアプリ
