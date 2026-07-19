@@ -915,22 +915,86 @@ async function geocode(q){
   }catch(e){console.warn(e);}
   return null;
 }
-// Returns up to `limit` candidate places so the user can pick the right one.
-async function geocodeList(q,{jpOnly=true,limit=8}={}){
-  const base="https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&accept-language=ja&limit="+limit;
-  const url=base+(jpOnly?"&countrycodes=jp":"")+"&q="+encodeURIComponent(q);
-  try{
-    const r=await fetch(url,{headers:{'Accept-Language':'ja'}});
-    const a=await r.json();
-    if(Array.isArray(a)&&a.length){
-      return a.map(x=>{
-        const nd=x.namedetails||{};
-        const name=(nd["name:ja"]||nd.name||x.name||(x.display_name||"").split(",")[0]||"").trim();
-        return {lat:parseFloat(x.lat),lng:parseFloat(x.lon),name,addr:(x.display_name||"").replace(/, 日本$/,"").trim(),type:x.type};
-      });
-    }
-  }catch(e){console.warn(e);}
-  return [];
+/* ---- 場所検索：複数エンジン併用で「出てこない」を極力なくす ---- */
+// 表記ゆれ吸収のための検索バリエーション（スペース有無など）
+function searchVariants(q){
+  const set=[q];
+  const noSpace=q.replace(/[\s\u3000]+/g,"");
+  if(noSpace&&noSpace!==q)set.push(noSpace);
+  const spaced=q.replace(/[\u30fb]/g,"");            // 中黒を除いた形
+  if(spaced&&spaced!==q)set.push(spaced);
+  return [...new Set(set)].slice(0,3);
+}
+async function fromNominatim(q,jpOnly){
+  const url="https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&accept-language=ja&limit=8"
+    +(jpOnly?"&countrycodes=jp":"")+"&q="+encodeURIComponent(q);
+  const r=await fetch(url,{headers:{"Accept-Language":"ja"}});
+  const a=await r.json();
+  return (Array.isArray(a)?a:[]).map(x=>{
+    const nd=x.namedetails||{};
+    const name=(nd["name:ja"]||nd.name||x.name||(x.display_name||"").split(",")[0]||"").trim();
+    return {lat:parseFloat(x.lat),lng:parseFloat(x.lon),name,addr:(x.display_name||"").replace(/, 日本$/,"").trim()};
+  });
+}
+async function fromPhoton(q,jpOnly,bias){
+  const b=bias?("&lat="+bias.lat+"&lon="+bias.lng):"";
+  const url="https://photon.komoot.io/api/?limit=8&lang=default"+b+"&q="+encodeURIComponent(q);
+  const r=await fetch(url);
+  const a=await r.json();
+  return (((a&&a.features)||[]).map(f=>{
+    const p=f.properties||{},c=(f.geometry&&f.geometry.coordinates)||[];
+    const parts=[p.name,p.street,p.district,p.city,p.state].filter(Boolean);
+    return {lat:c[1],lng:c[0],name:p.name||parts[0]||"",addr:parts.join(", "),cc:p.countrycode};
+  })).filter(x=>x.lat!=null&&!isNaN(x.lat)&&(!jpOnly||x.cc==="JP"));
+}
+function haversineKm(a,b){
+  const R=6371,rad=Math.PI/180;
+  const dLat=(b.lat-a.lat)*rad,dLng=(b.lng-a.lng)*rad;
+  const s=Math.sin(dLat/2)**2+Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+// 「店名 地名」の地名部分を座標化して検索の中心に使う
+async function areaBias(q){
+  const toks=q.split(/[\s\u3000,、]+/).filter(Boolean);
+  if(toks.length<2)return null;
+  for(const t of [toks[toks.length-1],toks[0]]){
+    try{const hit=(await fromNominatim(t,true))[0];if(hit&&!isNaN(hit.lat))return {lat:hit.lat,lng:hit.lng};}catch(e){}
+  }
+  return null;
+}
+function dedupePlaces(list){
+  const seen=new Set(),out=[];
+  for(const x of list){
+    if(x.lat==null||x.lng==null||isNaN(x.lat)||isNaN(x.lng))continue;
+    const key=x.lat.toFixed(3)+","+x.lng.toFixed(3);
+    if(seen.has(key))continue;seen.add(key);out.push(x);
+  }
+  return out;
+}
+// Nominatim（日本語名・優先）+ Photon（あいまい一致に強い）をまとめて返す
+async function geocodeList(q,{jpOnly=true,limit=10}={}){
+  const bias=await areaBias(q);          // 「店名 地名」の地名で中心を決める
+  const variants=searchVariants(q);
+  const jobs=[fromNominatim(q,jpOnly).catch(()=>[])];
+  for(const v of variants)jobs.push(fromPhoton(v,jpOnly,bias).catch(()=>[]));
+  let merged=dedupePlaces((await Promise.all(jobs)).flat());
+  if(bias&&merged.length){
+    merged.forEach(x=>x._d=haversineKm(bias,x));
+    const near=merged.filter(x=>x._d<=40);          // 指定地名から40km以内を優先
+    merged=(near.length?near:merged).sort((a,b)=>a._d-b._d);
+  }
+  return merged.slice(0,limit);
+}
+// 完全一致が無いときの保険：地名っぽい語だけで周辺にジャンプ
+async function areaFallback(q){
+  const tokens=q.split(/[\s\u3000,、]+/).filter(Boolean);
+  const tries=[...new Set([tokens[tokens.length-1],tokens[0]].filter(Boolean))];
+  for(const t of tries){
+    if(t===q)continue;
+    const r=await geocodeList(t,{jpOnly:true,limit:3});
+    if(r.length)return {area:t,results:r};
+  }
+  return null;
 }
 async function reverseGeocode(lat,lng){
   try{
@@ -1362,34 +1426,57 @@ function applyPinResult(item){
   if(hint)hint.textContent="✓ 選択しました。ここでよければ右上「この場所に決定」";
   autofillPrefFromPin(c);
 }
+function renderPinResults(list){
+  const box=document.getElementById('pinResults');
+  box.innerHTML="";
+  list.forEach(item=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='pin-result';
+    const nm=document.createElement('div');nm.className='r-name';nm.textContent='📍 '+(item.name||item.addr);
+    const ad=document.createElement('div');ad.className='r-addr';ad.textContent=item.addr;
+    b.appendChild(nm);b.appendChild(ad);
+    b.addEventListener('click',()=>applyPinResult(item));
+    box.appendChild(b);
+  });
+  box.classList.add('show');
+}
+// ヒントに Googleマップ導線を出す（そこで場所を確認して地図をタップしてもらう保険）
+function setHintWithMaps(q,lead,linkText){
+  const hint=document.getElementById('pinPageHint');
+  hint.innerHTML="";
+  const span=document.createElement('span');span.textContent=lead+" ";
+  const a=document.createElement('a');
+  a.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);
+  a.target="_blank";a.rel="noopener";a.textContent=linkText||"Googleマップで場所を探す →";
+  a.style.color="var(--accent)";a.style.fontWeight="800";
+  hint.appendChild(span);hint.appendChild(a);
+}
 async function pinSearchGo(){
   const q=document.getElementById('pinSearch').value.trim();
   const hint=document.getElementById('pinPageHint');
   const btn=document.getElementById('pinSearchBtn');
-  const box=document.getElementById('pinResults');
   clearPinResults();
   if(!q){hint.textContent="住所や店名・ホテル名を入力してください";return;}
   hint.textContent="🔍 検索中…";if(btn)btn.disabled=true;
   try{
     let list=await geocodeList(q);
-    // 日本国内で見つからなければ、国内限定を外して再検索（海外ホテル等の救済）
-    if(!list.length)list=await geocodeList(q,{jpOnly:false});
-    if(!list.length){
-      hint.textContent="見つかりませんでした。表記を変える（ひらがな/漢字/ローマ字、「店名 地名」の形）か、地図を直接タップしてください。";
+    if(!list.length)list=await geocodeList(q,{jpOnly:false});   // 海外も検索
+    if(list.length){
+      renderPinResults(list);
+      setHintWithMaps(q,
+        (list.length===1?"1件見つかりました。合っていればタップで確定。":"候補が"+list.length+"件。下から選んでください。")
+        +"違う場合は地図タップ、または","Googleマップで確認 →");
       return;
     }
-    if(list.length===1){applyPinResult(list[0]);return;}
-    hint.textContent="候補が複数あります。下の一覧から選んでください。";
-    list.forEach(item=>{
-      const b=document.createElement('button');
-      b.type='button';b.className='pin-result';
-      const nm=document.createElement('div');nm.className='r-name';nm.textContent='📍 '+(item.name||item.addr);
-      const ad=document.createElement('div');ad.className='r-addr';ad.textContent=item.addr;
-      b.appendChild(nm);b.appendChild(ad);
-      b.addEventListener('click',()=>applyPinResult(item));
-      box.appendChild(b);
-    });
-    box.classList.add('show');
+    // 完全一致なし → 地名で周辺にジャンプ（行き止まりを作らない）
+    const fb=await areaFallback(q);
+    if(fb&&fb.results.length){
+      renderPinResults(fb.results);
+      setHintWithMaps(q,`「${q}」は見つからず、近い地名「${fb.area}」を表示中。正確な場所は地図タップ、または`,"Googleマップで確認 →");
+      return;
+    }
+    // それでも無い → 地図タップ＋Googleマップ導線
+    setHintWithMaps(q,"見つかりませんでした。表記を変えるか、地図を直接タップ、または");
   }finally{if(btn)btn.disabled=false;}
 }
 document.getElementById('pinSearch').addEventListener('keydown',e=>{if(e.key==="Enter"){e.preventDefault();pinSearchGo();}});
