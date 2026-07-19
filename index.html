@@ -418,6 +418,11 @@
   .crop-wrap img{position:absolute;top:0;left:0;max-width:none;pointer-events:none}
   .crop-mask{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.85) inset,0 0 0 999px rgba(20,16,10,.28);pointer-events:none}
   .notif-list{margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto}
+  .ann-item{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+  .ann-item .ann-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .ann-item .ann-t{font-weight:800;font-size:.95rem;overflow-wrap:anywhere}
+  .ann-item .ann-w{font-size:.74rem;color:var(--ink-soft);white-space:nowrap}
+  .ann-item .ann-b{font-size:.88rem;color:var(--ink-soft);margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
   .notif-empty{text-align:center;color:var(--ink-soft);font-size:.9rem;padding:26px 0}
   .notif-item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--line);
     border-radius:14px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
@@ -848,6 +853,16 @@
   </div>
 </div>
 
+<!-- ANNOUNCEMENTS MODAL -->
+<div class="modal-bg mp-modal" id="announceBg">
+  <div class="modal" style="max-width:460px">
+    <button class="close" onclick="closeAnnounce()">&times;</button>
+    <h2 style="font-size:1.2rem">お知らせ</h2>
+    <p class="msub">運営からのお知らせ・新機能情報をお届けします。</p>
+    <div class="notif-list" id="announceList"></div>
+  </div>
+</div>
+
 <!-- NOTIFICATIONS MODAL -->
 <div class="modal-bg" id="notifBg">
   <div class="modal" style="max-width:460px">
@@ -934,6 +949,12 @@
     <button type="button" class="pin-back" onclick="closeMyPage()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">マイページ</span>
     <div class="full-page-head-icons">
+      <span class="head-icon-btn" onclick="openAnnounce()" title="お知らせ" aria-label="お知らせ">
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.5 21a1.8 1.8 0 0 1-3 0"></path>
+        </svg>
+        <span class="notif-dot" id="announceDot" style="display:none">0</span>
+      </span>
       <span class="head-icon-btn" onclick="openSettingsPopup()" title="設定" aria-label="設定">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>
@@ -2443,6 +2464,37 @@ function startNotifPoll(){
     },90000);
   }
 }
+
+/* ---------- お知らせ（運営からのアナウンス） ---------- */
+let ANNOUNCE=[];
+async function loadAnnouncements(){
+  if(!SERVER){ANNOUNCE=[];updateAnnounceBadge();return;}
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/announcements?select=id,title,body,created_at&order=created_at.desc&limit=50`,{headers:sbHeaders});
+    if(r.ok)ANNOUNCE=await r.json();
+  }catch(e){console.warn("announce",e);}
+  updateAnnounceBadge();
+}
+function announceSeen(){const v=parseInt(localStorage.getItem("nanshiyo_announce_seen")||"0");return isNaN(v)?0:v;}
+function announceUnread(){const s=announceSeen();return ANNOUNCE.filter(a=>(new Date(a.created_at).getTime()||0)>s).length;}
+function updateAnnounceBadge(){
+  const d=document.getElementById('announceDot');if(!d)return;
+  const n=announceUnread();
+  if(n>0){d.style.display="";d.textContent=n>9?"9+":String(n);}else d.style.display="none";
+}
+function renderAnnounce(){
+  const el=document.getElementById('announceList');if(!el)return;
+  if(!ANNOUNCE.length){el.innerHTML='<div class="notif-empty">お知らせはまだありません。</div>';return;}
+  el.innerHTML=ANNOUNCE.map(a=>`<div class="ann-item"><div class="ann-h"><span class="ann-t">${esc(a.title||"")}</span><span class="ann-w">${esc(fmtWhen(a.created_at))}</span></div>${a.body?`<div class="ann-b">${esc(a.body)}</div>`:""}</div>`).join('');
+}
+function openAnnounce(){
+  document.getElementById('announceBg').classList.add('open');
+  renderAnnounce();
+  localStorage.setItem("nanshiyo_announce_seen",String(Date.now()));
+  updateAnnounceBadge();
+}
+function closeAnnounce(){document.getElementById('announceBg').classList.remove('open');}
+document.getElementById('announceBg').addEventListener('click',e=>{if(e.target.id==="announceBg")closeAnnounce();});
 function togglePass(){const i=document.getElementById('authPass'),b=document.getElementById('passToggle');
   if(i.type==="password"){i.type="text";b.textContent="隠す";}else{i.type="password";b.textContent="表示";}}
 async function handleAuthRedirect(){
@@ -3269,6 +3321,7 @@ async function init(){
   maybePromptUsername();
   refreshNotifs();
   startNotifPoll();
+  loadAnnouncements();
 }
 init();
 
