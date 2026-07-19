@@ -57,6 +57,9 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - `AMAZON_ASSOCIATE_TAG` … Amazonアソシエイト（要審査）。例 `yourtag-22`。`amazonSearch()` の `&tag=` に付与。
 - `ADSENSE_CLIENT` / `ADSENSE_SLOT` … Google AdSense（要審査）。入れると投稿一覧に6件ごとに広告枠を表示（`adSlotHTML()`/`activateAds()`、スクリプトは動的読み込み）。
   - ※AdSense審査時はサイト所有確認用スニペットを `<head>` に貼る必要が出る場合あり。
+- `DIRECT_ADS`（配列）… **スポンサー直販の広告枠**。スポンサーから「広告枠を使わせて」依頼が来たら、配列に1件足すだけで投稿一覧に表示（6件ごと、複数はローテーション）。
+  - 画像バナー: `{ img, url, title?, label? }`／自由なHTML・広告タグ: `{ html, label? }`。`PR` ラベルと `rel="noopener sponsored"` 付与済み。
+  - 優先順位: `DIRECT_ADS` があればそれを表示、無ければ AdSense。両方空なら枠は出ない（`slotHTMLForIndex()`/`directAdHTML()`）。
 
 送客ボタン: `affButtonsHTML()`。travel → 楽天トラベル(宿)＋楽天市場、その他 → 楽天市場＋Amazon。投稿カードとガチャ結果に表示。`PR` ラベル＋`rel="sponsored"` 付与済み（規約・景表法対策）。
 

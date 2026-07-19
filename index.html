@@ -203,7 +203,14 @@
   .aff-btn.a{color:#c45500;background:#fff3e8;border-color:#ffd9b3}
   .ad-slot{grid-column:1/-1;background:var(--bg2);border:1px dashed var(--line);border-radius:14px;
     padding:22px 10px 10px;min-height:90px;position:relative;overflow:hidden}
-  .ad-slot .ad-tag{position:absolute;top:6px;left:10px;font-size:.6rem;font-weight:800;color:var(--ink-soft);letter-spacing:.05em}
+  .ad-slot .ad-tag{position:absolute;top:6px;left:10px;font-size:.6rem;font-weight:800;color:var(--ink-soft);letter-spacing:.05em;
+    background:rgba(255,255,255,.85);border-radius:5px;padding:1px 6px;z-index:2}
+  /* スポンサー直販の広告枠（画像バナー） */
+  .ad-slot.direct{background:#fff;border:1px solid var(--line);padding:0;min-height:0}
+  .ad-slot.direct .ad-banner{display:block;position:relative;text-decoration:none;color:inherit}
+  .ad-slot.direct .ad-banner img{display:block;width:100%;height:auto;max-height:280px;object-fit:cover}
+  .ad-slot.direct .ad-title{display:block;padding:10px 14px;font-weight:800;font-size:.9rem;color:var(--ink)}
+  .ad-slot.direct:hover{box-shadow:var(--shadow-sm)}
   .leaflet-container{font:inherit}
   .pin-page{position:fixed;inset:0;z-index:220;background:var(--bg);display:none;flex-direction:column}
   .pin-page.open{display:flex}
@@ -1346,9 +1353,10 @@ function render(){
     return;
   }
   const html=[];
+  let slotIdx=0;
   list.forEach((p,i)=>{
     html.push(cardHTML(p));
-    if((i+1)%6===0){const ad=adSlotHTML();if(ad)html.push(ad);}
+    if((i+1)%6===0){const ad=slotHTMLForIndex(slotIdx);if(ad){html.push(ad);slotIdx++;}}
   });
   grid.innerHTML=html.join('');
   activateAds();
@@ -1376,6 +1384,19 @@ const RAKUTEN_AFFILIATE_ID="";     // 楽天アフィリエイト（審査なし
 const AMAZON_ASSOCIATE_TAG="";     // Amazonアソシエイト（要審査）例: yourtag-22
 const ADSENSE_CLIENT="";           // Google AdSense（要審査）例: ca-pub-1234567890123456
 const ADSENSE_SLOT="";             // 記事内広告のスロットID 例: 1234567890
+
+/* ★スポンサー直販の広告枠★
+   スポンサーから「広告枠を使わせて」と依頼が来たら、下の配列に1件足すだけで投稿一覧に表示されます。
+   複数入れると6件ごとに順番に出ます（ローテーション）。空の間は AdSense（あれば）を表示。
+   使い方はどちらでもOK:
+     A) 画像バナー: { img:"画像URL", url:"リンク先URL", title:"スポンサー名(任意)", label:"PR" }
+     B) 自由なHTML/広告タグを丸ごと: { html:"<a href=...><img ...></a>" }
+   例:
+     { img:"https://example.com/banner.jpg", url:"https://sponsor.example.com", title:"〇〇温泉", label:"PR" },
+*/
+const DIRECT_ADS=[
+  // ここにスポンサー広告を追加（今は空 = 直販広告なし）
+];
 
 function rakutenAff(url){
   if(!RAKUTEN_AFFILIATE_ID)return url;
@@ -1429,6 +1450,32 @@ function activateAds(){
   if(!ADSENSE_CLIENT||!ADSENSE_SLOT)return;
   loadAdsense();
   try{document.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(()=>{(window.adsbygoogle=window.adsbygoogle||[]).push({});});}catch(e){console.warn('adsense',e);}
+}
+
+/* スポンサー直販の広告枠。DIRECT_ADS があればそれを優先し、なければ AdSense を出す。 */
+function directAdHTML(ad){
+  if(!ad)return "";
+  const label=esc(ad.label||"PR");
+  if(ad.html){
+    return `<div class="ad-slot direct"><span class="ad-tag">${label}</span>${ad.html}</div>`;
+  }
+  if(ad.img&&ad.url){
+    const title=ad.title?`<span class="ad-title">${esc(ad.title)}</span>`:"";
+    return `<div class="ad-slot direct"><span class="ad-tag">${label}</span>`
+      +`<a class="ad-banner" href="${esc(ad.url)}" target="_blank" rel="noopener sponsored">`
+      +`<img src="${esc(ad.img)}" alt="${esc(ad.title||'広告')}" loading="lazy">${title}</a></div>`;
+  }
+  return "";
+}
+/* 何番目の広告枠か（0,1,2…）を渡すと、直販広告をローテーションで返す。無ければAdSense。 */
+function slotHTMLForIndex(slotIdx){
+  const ads=Array.isArray(DIRECT_ADS)?DIRECT_ADS.filter(a=>a&&(a.html||(a.img&&a.url))):[];
+  if(ads.length){const h=directAdHTML(ads[slotIdx%ads.length]);if(h)return h;}
+  return adSlotHTML();
+}
+function hasAnyAds(){
+  const ads=Array.isArray(DIRECT_ADS)?DIRECT_ADS.filter(a=>a&&(a.html||(a.img&&a.url))):[];
+  return ads.length>0||(ADSENSE_CLIENT&&ADSENSE_SLOT);
 }
 
 function cardHTML(p){
