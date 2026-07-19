@@ -49,6 +49,22 @@ git push origin main   # → GitHub Pages が自動デプロイ
   ```
 - Claudeは毎回の変更後、上記コマンドを案内すること。
 
+## 収益化（アフィリエイト）
+
+- 投稿カード／ガチャ結果に **楽天アフィリエイト** の送客ボタンを表示（`affButtonsHTML()`）。
+  - travel → 楽天トラベル（宿）＋楽天市場、food/drink → 周辺の宿＋楽天市場、その他 → 楽天市場。
+- `index.html` の `const RAKUTEN_AFFILIATE_ID=""` に楽天アフィリエイトID（`affiliate.rakuten.co.jp` で無料・即時取得）を入れると、全リンクが自動で成果報酬化される。
+  - 形式: `https://hb.afl.rakuten.co.jp/hgc/{ID}/?pc={enc}&m={enc}`。
+  - IDが空でも通常の楽天リンクとして動作する（成果は付かない）。**公開してよいIDなのでコードに直書きOK。**
+- 表示には `PR` ラベルと `rel="sponsored"` を付与済み（規約・景表法対策）。
+- 今後の候補: Amazonアソシエイト/A8.net（要審査）、金融系（楽天カード/証券は高単価）、AdSense（要審査・要トラフィック）。
+
+## Google Maps / Places
+
+- `const GOOGLE_MAPS_KEY` に参照元制限付きキーを設定済み。**Places API (New) が有効**である必要あり。
+- 検索は Google Places 優先 → OSM(Nominatim+Photon) フォールバック。
+- 課金対策: Places API (New) の1日ハードキャップはGoogle仕様で不可。代わりに **予算アラート（月¥1,000）** を設定済み。現在は無料トライアル（クレジット/90日、超過時は自動停止・自動課金なし）。
+
 ## 今後の予定（参考）
 
 - アプリ化: PWA → 将来 Capacitor でストアアプリ
