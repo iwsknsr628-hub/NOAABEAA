@@ -423,6 +423,23 @@
   .ann-item .ann-t{font-weight:800;font-size:.95rem;overflow-wrap:anywhere}
   .ann-item .ann-w{font-size:.74rem;color:var(--ink-soft);white-space:nowrap}
   .ann-item .ann-b{font-size:.88rem;color:var(--ink-soft);margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+  .search-sec{font-size:1rem;margin:18px 2px 12px}
+  .acct-list{display:flex;flex-direction:column;gap:8px}
+  .acct-empty{color:var(--ink-soft);font-size:.9rem;padding:12px 2px}
+  .acct-row{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);
+    border-radius:14px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
+  .acct-row:hover{background:var(--bg2);border-color:var(--accent)}
+  .acct-av{flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:var(--bg2) center/cover no-repeat;
+    border:1px solid var(--line)}
+  .acct-tx{min-width:0;flex:1}
+  .acct-tx .acct-name{font-weight:800;font-size:.95rem;overflow-wrap:anywhere}
+  .acct-tx .acct-handle{font-size:.8rem;color:var(--accent);font-weight:700}
+  .acct-tx .acct-bio{font-size:.8rem;color:var(--ink-soft);margin-top:2px;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .handle-input{display:flex;align-items:center;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .handle-input span{padding:0 4px 0 12px;color:var(--ink-soft);font-weight:800}
+  .handle-input input{flex:1;border:none;outline:none;padding:11px 12px 11px 2px;font-family:inherit;font-size:1rem;background:transparent}
+  .mp-handle-view{font-size:.85rem;color:var(--accent);font-weight:700;margin-top:2px}
   .notif-empty{text-align:center;color:var(--ink-soft);font-size:.9rem;padding:26px 0}
   .notif-item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--line);
     border-radius:14px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
@@ -848,8 +865,12 @@
       <label>ユーザー名 <span class="req">必須</span></label>
       <input type="text" id="unameInput" maxlength="40" placeholder="例: たびすき">
     </div>
-    <p id="unameMsg" style="font-size:.82rem;color:var(--ink-soft);min-height:1.1em;margin:0 0 10px"></p>
-    <button class="btn btn-primary" style="width:100%" onclick="saveUsername()">この名前で決定</button>
+    <div class="field">
+      <label>ユーザーID（@ハンドル・任意）</label>
+      <div class="handle-input"><span>@</span><input type="text" id="unameHandle" maxlength="20" placeholder="taro_123（検索に使えます）" autocomplete="off"></div>
+    </div>
+    <p id="unameMsg" style="font-size:.82rem;color:var(--ink-soft);min-height:1.1em;margin:8px 0 10px"></p>
+    <button class="btn btn-primary" style="width:100%" onclick="saveUsername()">この内容で決定</button>
   </div>
 </div>
 
@@ -904,6 +925,7 @@
       <div class="mp-section" style="text-align:center">
         <div id="pvAvatar" class="avatar-lg" style="margin:0 auto"></div>
         <h2 id="pvName" style="margin-top:12px;font-size:1.15rem">プロフィール</h2>
+        <div id="pvHandle" class="mp-handle-view" style="text-align:center"></div>
         <div class="ig-stats">
           <div><b id="pvStatPosts">0</b><span>投稿</span></div>
           <div><b id="pvStatFollowers">0</b><span>フォロワー</span></div>
@@ -935,9 +957,13 @@
   <div class="full-page-body">
     <div class="mp-wrap">
       <div class="search-page-bar">
-        <input id="searchPageInput" type="text" placeholder="キーワードで検索（店名・エリア・ジャンルなど）" autocomplete="off">
+        <input id="searchPageInput" type="text" placeholder="キーワード / @ユーザーID / 名前で検索" autocomplete="off">
       </div>
-      <h3 id="searchSecTitle" style="font-size:1rem;margin:18px 2px 12px">アクセスの多い投稿</h3>
+      <div id="searchUserSec" style="display:none">
+        <h3 class="search-sec">アカウント</h3>
+        <div class="acct-list" id="searchUserList"></div>
+      </div>
+      <h3 id="searchSecTitle" class="search-sec">アクセスの多い投稿</h3>
       <div class="grid" id="searchGrid" style="gap:14px"></div>
     </div>
   </div>
@@ -972,6 +998,7 @@
           <h2 id="mpNameView" style="font-size:1.15rem">ニックネーム</h2>
           <span class="mp-edit-pen" onclick="openProfileEditPopup()" title="プロフィールを編集">編集</span>
         </div>
+        <div id="mpHandleView" class="mp-handle-view"></div>
         <div class="ig-stats">
           <div><b id="mpStatPosts">0</b><span>投稿</span></div>
           <div><b id="mpStatFollowers">0</b><span>フォロワー</span></div>
@@ -1005,6 +1032,11 @@
       <span id="mpAvatarMsg" style="display:block;font-size:.78rem;color:var(--ink-soft);margin-top:4px"></span>
     </div>
     <div class="field"><label>表示名</label><input type="text" id="mpName" maxlength="40" placeholder="ニックネーム"></div>
+    <div class="field">
+      <label>ユーザーID（@ハンドル・検索に使えます）</label>
+      <div class="handle-input"><span>@</span><input type="text" id="mpHandle" maxlength="20" placeholder="taro_123（英小文字・数字・_）" autocomplete="off"></div>
+      <span id="mpHandleMsg" style="display:block;font-size:.78rem;color:var(--ink-soft);margin-top:4px">3〜20文字。空欄でもOKです。</span>
+    </div>
     <div class="field"><label>自己紹介</label><textarea id="mpBio" maxlength="300" placeholder="ひとこと自己紹介（300字まで）"></textarea></div>
     <div class="field"><label>Instagram</label><input type="text" id="mpInstagram" placeholder="ユーザー名 または URL"></div>
     <div class="field"><label>TikTok</label><input type="text" id="mpTiktok" placeholder="ユーザー名 または URL"></div>
@@ -2298,6 +2330,7 @@ function promptUsername(){
   const cur=(session.name||"").trim();
   const local=((session.email||"").split("@")[0]||"").toLowerCase();
   inp.value=(cur&&cur.toLowerCase()!==local)?cur:"";
+  const h=document.getElementById('unameHandle');if(h)h.value=(myProfile&&myProfile.handle)||"";
   const msg=document.getElementById('unameMsg');if(msg)msg.textContent="";
   document.getElementById('unameBg').classList.add('open');
   setTimeout(()=>{try{inp.focus();}catch(e){}},100);
@@ -2309,14 +2342,21 @@ async function saveUsername(){
   const msg=document.getElementById('unameMsg');
   if(name.length<2){msg.style.color="#d33";msg.textContent="2文字以上で入力してください";return;}
   if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため保存できません";return;}
+  const handle=normHandle((document.getElementById('unameHandle')||{}).value);
+  if(handle){
+    if(!validHandle(handle)){msg.style.color="#d33";msg.textContent="@ユーザーIDは英小文字・数字・_ の3〜20文字にしてください";return;}
+    if(await handleTaken(handle)){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";return;}
+  }
   const token=await freshToken();
   if(!token){msg.style.color="#d33";msg.textContent="ログインの有効期限が切れました。再度ログインしてください";return;}
   msg.style.color="";msg.textContent="保存中…";
   try{
     try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(token),body:JSON.stringify({data:{name}})});}catch(e){}
     const row={user_id:session.uid,name,updated_at:new Date().toISOString()};
+    if(handle)row.handle=handle;
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
       headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
+    if(!r.ok&&r.status===409){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";return;}
     if(r.ok){myProfile=(await r.json())[0]||myProfile;}
     session.name=name;saveSession(session);
     updateAcctUI();
@@ -2522,6 +2562,17 @@ async function loadMyProfile(){
   try{const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=eq.${session.uid}&select=*`,{headers:sbHeaders});
     if(r.ok){myProfile=(await r.json())[0]||null;}}catch(e){console.warn(e);}
 }
+/* ---------- @ハンドル（一意のユーザーID） ---------- */
+function normHandle(v){return (v||"").trim().replace(/^@+/,"").toLowerCase();}
+function validHandle(h){return /^[a-z0-9_]{3,20}$/.test(h);}
+async function handleTaken(h){
+  if(!SERVER||!h)return false;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?handle=eq.${encodeURIComponent(h)}&select=user_id`,{headers:sbHeaders});
+    if(r.ok){const rows=await r.json();return rows.some(x=>!session||x.user_id!==session.uid);}
+  }catch(e){}
+  return false;
+}
 function socialUrl(kind,v){
   if(!v)return null;v=(""+v).trim();if(!v)return null;
   if(/^https?:\/\//i.test(v))return v;
@@ -2672,6 +2723,7 @@ async function isFollowing(uid){
 function renderMyProfileView(){
   const p=myProfile||{};
   document.getElementById('mpNameView').textContent=p.name||currentName()||"匿名";
+  const mh=document.getElementById('mpHandleView');if(mh)mh.textContent=p.handle?("@"+p.handle):"";
   document.getElementById('mpBioView').textContent=p.bio||"自己紹介はまだ設定されていません。";
   const av=document.getElementById('mpAvatar');
   if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="";}
@@ -2710,29 +2762,70 @@ function postMatches(p,q){
     .filter(Boolean).join(' ').toLowerCase();
   return hay.includes(q);
 }
-function renderSearchResults(){
+async function searchAccounts(q){
+  if(!SERVER)return [];
+  const byHandle=q.startsWith('@');
+  const term=byHandle?q.replace(/^@+/,'').toLowerCase():q.toLowerCase();
+  if(!term)return [];
+  const v=encodeURIComponent(term);
+  const sel="select=user_id,name,handle,avatar_url,bio&limit=20";
+  const url=byHandle
+    ? `${SUPABASE_URL}/rest/v1/profiles?handle=ilike.*${v}*&${sel}`
+    : `${SUPABASE_URL}/rest/v1/profiles?or=(name.ilike.*${v}*,handle.ilike.*${v}*)&${sel}`;
+  try{const r=await fetch(url,{headers:sbHeaders});if(r.ok)return await r.json();}catch(e){console.warn("acct search",e);}
+  return [];
+}
+function accountRowHTML(u){
+  const av=u.avatar_url?`background-image:url(${esc(u.avatar_url)})`:'';
+  const handle=u.handle?('@'+esc(u.handle)):'';
+  return `<div class="acct-row" data-uid="${esc(String(u.user_id))}" data-name="${esc(u.name||'')}">
+    <div class="acct-av" style="${av}"></div>
+    <div class="acct-tx"><div class="acct-name">${esc(u.name||'匿名')}</div>${handle?`<div class="acct-handle">${handle}</div>`:''}${u.bio?`<div class="acct-bio">${esc(u.bio)}</div>`:''}</div>
+  </div>`;
+}
+let searchSeq=0,searchDeb=null;
+async function renderSearchResults(){
   const grid=document.getElementById('searchGrid');if(!grid)return;
   const title=document.getElementById('searchSecTitle');
-  const q=(document.getElementById('searchPageInput').value||'').trim().toLowerCase();
-  let list;
+  const userSec=document.getElementById('searchUserSec');
+  const userList=document.getElementById('searchUserList');
+  const q=(document.getElementById('searchPageInput').value||'').trim();
   if(q){
-    list=POSTS.filter(p=>postMatches(p,q));
-    if(title)title.textContent=`「${q}」の検索結果（${list.length}）`;
+    const ql=q.toLowerCase();
+    const list=POSTS.filter(p=>postMatches(p,ql));
+    if(title)title.textContent=`「${q}」の投稿（${list.length}）`;
+    grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
+    if(userSec)userSec.style.display="";
+    if(userList)userList.innerHTML='<div class="acct-empty">検索中…</div>';
+    const seq=++searchSeq;
+    const users=await searchAccounts(q);
+    if(seq!==searchSeq)return;
+    if(userList)userList.innerHTML=users.length?users.map(accountRowHTML).join(''):'<div class="acct-empty">該当するアカウントはありません。</div>';
   }else{
-    list=[...POSTS].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,20);
+    ++searchSeq;
+    if(userSec)userSec.style.display="none";
+    if(userList)userList.innerHTML="";
+    const list=[...POSTS].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,20);
     if(title)title.textContent="アクセスの多い投稿";
+    grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
   }
-  grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
 }
 (function(){
   const inp=document.getElementById('searchPageInput');
-  if(inp)inp.addEventListener('input',renderSearchResults);
+  if(inp)inp.addEventListener('input',()=>{clearTimeout(searchDeb);searchDeb=setTimeout(renderSearchResults,220);});
 })();
 document.getElementById('searchGrid').addEventListener('click',e=>{handleCardInteractions(e,renderSearchResults);});
+document.getElementById('searchUserList').addEventListener('click',e=>{
+  const row=e.target.closest('.acct-row');
+  if(row)openProfileView(row.dataset.uid,row.dataset.name);
+});
 
 function openProfileEditPopup(){
   const p=myProfile||{};
   document.getElementById('mpName').value=p.name||currentName()||"";
+  document.getElementById('mpHandle').value=p.handle||"";
+  document.getElementById('mpHandleMsg').textContent="3〜20文字（英小文字・数字・_）。空欄でもOKです。";
+  document.getElementById('mpHandleMsg').style.color="var(--ink-soft)";
   document.getElementById('mpBio').value=p.bio||"";
   document.getElementById('mpInstagram').value=p.instagram||"";
   document.getElementById('mpTiktok').value=p.tiktok||"";
@@ -2801,14 +2894,19 @@ async function saveMyProfile(){
   const btn=document.getElementById('mpSave'),msg=document.getElementById('mpMsg');
   btn.disabled=true;btn.textContent="保存中…";msg.style.color="";msg.textContent="";
   try{
+    const handle=normHandle(document.getElementById('mpHandle').value);
+    if(handle){
+      if(!validHandle(handle)){msg.style.color="#d33";msg.textContent="ユーザーIDは英小文字・数字・_ の3〜20文字にしてください";btn.disabled=false;btn.textContent="保存する";return;}
+      if(await handleTaken(handle)){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";btn.disabled=false;btn.textContent="保存する";return;}
+    }
     let avatar_url=myProfile&&myProfile.avatar_url||null;
     if(pendingMpAvatar){msg.textContent="画像を送信中…";avatar_url=await uploadToBucket("avatars",pendingMpAvatar);}
     const name=document.getElementById('mpName').value.trim()||currentName();
-    const row={user_id:session.uid,name,bio:document.getElementById('mpBio').value.trim()||null,avatar_url,
+    const row={user_id:session.uid,name,handle:handle||null,bio:document.getElementById('mpBio').value.trim()||null,avatar_url,
       instagram:mpVal('mpInstagram'),tiktok:mpVal('mpTiktok'),x:mpVal('mpX'),youtube:mpVal('mpYoutube'),website:mpVal('mpWebsite'),updated_at:new Date().toISOString()};
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
       headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
-    if(!r.ok){const e=await r.json();throw new Error(e.message||"保存に失敗しました");}
+    if(!r.ok){const e=await r.json();throw new Error(r.status===409?"その@ユーザーIDは既に使われています":(e.message||"保存に失敗しました"));}
     myProfile=(await r.json())[0];
     session.name=name;saveSession(session);
     updateAcctUI();
@@ -2895,6 +2993,7 @@ async function openProfileView(userId,fallbackName){
   pvUserId=userId||null;
   const page=document.getElementById('pvPage');
   document.getElementById('pvName').textContent=fallbackName||"プロフィール";
+  {const pvh=document.getElementById('pvHandle');if(pvh)pvh.textContent="";}
   document.getElementById('pvBio').textContent="読み込み中…";
   document.getElementById('pvLinks').innerHTML="";
   document.getElementById('pvStatPosts').textContent="—";
@@ -2933,8 +3032,10 @@ async function openProfileView(userId,fallbackName){
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=eq.${userId}&select=*`,{headers:sbHeaders});
     const p=(r.ok?await r.json():[])[0];
-    if(!p){document.getElementById('pvName').textContent=fallbackName||"匿名";document.getElementById('pvBio').textContent="プロフィール未設定です。";return;}
+    const pvh=document.getElementById('pvHandle');
+    if(!p){document.getElementById('pvName').textContent=fallbackName||"匿名";if(pvh)pvh.textContent="";document.getElementById('pvBio').textContent="プロフィール未設定です。";return;}
     document.getElementById('pvName').textContent=p.name||fallbackName||"匿名";
+    if(pvh)pvh.textContent=p.handle?("@"+p.handle):"";
     if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}
 
     if(p.is_private&&!isSelf&&!amFollowing){
