@@ -28,6 +28,20 @@
   .nav-links{display:flex;gap:20px}
   .nav-links a{color:var(--ink-soft);text-decoration:none;font-size:.92rem;font-weight:600;transition:color .2s}
   .nav-links a:hover{color:var(--accent)}
+
+  /* BOTTOM TAB BAR（タスクバー） */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;align-items:flex-end;justify-content:space-around;
+    gap:4px;background:rgba(255,250,243,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    box-shadow:0 -3px 14px rgba(20,16,10,.06);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+  .tabbar .tab{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;
+    border:none;color:var(--ink-soft);font-family:inherit;font-weight:800;font-size:.7rem;cursor:pointer;
+    padding:4px 0;border-radius:12px;transition:color .15s}
+  .tabbar .tab .ti{font-size:1.25rem;line-height:1}
+  .tabbar .tab:hover,.tabbar .tab:active{color:var(--accent)}
+  .tabbar .tab-post .ti{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:46px;height:46px;
+    border-radius:50%;display:grid;place-items:center;font-size:1.5rem;font-weight:900;box-shadow:var(--shadow);margin-top:-18px}
+  .tabbar .tab-post{color:var(--accent)}
+  body{padding-bottom:74px}
   @media(max-width:720px){.nav-links{display:none}}
 
   .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:1rem;
@@ -441,11 +455,17 @@
         <a href="#board">みんなの投稿</a>
         <a href="#gacha">ガチャ</a>
       </nav>
-      <button class="btn btn-ghost btn-sm" id="acctBtn" onclick="openAuth()">ログイン / 登録</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal()">＋ 投稿する</button>
+      <button class="btn btn-ghost btn-sm" id="acctBtnTop" onclick="openAuth()">ログイン / 登録</button>
     </div>
   </div>
 </header>
+
+<!-- BOTTOM TAB BAR（タスクバー） -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab" onclick="goHome()"><span class="ti">🏠</span><span class="tl">ホーム</span></button>
+  <button class="tab tab-post" onclick="openModal()"><span class="ti">＋</span><span class="tl">投稿</span></button>
+  <button class="tab" id="tabAcct" onclick="openAuth()"><span class="ti">🔑</span><span class="tl">ログイン</span></button>
+</nav>
 
 <!-- HERO -->
 <section class="hero">
@@ -1724,12 +1744,14 @@ async function handleCardInteractions(e,rerender){
   const ed=e.target.closest('.edit-btn');
   if(ed){const p=POSTS.find(x=>x.id===ed.dataset.id);if(p){closePostView();openEditModal(p);}return true;}
   const l=e.target.closest('.like');
-  if(l){const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return true;
+  if(l){if(!requireLogin("いいねするにはログインが必要です"))return true;
+    const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return true;
     p.likes=(p.likes||0)+1;if(rerender)rerender();else render();
     if(SERVER){try{await likeServer(p.id);}catch(err){console.warn(err);}}
     return true;}
   const r=e.target.closest('.report');
-  if(r){const p=POSTS.find(x=>x.id===r.dataset.id);if(!p)return true;
+  if(r){if(!requireLogin("通報するにはログインが必要です"))return true;
+    const p=POSTS.find(x=>x.id===r.dataset.id);if(!p)return true;
     if(!confirm("この投稿を運営に通報しますか？（不適切・スパムなど）"))return true;
     if(SERVER){try{await reportServer(p.id);}catch(err){console.warn(err);}}
     r.textContent="✓ 通報済み";r.style.opacity="1";r.style.pointerEvents="none";return true;}
@@ -2004,9 +2026,34 @@ function sessionFrom(email,name,d){
     expires_at:d.expires_at||(Math.floor(Date.now()/1000)+(d.expires_in||3600)),uid:d.user&&d.user.id};
 }
 function updateAcctUI(){
-  const btn=document.getElementById('acctBtn');if(!btn)return;
-  if(session){btn.textContent="👤 "+(currentName()||"ログイン中");btn.onclick=openMyPage;btn.title="マイページ";}
-  else{btn.textContent="ログイン / 登録";btn.onclick=openAuth;btn.title="";}
+  /* ヘッダー右上のログインボタン（ログアウト時のみ表示） */
+  const top=document.getElementById('acctBtnTop');
+  if(top){
+    if(session){top.style.display="none";}
+    else{top.style.display="";top.textContent="ログイン / 登録";top.onclick=openAuth;}
+  }
+  /* 下タブバーのアカウントボタン */
+  const tab=document.getElementById('tabAcct');
+  if(tab){
+    const ti=tab.querySelector('.ti'),tl=tab.querySelector('.tl');
+    if(session){if(ti)ti.textContent="👤";if(tl)tl.textContent="マイページ";tab.onclick=openMyPage;tab.title="マイページ";}
+    else{if(ti)ti.textContent="🔑";if(tl)tl.textContent="ログイン";tab.onclick=openAuth;tab.title="ログイン / 登録";}
+  }
+}
+function goHome(){
+  try{closeMyPage();}catch(e){}
+  try{closeProfileView();}catch(e){}
+  try{closePostView();}catch(e){}
+  try{closeModal();}catch(e){}
+  const b=document.getElementById('board');
+  if(b)b.scrollIntoView({behavior:'smooth',block:'start'});else window.scrollTo({top:0,behavior:'smooth'});
+}
+/* ログイン必須の操作用ガード。未ログインなら案内してログイン画面へ。 */
+function requireLogin(msg){
+  if(session)return true;
+  showToast(msg||"この操作にはログインが必要です");
+  openAuth();
+  return false;
 }
 function openAuth(){authMode="signup";applyAuthMode();document.getElementById('authMsg').textContent="";document.getElementById('authBg').classList.add('open');}
 function closeAuth(){document.getElementById('authBg').classList.remove('open');}
