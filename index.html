@@ -2624,11 +2624,30 @@ async function handleAuthRedirect(){
     const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+at}});
     const u=await r.json();
     const email=u.email||"";
-    const name=(u.user_metadata&&u.user_metadata.name)||email.split("@")[0];
-    saveSession({email,name,access_token:at,refresh_token:rt,expires_at:Math.floor(Date.now()/1000)+(parseInt(p.get("expires_in"))||3600),uid:u.id});
-    loadMyProfile();
+    saveSession({email,name:email.split("@")[0],access_token:at,refresh_token:rt,expires_at:Math.floor(Date.now()/1000)+(parseInt(p.get("expires_in"))||3600),uid:u.id});
+    await loadMyProfile();
+    let assignedRandom=false;
+    if(!myProfile||!(myProfile.handle||"").trim()){
+      /* Googleなどの新規ユーザー：ランダムな表示名と@IDを自動付与（後から変更可） */
+      const base=randomHandle();                 // user_xxxxxxxx
+      const handle=(myProfile&&myProfile.handle)||base;
+      const name=(myProfile&&myProfile.name)||("ユーザー"+base.slice(5));
+      try{
+        const pr=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(at),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({user_id:u.id,name,handle,updated_at:new Date().toISOString()})});
+        if(pr.ok){myProfile=(await pr.json())[0]||myProfile;}
+      }catch(e){}
+      try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(at),body:JSON.stringify({data:{name}})});}catch(e){}
+      session.name=name;saveSession(session);
+      assignedRandom=true;
+    }else{
+      session.name=myProfile.name||session.name;saveSession(session);
+    }
+    updateAcctUI();updateNotifBadge();
     history.replaceState(null,"",location.pathname);
-    setTimeout(()=>alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nメール認証が完了し、そのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。"),300);
+    const done=assignedRandom
+      ?"【なんしよ運営事務局】\nGoogleでログインしました！\n\nユーザー名は仮のランダムなものを設定しています。\nマイページ →（右上メニュー）→ プロフィール編集 から、いつでも変更できます。"
+      :"【なんしよ運営事務局】\nおかえりなさい！Googleでログインしました。";
+    setTimeout(()=>alert(done),300);
   }catch(e){console.warn(e);}
 }
 updateAcctUI();
