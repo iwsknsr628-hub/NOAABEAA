@@ -2396,6 +2396,8 @@ async function saveUsername(){
   if(!handle){msg.style.color="#d33";msg.textContent="ユーザーID（@〜）を入力してください";return;}
   if(!validHandle(handle)){msg.style.color="#d33";msg.textContent="@ユーザーIDは英小文字・数字・_ の3〜20文字にしてください";return;}
   if(await handleTaken(handle)){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";return;}
+  const idChanged=(name!==((myProfile&&myProfile.name)||""))||(handle!==((myProfile&&myProfile.handle)||""));
+  if(idChanged){const left=usernameCooldownLeft();if(left>0){msg.style.color="#d33";msg.textContent="ユーザー名・IDの変更は10日に1回までです。あと約"+left+"日お待ちください。";return;}}
   const token=await freshToken();
   if(!token){msg.style.color="#d33";msg.textContent="ログインの有効期限が切れました。再度ログインしてください";return;}
   msg.style.color="";msg.textContent="保存中…";
@@ -2403,6 +2405,7 @@ async function saveUsername(){
     try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(token),body:JSON.stringify({data:{name}})});}catch(e){}
     const row={user_id:session.uid,name,updated_at:new Date().toISOString()};
     if(handle)row.handle=handle;
+    if(idChanged)row.username_changed_at=new Date().toISOString();
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
       headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
     if(!r.ok&&r.status===409){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";return;}
@@ -2665,6 +2668,13 @@ async function loadMyProfile(){
 function normHandle(v){return (v||"").trim().replace(/^@+/,"").toLowerCase();}
 function validHandle(h){return /^[a-z0-9_]{3,20}$/.test(h);}
 function randomHandle(){const s="abcdefghijklmnopqrstuvwxyz0123456789";let r="";for(let i=0;i<8;i++)r+=s[Math.floor(Math.random()*s.length)];return "user_"+r;}
+const USERNAME_COOLDOWN_DAYS=10;
+function usernameCooldownLeft(){
+  const t=(myProfile&&myProfile.username_changed_at)?Date.parse(myProfile.username_changed_at):0;
+  if(!t)return 0;
+  const left=USERNAME_COOLDOWN_DAYS*86400000-(Date.now()-t);
+  return left>0?Math.ceil(left/86400000):0;
+}
 function needsHandle(){return !!session && !!myProfile && !((myProfile.handle||"").trim());}
 function handleViewHTML(handle){
   if(!handle)return"";
@@ -2951,7 +2961,10 @@ function openProfileEditPopup(){
   const p=myProfile||{};
   document.getElementById('mpName').value=p.name||currentName()||"";
   document.getElementById('mpHandle').value=p.handle||randomHandle();
-  document.getElementById('mpHandleMsg').textContent="最初はランダムなIDが入っています。変えたい方は書き換えてください（3〜20文字）。";
+  const cdLeft=usernameCooldownLeft();
+  document.getElementById('mpHandleMsg').textContent=cdLeft>0
+    ?("ユーザー名・IDの変更は10日に1回まで。次に変更できるのは約"+cdLeft+"日後です。")
+    :"最初はランダムなIDが入っています（3〜20文字）。※ユーザー名・IDの変更は10日に1回まで。";
   document.getElementById('mpHandleMsg').style.color="var(--ink-soft)";
   document.getElementById('mpBio').value=p.bio||"";
   document.getElementById('mpInstagram').value=p.instagram||"";
@@ -3027,10 +3040,16 @@ async function saveMyProfile(){
     if(await handleTaken(handle)){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";btn.disabled=false;btn.textContent="保存する";return;}
     const name=document.getElementById('mpName').value.trim()||currentName();
     if(name&&await nameTaken(name)){msg.style.color="#d33";msg.textContent="そのユーザー名は既に使われています。別の名前にしてください";btn.disabled=false;btn.textContent="保存する";return;}
+    const idChanged=(name!==((myProfile&&myProfile.name)||""))||(handle!==((myProfile&&myProfile.handle)||""));
+    if(idChanged){
+      const left=usernameCooldownLeft();
+      if(left>0){msg.style.color="#d33";msg.textContent="ユーザー名・IDの変更は10日に1回までです。あと約"+left+"日お待ちください。";btn.disabled=false;btn.textContent="保存する";return;}
+    }
     let avatar_url=myProfile&&myProfile.avatar_url||null;
     if(pendingMpAvatar){msg.textContent="画像を送信中…";avatar_url=await uploadToBucket("avatars",pendingMpAvatar);}
     const row={user_id:session.uid,name,handle:handle||null,bio:document.getElementById('mpBio').value.trim()||null,avatar_url,
       instagram:mpVal('mpInstagram'),tiktok:mpVal('mpTiktok'),x:mpVal('mpX'),youtube:mpVal('mpYoutube'),website:mpVal('mpWebsite'),updated_at:new Date().toISOString()};
+    if(idChanged)row.username_changed_at=new Date().toISOString();
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
       headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
     if(!r.ok){const e=await r.json();throw new Error(r.status===409?"その@ユーザーIDは既に使われています":(e.message||"保存に失敗しました"));}
