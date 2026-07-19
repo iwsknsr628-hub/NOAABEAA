@@ -125,9 +125,9 @@
   .result-count b{color:var(--accent)}
 
   /* GRID */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:20px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 20px;
-    box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:9px;
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;
+    box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:6px;
     position:relative;overflow:hidden}
   .card::before{content:"";position:absolute;top:0;left:0;width:100%;height:5px}
   .card[data-cat="travel"]::before{background:linear-gradient(90deg,#ff9a63,var(--accent2))}
@@ -139,12 +139,12 @@
   .card[data-cat="food"]::before{background:linear-gradient(90deg,#f4795b,#e85a3a)}
   .card[data-cat="drink"]::before{background:linear-gradient(90deg,#7aa7dd,#5a7fc0)}
   .card:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
-  .card-gallery{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:-22px -20px 6px;
+  .card-gallery{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:-15px -16px 4px;
     border-radius:var(--radius) var(--radius) 0 0;overflow:hidden;background:var(--bg2)}
-  .card-gallery img{width:100%;height:100px;object-fit:cover;display:block;cursor:pointer;transition:opacity .15s}
+  .card-gallery img{width:100%;height:92px;object-fit:cover;display:block;cursor:pointer;transition:opacity .15s}
   .card-gallery img:hover{opacity:.88}
   .card-gallery.g1{grid-template-columns:1fr}
-  .card-gallery.g1 img{height:180px}
+  .card-gallery.g1 img{height:150px}
   .card-gallery.g3 img:first-child{grid-column:1 / 3}
 
   /* LIGHTBOX */
@@ -188,10 +188,11 @@
   .badge.cat[data-cat="food"]{background:#e85a3a}
   .badge.cat[data-cat="drink"]{background:#5a7fc0}
   .badge.sub{background:#fff;color:var(--ink-soft);border:1px solid var(--line)}
-  .card h3{font-size:1.12rem;font-weight:900;line-height:1.4}
-  .card .spot{font-size:.9rem;font-weight:700;color:var(--ink)}
-  .card p{color:var(--ink-soft);font-size:.9rem}
-  .card .tags{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap;padding-top:4px}
+  .card h3{font-size:1.02rem;font-weight:900;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;
+    -webkit-box-orient:vertical;line-clamp:2;overflow:hidden}
+  .card .spot{font-size:.84rem;font-weight:700;color:var(--ink)}
+  .card p{color:var(--ink-soft);font-size:.85rem;line-height:1.55;margin:0}
+  .card .tags{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap;padding-top:2px}
   .card .tags span{font-size:.72rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px}
   .card .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:9px;margin-top:4px}
   .card .meta-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -375,8 +376,9 @@
   .mini-av{display:inline-grid;place-items:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;
     background:var(--bg2) center/cover no-repeat;font-size:.72rem;color:var(--ink-soft);border:1px solid var(--line)}
   /* カードの本文は数行だけ見せて、続きはポップアップで */
-  .card>p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
-    line-clamp:3;cursor:pointer}
+  .card>p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    line-clamp:2;cursor:pointer}
+  .card .like.has{color:#e0245e}
   .card{cursor:pointer}
   .card .maps-row,.card .aff-row,.card .meta,.card-gallery,.card .tags{cursor:auto}
 
@@ -1550,21 +1552,12 @@ function cardHTML(p){
   let dist="";
   if(p.loc&&userLoc){const d=distKm(userLoc,p.loc);dist=`<span class="badge sub">約${d<10?d.toFixed(1):Math.round(d)}km</span>`;}
   const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""))+dist;
-  const tags=(p.tags||[]).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
-  const ml=mapLinks(p);
-  const btns={
-    google:`<a class="maps-btn g" href="${ml.google}" target="_blank" rel="noopener noreferrer">Google</a>`,
-    yahoo:`<a class="maps-btn y" href="${ml.yahoo}" target="_blank" rel="noopener noreferrer">Yahoo!</a>`,
-    apple:`<a class="maps-btn a" href="${ml.apple}" target="_blank" rel="noopener noreferrer">Apple</a>`
-  };
-  const pref=mapPref();
-  const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
-  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
+  const tags=(p.tags||[]).slice(0,3).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
   const imgs=(p.photos||[]).slice(0,4);
   const gallery=imgs.length?`<div class="card-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
-  const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
   const av=avatarOf(p.user_id);
   const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
+  const likeCls=(p.likes||0)>0?"like has":"like";
   return `<div class="card" data-cat="${p.cat}" data-id="${p.id}">
     ${gallery}
     <div class="card-top">
@@ -1572,18 +1565,13 @@ function cardHTML(p){
     </div>
     <h3>${esc(p.title)}</h3>
     <div class="spot">▷ ${esc(p.spot)}</div>
-    ${addr}
     ${p.desc?`<p>${esc(p.desc)}</p>`:""}
-    ${maps}
-    ${affButtonsHTML(p)}
-    <div class="tags">${tags}</div>
+    ${tags?`<div class="tags">${tags}</div>`:""}
     <div class="meta">
       <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}<span>by ${esc(p.author||"匿名")}</span></span>
       <span class="meta-actions">
         <span class="cmt-btn" data-id="${p.id}" title="コメント">コメント</span>
-        <span class="like" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
-        ${(session&&p.user_id&&session.uid===p.user_id)?`<span class="edit-btn" data-id="${p.id}" title="投稿を編集">編集</span>`:""}
-        <span class="report" data-id="${p.id}" title="不適切な投稿を通報">通報</span>
+        <span class="${likeCls}" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
       </span>
     </div>
   </div>`;
