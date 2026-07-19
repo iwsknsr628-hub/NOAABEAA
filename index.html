@@ -30,18 +30,17 @@
   .nav-links a:hover{color:var(--accent)}
 
   /* BOTTOM TAB BAR（タスクバー） */
-  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;align-items:flex-end;justify-content:space-around;
-    gap:4px;background:rgba(255,250,243,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);
-    box-shadow:0 -3px 14px rgba(20,16,10,.06);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
-  .tabbar .tab{flex:1;max-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;
-    border:none;color:var(--ink-soft);font-family:inherit;font-weight:800;font-size:.7rem;cursor:pointer;
-    padding:4px 0;border-radius:12px;transition:color .15s}
-  .tabbar .tab .ti{font-size:1.25rem;line-height:1}
-  .tabbar .tab:hover,.tabbar .tab:active{color:var(--accent)}
-  .tabbar .tab-post .ti{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;width:46px;height:46px;
-    border-radius:50%;display:grid;place-items:center;font-size:1.5rem;font-weight:900;box-shadow:var(--shadow);margin-top:-18px}
-  .tabbar .tab-post{color:var(--accent)}
-  body{padding-bottom:74px}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;align-items:center;justify-content:center;
+    gap:10px;background:rgba(255,250,243,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    box-shadow:0 -3px 14px rgba(20,16,10,.06);padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+  .tabbar .tab{flex:1;max-width:200px;display:flex;align-items:center;justify-content:center;background:none;
+    border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
+    padding:10px 12px;border-radius:12px;transition:color .15s,background .15s,border-color .15s}
+  .tabbar .tab:hover,.tabbar .tab:active{color:var(--accent);border-color:var(--accent)}
+  .tabbar .tab-post{color:#fff;font-weight:800;border-color:transparent;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow-sm)}
+  .tabbar .tab-post:hover{color:#fff;filter:brightness(1.03)}
+  body{padding-bottom:78px}
   @media(max-width:720px){.nav-links{display:none}}
 
   .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:1rem;
@@ -194,8 +193,8 @@
   .card p{color:var(--ink-soft);font-size:.9rem}
   .card .tags{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap;padding-top:4px}
   .card .tags span{font-size:.72rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px}
-  .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:9px;margin-top:4px}
-  .card .meta-actions{display:flex;align-items:center;gap:12px}
+  .card .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:9px;margin-top:4px}
+  .card .meta-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .card .like{cursor:pointer;user-select:none;font-weight:700;transition:transform .1s}
   .card .like:active{transform:scale(1.3)}
   .card .report{cursor:pointer;user-select:none;opacity:.5;transition:opacity .15s,transform .1s;font-size:.9rem}
@@ -263,8 +262,8 @@
   .mp-danger{border-color:#f3c9c4;background:#fff8f7}
   .mp-danger h3{color:#c0392b}
   .full-page-head-icons{display:flex;align-items:center;gap:4px}
-  .head-icon-btn{position:relative;width:38px;height:38px;display:grid;place-items:center;border-radius:7px;
-    font-size:1.05rem;cursor:pointer;color:var(--ink);transition:background .15s}
+  .head-icon-btn{position:relative;height:34px;padding:0 12px;display:grid;place-items:center;border-radius:8px;
+    font-size:.82rem;font-weight:700;cursor:pointer;color:var(--ink);border:1px solid var(--line);transition:background .15s}
   .head-icon-btn:hover{background:var(--bg2)}
   #mpPostsGrid.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
   #mpPostsGrid .empty{padding:30px 10px}
@@ -462,20 +461,20 @@
 
 <!-- BOTTOM TAB BAR（タスクバー） -->
 <nav class="tabbar" id="tabbar">
-  <button class="tab" onclick="goHome()"><span class="ti">🏠</span><span class="tl">ホーム</span></button>
-  <button class="tab tab-post" onclick="openModal()"><span class="ti">＋</span><span class="tl">投稿</span></button>
-  <button class="tab" id="tabAcct" onclick="openAuth()"><span class="ti">🔑</span><span class="tl">ログイン</span></button>
+  <button class="tab" onclick="goHome()">ホーム</button>
+  <button class="tab tab-post" onclick="openModal()">＋ 投稿する</button>
+  <button class="tab" id="tabAcct" onclick="openAuth()">ログイン</button>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
   <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
   <div class="wrap hero-inner">
-    <span class="eyebrow">✦ みんなの「これいいよ」が集まる場所</span>
+    <span class="eyebrow">みんなの「これいいよ」が集まる場所</span>
     <h1>その「<span class="hl">なんしよ？</span>」、<br>誰かのおすすめで解決。</h1>
     <p class="lead">県ごとの行ってよかった場所、ジャンル別の効いた勉強法。みんなの投稿から、次の一歩が見つかる。</p>
     <div class="searchbar">
-      <input id="search" type="text" placeholder="🔍 話しかけるように聞いてOK（例: 二日酔いで落ち着ける場所）">
+      <input id="search" type="text" placeholder="話しかけるように聞いてOK（例: 二日酔いで落ち着ける場所）">
       <button class="btn btn-primary" onclick="runAssistant()">聞く</button>
     </div>
     <p style="position:relative;z-index:1;margin-top:12px;font-size:.82rem;color:var(--ink-soft)">
@@ -494,7 +493,6 @@
     </div>
 
     <div class="locbar loading" id="locbar">
-      <span class="pin">📍</span>
       <span class="txt" id="locTxt">現在地を確認しています…<small>位置情報を許可すると、近くのおすすめを表示します</small></span>
       <button id="locBtn" onclick="requestLoc()" style="display:none">現在地を使う</button>
       <button id="allBtn" onclick="showAll()" style="display:none">全国を見る</button>
@@ -502,14 +500,14 @@
 
     <div class="filters" id="filters">
       <button class="chip active" data-cat="all">すべて</button>
-      <button class="chip" data-cat="travel">🧳 旅行/遊び</button>
-      <button class="chip" data-cat="study">📚 勉強</button>
-      <button class="chip" data-cat="fun">🎨 趣味</button>
-      <button class="chip" data-cat="life">🌱 暮らし</button>
-      <button class="chip" data-cat="food">🍚 ご飯</button>
-      <button class="chip" data-cat="drink">🍶 呑み</button>
-      <button class="chip" data-cat="beauty">💄 美容</button>
-      <button class="chip" data-cat="finance">💰 金融</button>
+      <button class="chip" data-cat="travel">旅行/遊び</button>
+      <button class="chip" data-cat="study">勉強</button>
+      <button class="chip" data-cat="fun">趣味</button>
+      <button class="chip" data-cat="life">暮らし</button>
+      <button class="chip" data-cat="food">ご飯</button>
+      <button class="chip" data-cat="drink">呑み</button>
+      <button class="chip" data-cat="beauty">美容</button>
+      <button class="chip" data-cat="finance">金融</button>
     </div>
 
     <div class="subfilter">
@@ -518,7 +516,7 @@
     </div>
 
     <div class="assistant" id="assistant">
-      <div class="ava">🧭</div>
+      <div class="ava">な</div>
       <div class="body">
         <div class="who">なんしよアシスタント</div>
         <div class="say" id="assistantSay"></div>
@@ -535,7 +533,7 @@
 <section class="gacha" id="gacha">
   <div class="wrap">
     <div class="gacha-card">
-      <h2>🎲 なんしよガチャ</h2>
+      <h2>なんしよガチャ</h2>
       <p class="sub">選べない時は、投稿の中からランダムで1つおすすめします。</p>
       <div class="gacha-result" id="gResult"><p class="gacha-empty">カテゴリを選んでボタンを押すと、その中から1つ選ばれます。</p></div>
       <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center">
@@ -646,14 +644,14 @@
       <div class="field">
         <label>カテゴリ <span class="req">必須</span></label>
         <div class="cat-pick">
-          <label><input type="radio" name="cat" value="travel" checked><span>🧳 旅行/遊び</span></label>
-          <label><input type="radio" name="cat" value="study"><span>📚 勉強</span></label>
-          <label><input type="radio" name="cat" value="fun"><span>🎨 趣味</span></label>
-          <label><input type="radio" name="cat" value="life"><span>🌱 暮らし</span></label>
-          <label><input type="radio" name="cat" value="food"><span>🍚 ご飯</span></label>
-          <label><input type="radio" name="cat" value="drink"><span>🍶 呑み</span></label>
-          <label><input type="radio" name="cat" value="beauty"><span>💄 美容</span></label>
-          <label><input type="radio" name="cat" value="finance"><span>💰 金融</span></label>
+          <label><input type="radio" name="cat" value="travel" checked><span>旅行/遊び</span></label>
+          <label><input type="radio" name="cat" value="study"><span>勉強</span></label>
+          <label><input type="radio" name="cat" value="fun"><span>趣味</span></label>
+          <label><input type="radio" name="cat" value="life"><span>暮らし</span></label>
+          <label><input type="radio" name="cat" value="food"><span>ご飯</span></label>
+          <label><input type="radio" name="cat" value="drink"><span>呑み</span></label>
+          <label><input type="radio" name="cat" value="beauty"><span>美容</span></label>
+          <label><input type="radio" name="cat" value="finance"><span>金融</span></label>
         </div>
       </div>
       <div class="field" id="prefField">
@@ -669,7 +667,7 @@
         <label>地図でピンを打つ（任意）</label>
         <button type="button" id="pinToggle" onclick="openPinPage()"
           style="border:1px solid var(--line);background:#fff;font-family:inherit;font-weight:700;font-size:.82rem;
-          padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--ink)">📍 地図でピンを打つ</button>
+          padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--ink)">地図でピンを打つ</button>
         <span id="pinMsg" style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:6px"></span>
       </div>
       <div class="field hidden" id="genreField">
@@ -701,13 +699,13 @@
           <input type="text" name="tags" id="tagsInput" maxlength="120" placeholder="例: ひとり, 無料, 映え" style="flex:1">
           <button type="button" id="aiTagBtn" onclick="suggestTags()"
             style="white-space:nowrap;border:1px solid #e6ddf7;background:#f3f0ff;color:#8a6ee0;font-family:inherit;
-            font-weight:800;font-size:.85rem;padding:0 14px;border-radius:12px;cursor:pointer">✨ AIで提案</button>
+            font-weight:800;font-size:.85rem;padding:0 14px;border-radius:12px;cursor:pointer">AIで提案</button>
         </div>
         <span id="tagMsg" style="font-size:.78rem;color:#8a6ee0"></span>
         <div class="tags-preview" id="tagsPreview"></div>
       </div>
       <div class="field">
-        <label>🔗 アフィリエイトリンク（任意）</label>
+        <label>アフィリエイトリンク（任意）</label>
         <input type="url" name="aff_url" id="affInput" maxlength="1000" inputmode="url"
           placeholder="例: https://... （楽天・Amazon・A8 などご自身のリンク）">
         <span id="affMsg" style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:4px">
@@ -726,11 +724,11 @@
 <div class="pin-page" id="pinPage">
   <div class="pin-page-head">
     <button type="button" class="pin-back" onclick="closePinPage(false)">← 戻る</button>
-    <span class="pin-page-title">📍 場所を選ぶ</span>
+    <span class="pin-page-title">場所を選ぶ</span>
     <button type="button" class="btn btn-primary btn-sm pin-done" onclick="closePinPage(true)">この場所に決定</button>
   </div>
   <div class="pin-search">
-    <input id="pinSearch" type="text" placeholder="🔍 住所・店名・ホテル名で検索（例: 清水寺 / 渋谷 スターバックス / ○○ホテル）">
+    <input id="pinSearch" type="text" placeholder="住所・店名・ホテル名で検索（例: 清水寺 / 渋谷 スターバックス / ○○ホテル）">
     <button type="button" id="pinSearchBtn" onclick="pinSearchGo()">検索</button>
   </div>
   <div id="pinResults" class="pin-results"></div>
@@ -796,7 +794,7 @@
   <div class="full-page-body">
     <div class="mp-wrap">
       <div class="mp-section" style="text-align:center">
-        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto">👤</div>
+        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto"></div>
         <h2 id="pvName" style="margin-top:12px;font-size:1.15rem">プロフィール</h2>
         <div class="ig-stats">
           <div><b id="pvStatPosts">0</b><span>投稿</span></div>
@@ -808,7 +806,7 @@
         <div id="pvLinks" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"></div>
         <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
           <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
-          <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">🔔</button>
+          <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
         </div>
       </div>
       <div class="mp-section">
@@ -825,7 +823,7 @@
     <button type="button" class="pin-back" onclick="closeMyPage()">← 戻る</button>
     <span class="pin-page-title">マイページ</span>
     <div class="full-page-head-icons">
-      <span class="head-icon-btn" onclick="openSettingsPopup()" title="設定">☰</span>
+      <span class="head-icon-btn" onclick="openSettingsPopup()" title="設定">設定</span>
     </div>
   </div>
   <div class="full-page-body">
@@ -833,10 +831,10 @@
 
       <!-- 自己紹介・SNSリンク（シンプル表示、IG/TikTok風） -->
       <div class="mp-section" style="text-align:center">
-        <div id="mpAvatar" class="avatar-lg" style="margin:0 auto">👤</div>
+        <div id="mpAvatar" class="avatar-lg" style="margin:0 auto"></div>
         <div class="mp-name-row">
           <h2 id="mpNameView" style="font-size:1.15rem">ニックネーム</h2>
-          <span class="mp-edit-pen" onclick="openProfileEditPopup()" title="プロフィールを編集">✏️</span>
+          <span class="mp-edit-pen" onclick="openProfileEditPopup()" title="プロフィールを編集">編集</span>
         </div>
         <div class="ig-stats">
           <div><b id="mpStatPosts">0</b><span>投稿</span></div>
@@ -865,9 +863,9 @@
     <h2>プロフィール編集</h2>
     <p class="msub">自己紹介やSNSリンク、アイコンを設定できます。</p>
     <div class="field" style="text-align:center">
-      <div id="mpEditAvatar" class="avatar-lg">👤</div>
+      <div id="mpEditAvatar" class="avatar-lg"></div>
       <input type="file" id="mpAvatarInput" accept="image/*" style="display:none">
-      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="document.getElementById('mpAvatarInput').click()">📷 画像を選ぶ</button>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="document.getElementById('mpAvatarInput').click()">画像を選ぶ</button>
       <span id="mpAvatarMsg" style="display:block;font-size:.78rem;color:var(--ink-soft);margin-top:4px"></span>
     </div>
     <div class="field"><label>表示名</label><input type="text" id="mpName" maxlength="40" placeholder="ニックネーム"></div>
@@ -1186,7 +1184,7 @@ async function autofillPrefFromPin(latlng){
     if(addrInput&&!addrInput.value.trim())addrInput.value=address;
   }
   const hint=document.getElementById('pinPageHint');
-  if(hint&&pref)hint.textContent=`✓ ${pref}${address?"・"+address:""}を自動で入力しました。よければ右上の「この場所に決定」を押してください`;
+  if(hint&&pref)hint.textContent=`${pref}${address?"・"+address:""}を自動で入力しました。よければ右上の「この場所に決定」を押してください`;
 }
 async function uploadPhoto(file){
   if(!SERVER) return null;
@@ -1269,7 +1267,7 @@ function distKm(a,b){
 
 /* ---------- assistant knowledge base ---------- */
 const SIGNALS=[
- {keys:["二日酔い","二日酔","飲みすぎ","のみすぎ","酔っ","悪酔い"],tags:["癒やし","静か","のんびり","無料"],cats:["travel"],say:"二日酔いお疲れさまです🥲 無理せず、静かに座って休める場所がよさそうですね。水分をとりつつ、下のスポットでのんびりしてみてください。"},
+ {keys:["二日酔い","二日酔","飲みすぎ","のみすぎ","酔っ","悪酔い"],tags:["癒やし","静か","のんびり","無料"],cats:["travel"],say:"二日酔いお疲れさまです。無理せず、静かに座って休める場所がよさそうですね。水分をとりつつ、下のスポットでのんびりしてみてください。"},
  {keys:["疲れ","つかれ","だるい","しんどい","癒","リラックス","のんびり","落ち着","静か","ゆっくり","まったり","休"],tags:["癒やし","静か","のんびり","自然"],cats:["travel","life"],say:"ゆっくり息を抜ける、静かな場所を集めました。"},
  {keys:["暇","ひま","退屈","やることない","つまらな"],tags:[],cats:["fun"],say:"空いた時間にサッとできることを集めました。"},
  {keys:["勉強","べんきょう","覚え","学び","学ぶ","資格","試験","受験"],tags:[],cats:["study"],say:"勉強法のおすすめをまとめました。まずは1つ、今日から試せそうなものを。"},
@@ -1385,7 +1383,7 @@ function render(){
   }
   countEl.innerHTML=`<b>${list.length}</b> 件のおすすめ${mode?` ・ ${mode}`:""}`;
   if(!list.length){
-    grid.innerHTML=`<div class="empty"><div class="big">🔍</div>該当する投稿がまだありません。<br>あなたが最初のおすすめを投稿してみませんか？</div>`;
+    grid.innerHTML=`<div class="empty">該当する投稿がまだありません。<br>あなたが最初のおすすめを投稿してみませんか？</div>`;
     return;
   }
   const html=[];
@@ -1421,7 +1419,7 @@ const AMAZON_ASSOCIATE_TAG="";     // Amazonアソシエイト（要審査）例
 const ADSENSE_CLIENT="";           // Google AdSense（要審査）例: ca-pub-1234567890123456
 const ADSENSE_SLOT="";             // 記事内広告のスロットID 例: 1234567890
 
-/* ★スポンサー直販の広告枠★
+/* スポンサー直販の広告枠
    スポンサーから「広告枠を使わせて」と依頼が来たら、下の配列に1件足すだけで投稿一覧に表示されます。
    複数入れると6件ごとに順番に出ます（ローテーション）。空の間は AdSense（あれば）を表示。
    使い方はどちらでもOK:
@@ -1456,17 +1454,17 @@ function normalizeAffUrl(u){
 /* 投稿者が貼ったリンク用のラベル/アイコン（ドメインで判定） */
 function affLinkMeta(u){
   let host="";try{host=new URL(u).hostname.replace(/^www\./,"");}catch(e){}
-  if(/rakuten|hb\.afl/.test(host))return {icon:"🛍",label:"楽天で見る"};
-  if(/amazon|amzn/.test(host))return {icon:"🛒",label:"Amazonで見る"};
-  if(/a8\.net|px\.a8|moshimo|valuecommerce|linksynergy/.test(host))return {icon:"🔗",label:"公式・詳細を見る"};
-  return {icon:"🔗",label:"おすすめリンク"};
+  if(/rakuten|hb\.afl/.test(host))return {label:"楽天で見る"};
+  if(/amazon|amzn/.test(host))return {label:"Amazonで見る"};
+  if(/a8\.net|px\.a8|moshimo|valuecommerce|linksynergy/.test(host))return {label:"公式・詳細を見る"};
+  return {label:"おすすめリンク"};
 }
 function affButtonsHTML(p){
   /* 投稿者が自分のアフィリンクを貼っていれば、それを最優先（投稿者の成果）。運営リンクは出さない。 */
   if(p.aff_url){
     const m=affLinkMeta(p.aff_url);
     return `<div class="aff-row"><span class="aff-label">PR</span>`
-      +`<a class="aff-btn r" href="${esc(p.aff_url)}" target="_blank" rel="noopener sponsored">${m.icon} ${m.label}</a></div>`;
+      +`<a class="aff-btn r" href="${esc(p.aff_url)}" target="_blank" rel="noopener sponsored">${m.label}</a></div>`;
   }
   const area=(p.pref||"").trim();
   const genre=(p.genre||"").trim();
@@ -1475,11 +1473,11 @@ function affButtonsHTML(p){
   if(p.cat==="travel"){
     /* 宿・ホテルは「県／エリア」で検索 → 必ず宿が出る（店名だと0件になるため使わない） */
     const hotelKw=area||"人気 温泉";
-    out.push(`<a class="aff-btn r" href="${rakutenTravel(hotelKw)}" target="_blank" rel="noopener sponsored">🏨 宿・ホテル</a>`);
-    out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">🛍 楽天</a>`);
+    out.push(`<a class="aff-btn r" href="${rakutenTravel(hotelKw)}" target="_blank" rel="noopener sponsored">宿・ホテル</a>`);
+    out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">楽天</a>`);
   }else{
-    out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">🛍 楽天</a>`);
-    out.push(`<a class="aff-btn a" href="${amazonSearch(kw)}" target="_blank" rel="noopener sponsored">🛒 Amazon</a>`);
+    out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">楽天</a>`);
+    out.push(`<a class="aff-btn a" href="${amazonSearch(kw)}" target="_blank" rel="noopener sponsored">Amazon</a>`);
   }
   return `<div class="aff-row"><span class="aff-label">PR</span>${out.join('')}</div>`;
 }
@@ -1550,8 +1548,8 @@ function hasAnyAds(){
 
 function cardHTML(p){
   let dist="";
-  if(p.loc&&userLoc){const d=distKm(userLoc,p.loc);dist=`<span class="badge sub">🧭 約${d<10?d.toFixed(1):Math.round(d)}km</span>`;}
-  const sub=(p.pref?`<span class="badge sub">📍 ${p.pref}</span>`:(p.genre?`<span class="badge sub">📖 ${p.genre}</span>`:""))+dist;
+  if(p.loc&&userLoc){const d=distKm(userLoc,p.loc);dist=`<span class="badge sub">約${d<10?d.toFixed(1):Math.round(d)}km</span>`;}
+  const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""))+dist;
   const tags=(p.tags||[]).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
   const ml=mapLinks(p);
   const btns={
@@ -1561,12 +1559,12 @@ function cardHTML(p){
   };
   const pref=mapPref();
   const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
-  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">🗺️ 地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
+  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
   const imgs=(p.photos||[]).slice(0,4);
   const gallery=imgs.length?`<div class="card-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
-  const addr=p.address?`<div class="addr">📍 ${esc(p.address)}</div>`:"";
+  const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
   const av=avatarOf(p.user_id);
-  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}>${av?'':'👤'}</span>`;
+  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
   return `<div class="card" data-cat="${p.cat}" data-id="${p.id}">
     ${gallery}
     <div class="card-top">
@@ -1582,10 +1580,10 @@ function cardHTML(p){
     <div class="meta">
       <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}<span>by ${esc(p.author||"匿名")}</span></span>
       <span class="meta-actions">
-        <span class="cmt-btn" data-id="${p.id}" title="コメント">💬</span>
-        <span class="like" data-id="${p.id}" title="いいね">❤️ ${p.likes||0}</span>
-        ${(session&&p.user_id&&session.uid===p.user_id)?`<span class="edit-btn" data-id="${p.id}" title="投稿を編集">✏️</span>`:""}
-        <span class="report" data-id="${p.id}" title="不適切な投稿を通報">⚠️</span>
+        <span class="cmt-btn" data-id="${p.id}" title="コメント">コメント</span>
+        <span class="like" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
+        ${(session&&p.user_id&&session.uid===p.user_id)?`<span class="edit-btn" data-id="${p.id}" title="投稿を編集">編集</span>`:""}
+        <span class="report" data-id="${p.id}" title="不適切な投稿を通報">通報</span>
       </span>
     </div>
   </div>`;
@@ -1664,7 +1662,7 @@ document.body.addEventListener('click',e=>{
 
 /* ---------- 投稿詳細ポップアップ ---------- */
 function postDetailHTML(p){
-  const sub=(p.pref?`<span class="badge sub">📍 ${p.pref}</span>`:(p.genre?`<span class="badge sub">📖 ${p.genre}</span>`:""));
+  const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""));
   const tags=(p.tags||[]).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
   const ml=mapLinks(p);
   const btns={
@@ -1674,12 +1672,12 @@ function postDetailHTML(p){
   };
   const pref=mapPref();
   const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
-  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">🗺️ 地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
+  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
   const imgs=(p.photos||[]).slice(0,4);
   const gallery=imgs.length?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
-  const addr=p.address?`<div class="addr">📍 ${esc(p.address)}</div>`:"";
+  const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
   const av=avatarOf(p.user_id);
-  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}>${av?'':'👤'}</span>`;
+  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
   const canEdit=session&&p.user_id&&session.uid===p.user_id;
   return `${gallery}
     <div class="pd-body">
@@ -1696,10 +1694,10 @@ function postDetailHTML(p){
         <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${esc(p.author||"匿名")}</span>
       </div>
       <div class="pd-actions">
-        <span class="cmt-btn" data-id="${p.id}">💬 コメント</span>
-        <span class="like" data-id="${p.id}">❤️ ${p.likes||0}</span>
-        ${canEdit?`<span class="edit-btn" data-id="${p.id}">✏️ 編集</span>`:""}
-        <span class="report" data-id="${p.id}">⚠️ 通報</span>
+        <span class="cmt-btn" data-id="${p.id}">コメント</span>
+        <span class="like" data-id="${p.id}">いいね ${p.likes||0}</span>
+        ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
+        <span class="report" data-id="${p.id}">通報</span>
       </div>
     </div>`;
 }
@@ -1754,7 +1752,7 @@ async function handleCardInteractions(e,rerender){
     const p=POSTS.find(x=>x.id===r.dataset.id);if(!p)return true;
     if(!confirm("この投稿を運営に通報しますか？（不適切・スパムなど）"))return true;
     if(SERVER){try{await reportServer(p.id);}catch(err){console.warn(err);}}
-    r.textContent="✓ 通報済み";r.style.opacity="1";r.style.pointerEvents="none";return true;}
+    r.textContent="通報済み";r.style.opacity="1";r.style.pointerEvents="none";return true;}
   /* 地図/アフィリンクなどの通常リンクはそのまま遷移させる */
   if(e.target.closest('a'))return true;
   /* それ以外でカード内をタップ → 投稿の詳細ポップアップを開く */
@@ -1806,11 +1804,11 @@ function openPinPage(){
     pinMapObj=L.map('pinPageMap').setView(pendingPin||[36.2,138.2], pendingPin?16:5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(pinMapObj);
     pinMapObj.on('click',ev=>{clearPinResults();pendingPin=[ev.latlng.lat,ev.latlng.lng];placeMarker(ev.latlng);
-      hint.textContent="✓ 位置を選びました。右上の「この場所に決定」を押してください";
+      hint.textContent="位置を選びました。右上の「この場所に決定」を押してください";
       autofillPrefFromPin(pendingPin);});
   }
   if(pendingPin){pinMapObj.setView(pendingPin,16);placeMarker({lat:pendingPin[0],lng:pendingPin[1]});
-    hint.textContent="✓ 位置を選びました。右上の「この場所に決定」を押してください";}
+    hint.textContent="位置を選びました。右上の「この場所に決定」を押してください";}
   else hint.textContent="地図をタップ／クリックして場所にピンを打ってください";
   setTimeout(()=>pinMapObj.invalidateSize(),150);
 }
@@ -1824,7 +1822,7 @@ function closePinPage(save){
     }
   }
   document.getElementById('pinPage').classList.remove('open');
-  msg.textContent=pendingPin?"✓ ピンを設定しました（この地点で地図が開きます）":"";
+  msg.textContent=pendingPin?"ピンを設定しました（この地点で地図が開きます）":"";
 }
 function resetPin(){
   pendingPin=null;prevPin=null;
@@ -1844,7 +1842,7 @@ function applyPinResult(item){
   const c=[item.lat,item.lng];
   if(pinMapObj){pinMapObj.setView(c,17);pendingPin=c;placeMarker({lat:c[0],lng:c[1]});
     setTimeout(()=>pinMapObj.invalidateSize(),120);}
-  if(hint)hint.textContent="✓ 選択しました。ここでよければ右上「この場所に決定」";
+  if(hint)hint.textContent="選択しました。ここでよければ右上「この場所に決定」";
   autofillPrefFromPin(c);
 }
 function renderPinResults(list){
@@ -1853,7 +1851,7 @@ function renderPinResults(list){
   list.forEach(item=>{
     const b=document.createElement('button');
     b.type='button';b.className='pin-result';
-    const nm=document.createElement('div');nm.className='r-name';nm.textContent='📍 '+(item.name||item.addr);
+    const nm=document.createElement('div');nm.className='r-name';nm.textContent=(item.name||item.addr);
     const ad=document.createElement('div');ad.className='r-addr';ad.textContent=item.addr;
     b.appendChild(nm);b.appendChild(ad);
     b.addEventListener('click',()=>applyPinResult(item));
@@ -1878,7 +1876,7 @@ async function pinSearchGo(){
   const btn=document.getElementById('pinSearchBtn');
   clearPinResults();
   if(!q){hint.textContent="住所や店名・ホテル名を入力してください";return;}
-  hint.textContent="🔍 検索中…";if(btn)btn.disabled=true;
+  hint.textContent="検索中…";if(btn)btn.disabled=true;
   try{
     let list=await geocodeList(q);
     if(!list.length)list=await geocodeList(q,{jpOnly:false});   // 海外も検索
@@ -1935,7 +1933,7 @@ function suggestTags(){
   const existing=f.tags.value.split(',').map(t=>t.trim()).filter(Boolean);
   const merged=[...new Set([...existing,...found])].slice(0,8);
   f.tags.value=merged.join(', ');
-  msg.textContent=found.length?`✨ ${found.length}個のタグを自動で提案しました（自由に編集OK）`:"うまく提案できませんでした。手入力してください";
+  msg.textContent=found.length?`${found.length}個のタグを自動で提案しました（自由に編集OK）`:"うまく提案できませんでした。手入力してください";
   renderTagsPreview();
 }
 /* auto-run the tag suggestion as the user types, so tags fill in without needing to click the button */
@@ -1989,7 +1987,7 @@ function openEditModal(post){
   if(post.cat==="study"&&post.genre)f.genre.value=post.genre;
   if(post.loc){
     pendingPin=post.loc.slice();
-    document.getElementById('pinMsg').textContent="✓ ピンを設定しました（この地点で地図が開きます）";
+    document.getElementById('pinMsg').textContent="ピンを設定しました（この地点で地図が開きます）";
   }
   const em=document.getElementById('photoExistingMsg');
   if(em)em.textContent=(post.photos&&post.photos.length)?`現在の写真: ${post.photos.length}枚（新しく選ぶと差し替わります）`:"";
@@ -2035,9 +2033,8 @@ function updateAcctUI(){
   /* 下タブバーのアカウントボタン */
   const tab=document.getElementById('tabAcct');
   if(tab){
-    const ti=tab.querySelector('.ti'),tl=tab.querySelector('.tl');
-    if(session){if(ti)ti.textContent="👤";if(tl)tl.textContent="マイページ";tab.onclick=openMyPage;tab.title="マイページ";}
-    else{if(ti)ti.textContent="🔑";if(tl)tl.textContent="ログイン";tab.onclick=openAuth;tab.title="ログイン / 登録";}
+    if(session){tab.textContent="マイページ";tab.onclick=openMyPage;tab.title="マイページ";}
+    else{tab.textContent="ログイン";tab.onclick=openAuth;tab.title="ログイン / 登録";}
   }
 }
 function goHome(){
@@ -2150,7 +2147,7 @@ document.getElementById('mpAvatarInput').addEventListener('change',e=>{
   if(f.size>3*1024*1024){msg.textContent="3MB以下にしてください";return;}
   pendingMpAvatar=f;
   const av=document.getElementById('mpEditAvatar');av.style.backgroundImage=`url(${URL.createObjectURL(f)})`;av.textContent="";
-  msg.textContent="✓ 画像を選択（保存で反映）";
+  msg.textContent="画像を選択（保存で反映）";
 });
 function mpVal(id){return document.getElementById(id).value.trim()||null;}
 
@@ -2181,9 +2178,9 @@ function renderMyProfileView(){
   document.getElementById('mpNameView').textContent=p.name||currentName()||"匿名";
   document.getElementById('mpBioView').textContent=p.bio||"自己紹介はまだ設定されていません。";
   const av=document.getElementById('mpAvatar');
-  if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="👤";}
-  const defs=[["Instagram","instagram","📷"],["TikTok","tiktok","🎵"],["X","x","✖"],["YouTube","youtube","▶"],["サイト","website","🔗"]];
-  const html=defs.map(([label,key,icon])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${icon} ${label}</a>`:"";}).join("");
+  if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="";}
+  const defs=[["Instagram","instagram"],["TikTok","tiktok"],["X","x"],["YouTube","youtube"],["サイト","website"]];
+  const html=defs.map(([label,key])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`:"";}).join("");
   document.getElementById('mpLinksView').innerHTML=html||'<span style="color:var(--ink-soft);font-size:.85rem">リンクはまだありません</span>';
   const st=statsForUser(session.uid);
   document.getElementById('mpStatPosts').textContent=st.posts;
@@ -2212,7 +2209,7 @@ function openProfileEditPopup(){
   document.getElementById('mpYoutube').value=p.youtube||"";
   document.getElementById('mpWebsite').value=p.website||"";
   const av=document.getElementById('mpEditAvatar');
-  if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="👤";}
+  if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="";}
   pendingMpAvatar=null;document.getElementById('mpAvatarMsg').textContent="";document.getElementById('mpMsg').textContent="";
   document.getElementById('mpAvatarInput').value="";
   document.getElementById('mpEditBg').classList.add('open');
@@ -2294,7 +2291,7 @@ function renderMyPosts(){
   const wrap=document.getElementById('mpPostsGrid');
   if(!session){wrap.innerHTML="";return;}
   const mine=POSTS.filter(p=>p.user_id===session.uid).sort((a,b)=>b.ts-a.ts);
-  if(!mine.length){wrap.innerHTML=`<div class="empty"><div class="big">📝</div>まだ投稿がありません。<br>最初のおすすめを投稿してみませんか？</div>`;return;}
+  if(!mine.length){wrap.innerHTML=`<div class="empty">まだ投稿がありません。<br>最初のおすすめを投稿してみませんか？</div>`;return;}
   wrap.innerHTML=mine.map(cardHTML).join('');
 }
 document.getElementById('mpPostsGrid').addEventListener('click',e=>{
@@ -2360,7 +2357,7 @@ function renderPvPosts(userId){
   const mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
   document.getElementById('pvPostsTitle').textContent=`投稿（${mine.length}）`;
   grid.innerHTML=mine.length?mine.map(cardHTML).join('')
-    :`<div class="empty"><div class="big">📝</div>まだ投稿がありません。</div>`;
+    :`<div class="empty">まだ投稿がありません。</div>`;
 }
 async function openProfileView(userId,fallbackName){
   closePostView();
@@ -2373,7 +2370,7 @@ async function openProfileView(userId,fallbackName){
   document.getElementById('pvStatFollowers').textContent="—";
   document.getElementById('pvStatFollowing').textContent="—";
   document.getElementById('pvStatLikes').textContent="—";
-  const av=document.getElementById('pvAvatar');av.style.backgroundImage="";av.textContent="👤";
+  const av=document.getElementById('pvAvatar');av.style.backgroundImage="";av.textContent="";
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
   const notifyBtn=document.getElementById('pvNotifyBtn');notifyBtn.style.display="none";notifyBtn.onclick=null;
   renderPvPosts(userId);
@@ -2410,13 +2407,13 @@ async function openProfileView(userId,fallbackName){
     if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}
 
     if(p.is_private&&!isSelf&&!amFollowing){
-      document.getElementById('pvBio').textContent="🔒 このアカウントは非公開です。フォローすると自己紹介やリンクが見られます。";
+      document.getElementById('pvBio').textContent="このアカウントは非公開です。フォローすると自己紹介やリンクが見られます。";
       document.getElementById('pvLinks').innerHTML="";
       return;
     }
     document.getElementById('pvBio').textContent=p.bio||"";
-    const defs=[["Instagram","instagram","📷"],["TikTok","tiktok","🎵"],["X","x","✖"],["YouTube","youtube","▶"],["サイト","website","🔗"]];
-    const html=defs.map(([label,key,icon])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${icon} ${label}</a>`:"";}).join("");
+    const defs=[["Instagram","instagram"],["TikTok","tiktok"],["X","x"],["YouTube","youtube"],["サイト","website"]];
+    const html=defs.map(([label,key])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`:"";}).join("");
     document.getElementById('pvLinks').innerHTML=html||'<span style="color:var(--ink-soft);font-size:.85rem">リンクはまだありません</span>';
   }catch(e){document.getElementById('pvBio').textContent="読み込みに失敗しました。";}
 }
@@ -2449,7 +2446,7 @@ async function togglePvFollow(userId){
 }
 function setNotifyBtnState(btn,on){
   btn.dataset.notify=on?"1":"0";
-  btn.textContent=on?"🔔":"🔕";
+  btn.textContent=on?"通知オン":"通知オフ";
   btn.title=on?"通知をオフにする":"新しい投稿を通知で受け取る";
   btn.className="btn btn-sm "+(on?"btn-primary":"btn-ghost");
 }
@@ -2649,7 +2646,7 @@ function pullGacha(){
   setTimeout(()=>{
     if(!pool.length){box.innerHTML='<p class="gacha-empty">このカテゴリの投稿はまだありません。別のカテゴリでどうぞ。</p>';box.classList.add('show');return;}
     const pick=pool[Math.floor(Math.random()*pool.length)];
-    const where=pick.pref?`📍${pick.pref}`:(pick.genre?`📖${pick.genre}`:CAT_LABEL[pick.cat]);
+    const where=pick.pref?`${pick.pref}`:(pick.genre?`${pick.genre}`:CAT_LABEL[pick.cat]);
     box.innerHTML=`<span style="font-size:.78rem;font-weight:800;color:var(--accent)">${where}</span>
       <div class="g-title">${esc(pick.title)}</div>
       <div class="g-desc">▷ ${esc(pick.spot)}${pick.desc?"<br>"+esc(pick.desc):""}</div>
@@ -2699,14 +2696,14 @@ function showAll(){
   setChip("all");prefFilter.classList.add('hidden');genreFilter.classList.add('hidden');
   locbar.classList.remove('loading');
   locTxt.innerHTML=`全国のおすすめを表示中<small>現在地の近くだけ見たいときはこちら →</small>`;
-  allBtn.style.display="none";locBtn.style.display="";locBtn.textContent="📍 現在地を使う";
+  allBtn.style.display="none";locBtn.style.display="";locBtn.textContent="現在地を使う";
   render();
 }
 function locFail(msg){
   detectedPref=null;
   locbar.classList.remove('loading');
   locTxt.innerHTML=`${msg}<small>全国のおすすめを表示しています</small>`;
-  locBtn.style.display="";locBtn.textContent="📍 現在地を使う";allBtn.style.display="none";
+  locBtn.style.display="";locBtn.textContent="現在地を使う";allBtn.style.display="none";
 }
 function requestLoc(){
   if(!navigator.geolocation){locFail("この端末では位置情報が使えません");return;}
