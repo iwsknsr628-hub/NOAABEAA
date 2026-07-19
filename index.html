@@ -364,7 +364,16 @@
   .cmt-item{background:var(--bg2);border-radius:12px;padding:12px 14px}
   .cmt-item .who{font-weight:800;font-size:.85rem}
   .cmt-item .when{font-size:.72rem;color:var(--ink-soft);margin-left:8px;font-weight:500}
-  .cmt-item .body{font-size:.92rem;margin-top:4px;white-space:pre-wrap}
+  .cmt-item .body{font-size:.92rem;margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+  .cmt-item .cmt-acts{margin-top:7px;display:flex;gap:16px}
+  .cmt-item .cmt-acts span{font-size:.76rem;font-weight:700;color:var(--ink-soft);cursor:pointer;user-select:none}
+  .cmt-item .cmt-acts .cmt-reply:hover{color:var(--accent)}
+  .cmt-item .cmt-acts .cmt-del:hover{color:#c0392b}
+  .cmt-replies{margin:8px 0 0 16px;display:flex;flex-direction:column;gap:8px;border-left:2px solid var(--line);padding-left:12px}
+  .cmt-item.reply{background:#fff;border:1px solid var(--line)}
+  .cmt-replybar{background:#fff7f0;border:1px solid #f3d6bf;border-radius:10px;padding:8px 12px;font-size:.82rem;
+    margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .cmt-replybar .cmt-replycancel{cursor:pointer;font-weight:800;color:var(--accent);white-space:nowrap}
   .cmt-empty{color:var(--ink-soft);font-size:.9rem;text-align:center;padding:16px}
   .cmt-form textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;
     font-size:.95rem;outline:none;resize:vertical;min-height:64px}
@@ -423,6 +432,8 @@
   .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem}
   .pd-actions>span{cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:700}
   .pd-actions>span:hover{color:var(--accent)}
+  .pd-actions>span.del-btn{color:#c0392b}
+  .pd-actions>span.del-btn:hover{color:#a93226}
   .pd-body .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .pd-body .maps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
   .pd-body .maps-label{font-size:.8rem;color:var(--ink-soft);font-weight:700}
@@ -1295,6 +1306,24 @@ async function updatePostServer(id,post){
   if(!res.ok)throw new Error("update "+res.status);
   return mapRow((await res.json())[0]);
 }
+async function deletePost(id){
+  const p=POSTS.find(x=>x.id===id);if(!p)return;
+  if(!session||session.uid!==p.user_id){showToast("自分の投稿のみ削除できます");return;}
+  if(!confirm("この投稿を削除しますか？コメントも一緒に削除され、元に戻せません。"))return;
+  try{
+    if(SERVER){
+      const token=await freshToken();
+      if(!token){alert("ログインの有効期限が切れました。もう一度ログインしてください。");openAuth();return;}
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${id}`,{method:"DELETE",headers:authHeadersWith(token)});
+      if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"削除に失敗しました");}
+    }
+    POSTS=POSTS.filter(x=>x.id!==id);
+    try{closePostView();}catch(e){}
+    render();
+    if(document.getElementById('myPage').classList.contains('open')){renderMyPosts();renderMyProfileView();}
+    showToast("投稿を削除しました");
+  }catch(err){alert(err.message||"削除に失敗しました");}
+}
 async function likeServer(id){
   await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_like`,{method:"POST",
     headers:sbHeaders,body:JSON.stringify({pid:id})});
@@ -1735,7 +1764,8 @@ function postDetailHTML(p){
         <span class="cmt-btn" data-id="${p.id}">コメント</span>
         <span class="like" data-id="${p.id}">いいね ${p.likes||0}</span>
         ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
-        <span class="report" data-id="${p.id}">通報</span>
+        ${canEdit?`<span class="del-btn" data-id="${p.id}">削除</span>`:""}
+        ${canEdit?"":`<span class="report" data-id="${p.id}">通報</span>`}
       </div>
     </div>`;
 }
@@ -1779,6 +1809,8 @@ async function handleCardInteractions(e,rerender){
   if(c){openComments(c.dataset.id);return true;}
   const ed=e.target.closest('.edit-btn');
   if(ed){const p=POSTS.find(x=>x.id===ed.dataset.id);if(p){closePostView();openEditModal(p);}return true;}
+  const dl=e.target.closest('.del-btn');
+  if(dl){await deletePost(dl.dataset.id);return true;}
   const l=e.target.closest('.like');
   if(l){if(!requireLogin("いいねするにはログインが必要です"))return true;
     const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return true;
@@ -2667,10 +2699,12 @@ function renderPvPostsCurrent(){if(pvUserId)renderPvPosts(pvUserId);}
 
 /* ---------- comments ---------- */
 let cmtPostId=null;
+let cmtReplyTo=null;   // {id,name} 返信先（ルートコメント）
 const cmtCache={};
 function fmtWhen(ts){const d=new Date(ts);return `${d.getMonth()+1}/${d.getDate()}`;}
 async function openComments(postId){
   cmtPostId=postId;
+  cmtReplyTo=null;
   const p=POSTS.find(x=>x.id===postId);
   document.getElementById('cmtSpot').textContent=p?`「${p.title}」へのコメント`:"";
   document.getElementById('cmtList').innerHTML='<div class="cmt-empty">読み込み中…</div>';
@@ -2698,16 +2732,66 @@ async function loadComments(postId){
   cmtCache[postId]=list;
   if(cmtPostId===postId)renderCommentList(list);
 }
+function cmtItemHTML(c,isReply){
+  const mine=session&&c.user_id&&session.uid===c.user_id;
+  const acts=`<div class="cmt-acts">`
+    +(session?`<span class="cmt-reply" data-cid="${esc(String(c.id))}" data-name="${esc(c.author||'匿名')}">返信</span>`:"")
+    +(mine?`<span class="cmt-del" data-cid="${esc(String(c.id))}">削除</span>`:"")
+    +`</div>`;
+  return `<div class="cmt-item${isReply?' reply':''}" data-cid="${esc(String(c.id))}"><span class="who">${esc(c.author||"匿名")}</span><span class="when">${esc(fmtWhen(c.created_at))}</span><div class="body">${esc(c.body)}</div>${acts}</div>`;
+}
 function renderCommentList(list){
   const el=document.getElementById('cmtList');
   if(!list.length){el.innerHTML='<div class="cmt-empty">まだコメントはありません。最初のひとことをどうぞ。</div>';return;}
-  el.innerHTML=list.map(c=>`<div class="cmt-item"><span class="who">${esc(c.author||"匿名")}</span><span class="when">${fmtWhen(c.created_at)}</span><div class="body">${esc(c.body)}</div></div>`).join('');
+  const ids=new Set(list.map(c=>String(c.id)));
+  const byParent={};
+  list.forEach(c=>{if(c.parent_id){(byParent[String(c.parent_id)]||(byParent[String(c.parent_id)]=[])).push(c);}});
+  const roots=list.filter(c=>!c.parent_id||!ids.has(String(c.parent_id)));
+  el.innerHTML=roots.map(c=>{
+    const reps=byParent[String(c.id)];
+    const repHTML=reps&&reps.length?`<div class="cmt-replies">${reps.map(r=>cmtItemHTML(r,true)).join('')}</div>`:"";
+    return cmtItemHTML(c,false)+repHTML;
+  }).join('');
 }
+function startReply(cid,name){
+  if(!requireLogin("返信するにはログインが必要です"))return;
+  if(needsUsername()){showToast("先にユーザー名を設定してください");closeComments();promptUsername();return;}
+  const c=(cmtCache[cmtPostId]||[]).find(x=>String(x.id)===String(cid));
+  const parentId=(c&&c.parent_id)?c.parent_id:cid;   // 返信は2階層に固定（ルートにぶら下げる）
+  cmtReplyTo={id:parentId,name:name||(c&&c.author)||"匿名"};
+  renderCompose();
+  const inp=document.getElementById('cmtInput');if(inp){try{inp.focus();}catch(e){}}
+}
+function cancelReply(){cmtReplyTo=null;renderCompose();}
+async function deleteComment(cid){
+  if(!session)return;
+  if(!confirm("このコメントを削除しますか？（返信も一緒に削除されます）"))return;
+  try{
+    if(SERVER){
+      const token=await freshToken();
+      if(!token){alert("ログインの有効期限が切れました。もう一度ログインしてください。");return;}
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${cid}`,{method:"DELETE",headers:authHeadersWith(token)});
+      if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"削除に失敗しました");}
+    }
+    cmtCache[cmtPostId]=(cmtCache[cmtPostId]||[]).filter(c=>String(c.id)!==String(cid)&&String(c.parent_id)!==String(cid));
+    if(cmtReplyTo&&String(cmtReplyTo.id)===String(cid)){cmtReplyTo=null;renderCompose();}
+    renderCommentList(cmtCache[cmtPostId]);
+  }catch(err){alert(err.message||"削除に失敗しました");}
+}
+document.getElementById('cmtList').addEventListener('click',e=>{
+  const rep=e.target.closest('.cmt-reply');
+  if(rep){startReply(rep.dataset.cid,rep.dataset.name);return;}
+  const del=e.target.closest('.cmt-del');
+  if(del){deleteComment(del.dataset.cid);return;}
+});
 function renderCompose(){
   const el=document.getElementById('cmtCompose');
   if(session){
-    el.innerHTML=`<div class="cmt-form"><textarea id="cmtInput" maxlength="500" placeholder="コメントを書く（${esc(currentName())}として投稿）"></textarea>
-      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitComment()">コメントする</button></div>`;
+    const banner=cmtReplyTo?`<div class="cmt-replybar"><span>${esc(cmtReplyTo.name)}さんに返信中</span><span class="cmt-replycancel" onclick="cancelReply()">取消</span></div>`:"";
+    const ph=cmtReplyTo?"返信を書く":"コメントを書く";
+    const lbl=cmtReplyTo?"返信する":"コメントする";
+    el.innerHTML=`${banner}<div class="cmt-form"><textarea id="cmtInput" maxlength="500" placeholder="${ph}（${esc(currentName())}として投稿）"></textarea>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="submitComment()">${lbl}</button></div>`;
   }else{
     el.innerHTML=`<div class="cmt-login">コメントするにはログインが必要です。<br><button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="closeComments();openAuth()">ログイン / 登録</button></div>`;
   }
@@ -2721,6 +2805,7 @@ async function submitComment(){
   if(!token){alert("ログインの有効期限が切れました。もう一度ログインしてください。");closeComments();openAuth();return;}
   const btn=document.querySelector('#cmtCompose button');if(btn){btn.disabled=true;btn.textContent="送信中…";}
   const row={post_id:cmtPostId,user_id:session.uid,author:currentName(),body};
+  if(cmtReplyTo)row.parent_id=cmtReplyTo.id;
   try{
     let saved=row;
     if(SERVER){
@@ -2729,9 +2814,10 @@ async function submitComment(){
       saved=(await r.json())[0];
     }else saved={...row,created_at:new Date().toISOString()};
     cmtCache[cmtPostId]=[...(cmtCache[cmtPostId]||[]),saved];
+    cmtReplyTo=null;
     renderCommentList(cmtCache[cmtPostId]);
     renderCompose();
-  }catch(err){alert(err.message||"送信に失敗しました");if(btn){btn.disabled=false;btn.textContent="コメントする";}}
+  }catch(err){alert(err.message||"送信に失敗しました");if(btn){btn.disabled=false;btn.textContent=cmtReplyTo?"返信する":"コメントする";}}
 }
 
 document.querySelectorAll('input[name="cat"]').forEach(r=>{
