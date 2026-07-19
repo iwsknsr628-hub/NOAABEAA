@@ -128,7 +128,7 @@
   .card:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
   .card-gallery{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:-22px -20px 6px;
     border-radius:var(--radius) var(--radius) 0 0;overflow:hidden;background:var(--bg2)}
-  .card-gallery img{width:100%;height:100px;object-fit:cover;display:block;cursor:zoom-in;transition:opacity .15s}
+  .card-gallery img{width:100%;height:100px;object-fit:cover;display:block;cursor:pointer;transition:opacity .15s}
   .card-gallery img:hover{opacity:.88}
   .card-gallery.g1{grid-template-columns:1fr}
   .card-gallery.g1 img{height:180px}
@@ -344,8 +344,52 @@
   .sns-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:800;font-size:.85rem;
     padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:#fff;transition:.15s}
   .sns-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
-  .card .author-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}
-  .card .author-link:hover{color:var(--accent)}
+  .card .author-link{cursor:pointer;display:inline-flex;align-items:center;gap:5px;max-width:60%}
+  .card .author-link span:last-child{text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .author-link:hover span:last-child{color:var(--accent)}
+  .mini-av{display:inline-grid;place-items:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+    background:var(--bg2) center/cover no-repeat;font-size:.72rem;color:var(--ink-soft);border:1px solid var(--line)}
+  /* カードの本文は数行だけ見せて、続きはポップアップで */
+  .card>p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+    line-clamp:3;cursor:pointer}
+  .card{cursor:pointer}
+  .card .maps-row,.card .aff-row,.card .meta,.card-gallery,.card .tags{cursor:auto}
+
+  /* POST DETAIL POPUP （プロフィール全画面 z-index:200 より上に重ねる） */
+  #postViewBg{z-index:230}
+  #cmtBg{z-index:240}
+  #postViewBg .modal{max-width:560px;padding:0;overflow:hidden}
+  .pd-scroll{max-height:90vh;overflow-y:auto;padding:0 0 22px}
+  .pd-gallery{display:grid;gap:3px;background:var(--bg2)}
+  .pd-gallery img{width:100%;max-height:340px;object-fit:cover;display:block;cursor:zoom-in}
+  .pd-gallery.g2,.pd-gallery.g3,.pd-gallery.g4{grid-template-columns:1fr 1fr}
+  .pd-gallery.g3 img:first-child{grid-column:1/3}
+  .pd-body{padding:20px 24px 0}
+  #postViewBg .close{z-index:2;background:rgba(255,255,255,.9);border-radius:50%;width:34px;height:34px}
+  .pd-body h2{font-size:1.35rem;font-weight:900;margin:8px 0 2px;line-height:1.3}
+  .pd-body .spot{color:var(--accent);font-weight:800;font-size:.95rem;margin-bottom:6px}
+  .pd-body .addr{font-size:.86rem;color:var(--ink-soft);margin-bottom:10px}
+  .pd-desc{font-size:.98rem;line-height:1.85;white-space:pre-wrap;margin:12px 0}
+  .pd-author{display:flex;align-items:center;gap:10px;margin:16px 0 4px;padding:12px 0;border-top:1px solid var(--line)}
+  .pd-author .mini-av{width:38px;height:38px;font-size:1.1rem}
+  .pd-author .nm{font-weight:800;cursor:pointer}
+  .pd-author .nm:hover{color:var(--accent)}
+  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem}
+  .pd-actions>span{cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:700}
+  .pd-actions>span:hover{color:var(--accent)}
+  .pd-body .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pd-body .maps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
+  .pd-body .maps-label{font-size:.8rem;color:var(--ink-soft);font-weight:700}
+  .pd-body .maps-btn{font-size:.82rem;font-weight:800;text-decoration:none;padding:6px 13px;border-radius:999px;
+    border:1px solid var(--line);transition:transform .15s,box-shadow .2s}
+  .pd-body .maps-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+  .pd-body .maps-btn.g{color:#1a73e8;background:#eaf1fe;border-color:#d3e3fd}
+  .pd-body .maps-btn.y{color:#e8322f;background:#fdeceb;border-color:#f8d3d1}
+  .pd-body .maps-btn.a{color:#444;background:#f1f1f3;border-color:#e2e2e6}
+  .pd-body .aff-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .pd-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .pd-body .tags span{font-size:.75rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px}
 
   /* mobile: 2 columns, compact */
   @media(max-width:640px){
@@ -696,23 +740,43 @@
   </div>
 </div>
 
-<!-- PROFILE VIEW MODAL -->
-<div class="modal-bg" id="pvBg">
-  <div class="modal" style="max-width:420px;text-align:center">
-    <button class="close" onclick="closeProfileView()">&times;</button>
-    <div id="pvAvatar" class="avatar-lg" style="margin:6px auto 0">👤</div>
-    <h2 id="pvName" style="margin-top:12px">プロフィール</h2>
-    <div class="ig-stats">
-      <div><b id="pvStatPosts">0</b><span>投稿</span></div>
-      <div><b id="pvStatFollowers">0</b><span>フォロワー</span></div>
-      <div><b id="pvStatFollowing">0</b><span>フォロー中</span></div>
-      <div><b id="pvStatLikes">0</b><span>総いいね</span></div>
-    </div>
-    <p id="pvBio" style="color:var(--ink-soft);font-size:.95rem;white-space:pre-wrap;margin-top:4px"></p>
-    <div id="pvLinks" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"></div>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
-      <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
-      <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">🔔</button>
+<!-- POST DETAIL POPUP -->
+<div class="modal-bg" id="postViewBg">
+  <div class="modal">
+    <button class="close" onclick="closePostView()">&times;</button>
+    <div class="pd-scroll" id="pdScroll"></div>
+  </div>
+</div>
+
+<!-- PROFILE PAGE -->
+<div class="full-page" id="pvPage">
+  <div class="full-page-head">
+    <button type="button" class="pin-back" onclick="closeProfileView()">← 戻る</button>
+    <span class="pin-page-title">プロフィール</span>
+    <div class="full-page-head-icons"></div>
+  </div>
+  <div class="full-page-body">
+    <div class="mp-wrap">
+      <div class="mp-section" style="text-align:center">
+        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto">👤</div>
+        <h2 id="pvName" style="margin-top:12px;font-size:1.15rem">プロフィール</h2>
+        <div class="ig-stats">
+          <div><b id="pvStatPosts">0</b><span>投稿</span></div>
+          <div><b id="pvStatFollowers">0</b><span>フォロワー</span></div>
+          <div><b id="pvStatFollowing">0</b><span>フォロー中</span></div>
+          <div><b id="pvStatLikes">0</b><span>総いいね</span></div>
+        </div>
+        <p id="pvBio" style="color:var(--ink-soft);font-size:.95rem;white-space:pre-wrap;margin-top:4px"></p>
+        <div id="pvLinks" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"></div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+          <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
+          <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">🔔</button>
+        </div>
+      </div>
+      <div class="mp-section">
+        <h3 id="pvPostsTitle">投稿</h3>
+        <div class="grid" id="pvPostsGrid" style="gap:14px"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1098,7 +1162,23 @@ async function fetchPosts(){
   const res=await fetch(`${SUPABASE_URL}/rest/v1/posts?select=*&order=created_at.desc`,{headers:sbHeaders});
   if(!res.ok)throw new Error("load "+res.status);
   POSTS=(await res.json()).map(mapRow);
+  await fetchAvatars();
 }
+/* 投稿一覧に出てくる著者のアバター/名前をまとめて取得（カード表示用） */
+const AVATARS={};
+async function fetchAvatars(){
+  if(!SERVER)return;
+  try{
+    const ids=[...new Set(POSTS.map(p=>p.user_id).filter(Boolean))].filter(id=>!(id in AVATARS));
+    if(!ids.length)return;
+    const q=ids.map(encodeURIComponent).join(',');
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=in.(${q})&select=user_id,avatar_url,name`,{headers:sbHeaders});
+    if(!r.ok)return;
+    (await r.json()).forEach(p=>{AVATARS[p.user_id]={avatar:p.avatar_url||"",name:p.name||""};});
+    ids.forEach(id=>{if(!(id in AVATARS))AVATARS[id]={avatar:"",name:""};});
+  }catch(e){console.warn("avatars",e);}
+}
+function avatarOf(uid){return (uid&&AVATARS[uid]&&AVATARS[uid].avatar)||"";}
 async function addPostServer(post){
   const token=await freshToken();
   if(!token) throw new Error("ログインが必要です");
@@ -1368,7 +1448,9 @@ function cardHTML(p){
   const imgs=(p.photos||[]).slice(0,4);
   const gallery=imgs.length?`<div class="card-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
   const addr=p.address?`<div class="addr">📍 ${esc(p.address)}</div>`:"";
-  return `<div class="card" data-cat="${p.cat}">
+  const av=avatarOf(p.user_id);
+  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}>${av?'':'👤'}</span>`;
+  return `<div class="card" data-cat="${p.cat}" data-id="${p.id}">
     ${gallery}
     <div class="card-top">
       <span class="badge cat" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>${sub}
@@ -1381,7 +1463,7 @@ function cardHTML(p){
     ${affButtonsHTML(p)}
     <div class="tags">${tags}</div>
     <div class="meta">
-      <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">by ${esc(p.author||"匿名")}</span>
+      <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}<span>by ${esc(p.author||"匿名")}</span></span>
       <span class="meta-actions">
         <span class="cmt-btn" data-id="${p.id}" title="コメント">💬</span>
         <span class="like" data-id="${p.id}" title="いいね">❤️ ${p.likes||0}</span>
@@ -1418,12 +1500,67 @@ document.addEventListener('keydown',e=>{
   else if(e.key==="ArrowRight")lbNav(1);
 });
 document.body.addEventListener('click',e=>{
-  const img=e.target.closest('.card-gallery img');
+  const img=e.target.closest('.pd-gallery img');
   if(!img)return;
-  const wrap=img.closest('.card-gallery');
+  const wrap=img.closest('.pd-gallery');
   let photos=[];
   try{photos=JSON.parse(wrap.dataset.photos||'[]');}catch(err){}
   openLightbox(photos,parseInt(img.dataset.idx)||0);
+});
+
+/* ---------- 投稿詳細ポップアップ ---------- */
+function postDetailHTML(p){
+  const sub=(p.pref?`<span class="badge sub">📍 ${p.pref}</span>`:(p.genre?`<span class="badge sub">📖 ${p.genre}</span>`:""));
+  const tags=(p.tags||[]).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
+  const ml=mapLinks(p);
+  const btns={
+    google:`<a class="maps-btn g" href="${ml.google}" target="_blank" rel="noopener noreferrer">Google</a>`,
+    yahoo:`<a class="maps-btn y" href="${ml.yahoo}" target="_blank" rel="noopener noreferrer">Yahoo!</a>`,
+    apple:`<a class="maps-btn a" href="${ml.apple}" target="_blank" rel="noopener noreferrer">Apple</a>`
+  };
+  const pref=mapPref();
+  const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
+  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">🗺️ 地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
+  const imgs=(p.photos||[]).slice(0,4);
+  const gallery=imgs.length?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
+  const addr=p.address?`<div class="addr">📍 ${esc(p.address)}</div>`:"";
+  const av=avatarOf(p.user_id);
+  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}>${av?'':'👤'}</span>`;
+  const canEdit=session&&p.user_id&&session.uid===p.user_id;
+  return `${gallery}
+    <div class="pd-body">
+      <div class="card-top"><span class="badge cat" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>${sub}</div>
+      <h2>${esc(p.title)}</h2>
+      <div class="spot">▷ ${esc(p.spot)}</div>
+      ${addr}
+      ${p.desc?`<div class="pd-desc">${esc(p.desc)}</div>`:""}
+      ${maps}
+      ${affButtonsHTML(p)}
+      <div class="tags">${tags}</div>
+      <div class="pd-author">
+        <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}</span>
+        <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${esc(p.author||"匿名")}</span>
+      </div>
+      <div class="pd-actions">
+        <span class="cmt-btn" data-id="${p.id}">💬 コメント</span>
+        <span class="like" data-id="${p.id}">❤️ ${p.likes||0}</span>
+        ${canEdit?`<span class="edit-btn" data-id="${p.id}">✏️ 編集</span>`:""}
+        <span class="report" data-id="${p.id}">⚠️ 通報</span>
+      </div>
+    </div>`;
+}
+let pvPostId=null;
+function openPostView(id){
+  const p=POSTS.find(x=>x.id===id);if(!p)return;
+  pvPostId=id;
+  document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
+  document.getElementById('postViewBg').classList.add('open');
+}
+function closePostView(){document.getElementById('postViewBg').classList.remove('open');pvPostId=null;}
+document.getElementById('postViewBg').addEventListener('click',async e=>{
+  if(e.target.id==="postViewBg"){closePostView();return;}
+  const handled=await handleCardInteractions(e,()=>{if(pvPostId){const p=POSTS.find(x=>x.id===pvPostId);if(p)document.getElementById('pdScroll').innerHTML=postDetailHTML(p);}render();});
+  /* 詳細内は既に開いているので、カード自身のタップで再度開かない */
 });
 
 /* ---------- filters ---------- */
@@ -1444,24 +1581,32 @@ searchEl.addEventListener('keydown',e=>{if(e.key==="Enter")runAssistant();});
 searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant();});
 
 /* like / report / comment */
-grid.addEventListener('click',async e=>{
+/* カード共通のクリック処理。処理したら true。rerender は いいね後の再描画関数。 */
+async function handleCardInteractions(e,rerender){
   const au=e.target.closest('.author-link');
-  if(au){openProfileView(au.dataset.uid,au.dataset.name);return;}
+  if(au){openProfileView(au.dataset.uid,au.dataset.name);return true;}
   const c=e.target.closest('.cmt-btn');
-  if(c){openComments(c.dataset.id);return;}
+  if(c){openComments(c.dataset.id);return true;}
   const ed=e.target.closest('.edit-btn');
-  if(ed){const p=POSTS.find(x=>x.id===ed.dataset.id);if(p)openEditModal(p);return;}
+  if(ed){const p=POSTS.find(x=>x.id===ed.dataset.id);if(p){closePostView();openEditModal(p);}return true;}
   const l=e.target.closest('.like');
-  if(l){const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return;
-    p.likes=(p.likes||0)+1;render();
+  if(l){const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return true;
+    p.likes=(p.likes||0)+1;if(rerender)rerender();else render();
     if(SERVER){try{await likeServer(p.id);}catch(err){console.warn(err);}}
-    return;}
+    return true;}
   const r=e.target.closest('.report');
-  if(r){const p=POSTS.find(x=>x.id===r.dataset.id);if(!p)return;
-    if(!confirm("この投稿を運営に通報しますか？（不適切・スパムなど）"))return;
+  if(r){const p=POSTS.find(x=>x.id===r.dataset.id);if(!p)return true;
+    if(!confirm("この投稿を運営に通報しますか？（不適切・スパムなど）"))return true;
     if(SERVER){try{await reportServer(p.id);}catch(err){console.warn(err);}}
-    r.textContent="✓ 通報済み";r.style.opacity="1";r.style.pointerEvents="none";}
-});
+    r.textContent="✓ 通報済み";r.style.opacity="1";r.style.pointerEvents="none";return true;}
+  /* 地図/アフィリンクなどの通常リンクはそのまま遷移させる */
+  if(e.target.closest('a'))return true;
+  /* それ以外でカード内をタップ → 投稿の詳細ポップアップを開く */
+  const card=e.target.closest('.card');
+  if(card&&card.dataset.id){openPostView(card.dataset.id);return true;}
+  return false;
+}
+grid.addEventListener('click',e=>{handleCardInteractions(e,render);});
 
 /* ---------- modal ---------- */
 const modalBg=document.getElementById('modalBg');
@@ -1969,16 +2114,8 @@ function renderMyPosts(){
   if(!mine.length){wrap.innerHTML=`<div class="empty"><div class="big">📝</div>まだ投稿がありません。<br>最初のおすすめを投稿してみませんか？</div>`;return;}
   wrap.innerHTML=mine.map(cardHTML).join('');
 }
-document.getElementById('mpPostsGrid').addEventListener('click',async e=>{
-  const c=e.target.closest('.cmt-btn');
-  if(c){openComments(c.dataset.id);return;}
-  const ed=e.target.closest('.edit-btn');
-  if(ed){const p=POSTS.find(x=>x.id===ed.dataset.id);if(p)openEditModal(p);return;}
-  const l=e.target.closest('.like');
-  if(l){const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return;
-    p.likes=(p.likes||0)+1;renderMyPosts();render();
-    if(SERVER){try{await likeServer(p.id);}catch(err){console.warn(err);}}
-    return;}
+document.getElementById('mpPostsGrid').addEventListener('click',e=>{
+  handleCardInteractions(e,()=>{renderMyPosts();render();});
 });
 async function changeMyPassword(){
   const pass=document.getElementById('mpNewPass').value;
@@ -2034,8 +2171,18 @@ async function getFollowRow(uid){
     return d[0]||null;
   }catch(e){return null;}
 }
+let pvUserId=null;
+function renderPvPosts(userId){
+  const grid=document.getElementById('pvPostsGrid');
+  const mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
+  document.getElementById('pvPostsTitle').textContent=`投稿（${mine.length}）`;
+  grid.innerHTML=mine.length?mine.map(cardHTML).join('')
+    :`<div class="empty"><div class="big">📝</div>まだ投稿がありません。</div>`;
+}
 async function openProfileView(userId,fallbackName){
-  const bg=document.getElementById('pvBg');
+  closePostView();
+  pvUserId=userId||null;
+  const page=document.getElementById('pvPage');
   document.getElementById('pvName').textContent=fallbackName||"プロフィール";
   document.getElementById('pvBio').textContent="読み込み中…";
   document.getElementById('pvLinks').innerHTML="";
@@ -2046,7 +2193,9 @@ async function openProfileView(userId,fallbackName){
   const av=document.getElementById('pvAvatar');av.style.backgroundImage="";av.textContent="👤";
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
   const notifyBtn=document.getElementById('pvNotifyBtn');notifyBtn.style.display="none";notifyBtn.onclick=null;
-  bg.classList.add('open');
+  renderPvPosts(userId);
+  page.classList.add('open');
+  const body=page.querySelector('.full-page-body');if(body)body.scrollTop=0;
   if(!SERVER||!userId){document.getElementById('pvBio').textContent="このユーザーのプロフィールはまだありません。";return;}
 
   const st=statsForUser(userId);
@@ -2147,8 +2296,12 @@ async function togglePvNotify(userId){
   }catch(e){alert("処理に失敗しました");}
   finally{notifyBtn.disabled=false;}
 }
-function closeProfileView(){document.getElementById('pvBg').classList.remove('open');}
-document.getElementById('pvBg').addEventListener('click',e=>{if(e.target.id==="pvBg")closeProfileView();});
+function closeProfileView(){document.getElementById('pvPage').classList.remove('open');}
+/* プロフィールページ内の投稿カード操作（いいね/コメント/詳細ポップアップ/著者） */
+document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
+  if(handleCardInteractions(e,renderPvPostsCurrent))return;
+});
+function renderPvPostsCurrent(){if(pvUserId)renderPvPosts(pvUserId);}
 
 /* ---------- comments ---------- */
 let cmtPostId=null;
