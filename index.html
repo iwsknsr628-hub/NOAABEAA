@@ -33,9 +33,10 @@
   .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;align-items:center;justify-content:center;
     gap:10px;background:rgba(255,250,243,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);
     box-shadow:0 -3px 14px rgba(20,16,10,.06);padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
-  .tabbar .tab{flex:1;max-width:200px;display:flex;align-items:center;justify-content:center;background:none;
+  .tabbar .tab{position:relative;flex:1;max-width:200px;display:flex;align-items:center;justify-content:center;background:none;
     border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;
     padding:10px 12px;border-radius:12px;transition:color .15s,background .15s,border-color .15s}
+  .tabbar .tab svg{display:block}
   .tabbar .tab:hover,.tabbar .tab:active{color:var(--accent);border-color:var(--accent)}
   .tabbar .tab-post{color:#fff;font-weight:800;border-color:transparent;
     background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow-sm)}
@@ -505,14 +506,23 @@
 
 <!-- BOTTOM TAB BAR（タスクバー） -->
 <nav class="tabbar" id="tabbar">
-  <button class="tab" onclick="goHome()">ホーム</button>
-  <button class="tab tab-icon" id="tabNotif" onclick="openNotifs()" title="通知" aria-label="通知">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"
+  <button class="tab" onclick="goHome()" title="ホーム" aria-label="ホーム">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9"
+      stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path></svg>
+  </button>
+  <button class="tab" id="tabNotif" onclick="openNotifs()" title="通知" aria-label="通知">
+    <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8"
       stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg>
     <span class="notif-dot" id="notifDot" style="display:none">0</span>
   </button>
-  <button class="tab tab-post" onclick="openModal()">＋ 投稿する</button>
-  <button class="tab" id="tabAcct" onclick="openAuth()">ログイン</button>
+  <button class="tab tab-post" onclick="openModal()" title="投稿する" aria-label="投稿する">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2"
+      stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+  </button>
+  <button class="tab" id="tabAcct" onclick="openAuth()" title="ログイン" aria-label="アカウント">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9"
+      stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -2203,11 +2213,11 @@ function updateAcctUI(){
     if(session){top.style.display="none";}
     else{top.style.display="";top.textContent="ログイン / 登録";top.onclick=openAuth;}
   }
-  /* 下タブバーのアカウントボタン */
+  /* 下タブバーのアカウントボタン（アイコンは維持し、動作とタイトルのみ切替） */
   const tab=document.getElementById('tabAcct');
   if(tab){
-    if(session){tab.textContent="マイページ";tab.onclick=openMyPage;tab.title="マイページ";}
-    else{tab.textContent="ログイン";tab.onclick=openAuth;tab.title="ログイン / 登録";}
+    if(session){tab.onclick=openMyPage;tab.title="マイページ";tab.setAttribute('aria-label','マイページ');}
+    else{tab.onclick=openAuth;tab.title="ログイン / 登録";tab.setAttribute('aria-label','ログイン');}
   }
 }
 function goHome(){
