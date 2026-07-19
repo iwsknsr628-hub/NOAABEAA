@@ -40,6 +40,11 @@
   .tabbar .tab-post{color:#fff;font-weight:800;border-color:transparent;
     background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow-sm)}
   .tabbar .tab-post:hover{color:#fff;filter:brightness(1.03)}
+  .tabbar .tab-icon{position:relative;flex:0 0 auto;max-width:none;width:52px;padding:9px 0;color:var(--ink)}
+  .tabbar .tab-icon svg{display:block}
+  .notif-dot{position:absolute;top:2px;right:6px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;
+    background:var(--accent);color:#fff;font-size:.66rem;font-weight:800;line-height:17px;text-align:center;
+    box-shadow:0 0 0 2px rgba(255,250,243,.97)}
   body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
   @media(max-width:720px){.nav-links{display:none}}
 
@@ -385,6 +390,20 @@
   /* POST DETAIL POPUP （プロフィール全画面 z-index:200 より上に重ねる） */
   #postViewBg{z-index:230}
   #cmtBg{z-index:240}
+  #notifBg{z-index:245}
+  .notif-list{margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto}
+  .notif-empty{text-align:center;color:var(--ink-soft);font-size:.9rem;padding:26px 0}
+  .notif-item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--line);
+    border-radius:14px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
+  .notif-item:hover{background:var(--bg2);border-color:var(--accent)}
+  .notif-item.unread{background:#fff7f0;border-color:#f3d6bf}
+  .notif-ic{flex:0 0 auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+    font-size:.72rem;font-weight:800;color:#fff}
+  .notif-ic.like{background:#e0245e}
+  .notif-ic.comment{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .notif-tx{min-width:0;flex:1}
+  .notif-tx .t{font-size:.9rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+  .notif-tx .w{font-size:.74rem;color:var(--ink-soft);margin-top:2px}
   #postViewBg .modal{max-width:560px;padding:0;overflow:hidden}
   .pd-scroll{max-height:90vh;overflow-y:auto;padding:0 0 22px}
   .pd-gallery{display:grid;gap:3px;background:var(--bg2)}
@@ -464,6 +483,11 @@
 <!-- BOTTOM TAB BAR（タスクバー） -->
 <nav class="tabbar" id="tabbar">
   <button class="tab" onclick="goHome()">ホーム</button>
+  <button class="tab tab-icon" id="tabNotif" onclick="openNotifs()" title="通知" aria-label="通知">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"></path><path d="M22 2 15 22l-4-9-9-4 20-7z"></path></svg>
+    <span class="notif-dot" id="notifDot" style="display:none">0</span>
+  </button>
   <button class="tab tab-post" onclick="openModal()">＋ 投稿する</button>
   <button class="tab" id="tabAcct" onclick="openAuth()">ログイン</button>
 </nav>
@@ -780,6 +804,16 @@
     </div>
     <p id="unameMsg" style="font-size:.82rem;color:var(--ink-soft);min-height:1.1em;margin:0 0 10px"></p>
     <button class="btn btn-primary" style="width:100%" onclick="saveUsername()">この名前で決定</button>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS MODAL -->
+<div class="modal-bg" id="notifBg">
+  <div class="modal" style="max-width:460px">
+    <button class="close" onclick="closeNotifs()">&times;</button>
+    <h2 style="font-size:1.2rem">通知</h2>
+    <p class="msub">あなたの投稿へのいいね・コメントが届きます。</p>
+    <div class="notif-list" id="notifList"></div>
   </div>
 </div>
 
@@ -2127,7 +2161,7 @@ async function submitAuth(){
       const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:pass,data:{name}})});
       const d=await r.json();
       if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"登録に失敗しました");
-      if(d.access_token){saveSession(sessionFrom(email,name,d));loadMyProfile();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
+      if(d.access_token){saveSession(sessionFrom(email,name,d));loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
         setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);}
       else{msg.style.color="#3a7";msg.textContent="確認メールを送りました。メール内のリンクを開くとログインできます。";authMode="login";}
     }else{
@@ -2135,11 +2169,109 @@ async function submitAuth(){
       const d=await r.json();
       if(!r.ok||!d.access_token)throw new Error(d.error_description||d.msg||"メールまたはパスワードが違います");
       saveSession(sessionFrom(email,name,d));loadMyProfile();msg.style.color="#3a7";msg.textContent="ログインしました！";setTimeout(closeAuth,700);
+      refreshNotifs();startNotifPoll();
     }
   }catch(err){msg.style.color="#d33";msg.textContent=err.message||"エラーが発生しました";}
   finally{btn.disabled=false;btn.textContent=orig;}
 }
-function logout(){if(confirm("ログアウトしますか？")){session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}updateAcctUI();}}
+function logout(){if(confirm("ログアウトしますか？")){session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}NOTIFS=[];updateAcctUI();updateNotifBadge();}}
+
+/* ---------- notifications（自分の投稿へのいいね・コメント通知） ---------- */
+let NOTIFS=[];
+let notifPollTimer=null;
+function notifKey(){return "nanshiyo_notif_"+(session?session.uid:"guest");}
+function notifState(){try{return JSON.parse(localStorage.getItem(notifKey())||"{}");}catch(e){return {};}}
+function saveNotifState(s){try{localStorage.setItem(notifKey(),JSON.stringify(s));}catch(e){}}
+function myPostList(){return session?POSTS.filter(p=>p.user_id===session.uid):[];}
+function notifUnreadCount(){return NOTIFS.filter(n=>n.unread).length;}
+function updateNotifBadge(){
+  const dot=document.getElementById('notifDot');if(!dot)return;
+  const n=notifUnreadCount();
+  if(session&&n>0){dot.style.display="";dot.textContent=n>9?"9+":String(n);}
+  else dot.style.display="none";
+}
+async function refreshNotifs(){
+  if(!session||!SERVER){NOTIFS=[];updateNotifBadge();return;}
+  const mine=myPostList();
+  const st=notifState();
+  let stChanged=false;
+  if(st.lastOpened===undefined){st.lastOpened=Date.now();stChanged=true;}   // 初回は既存分を既読扱い
+  if(st.likeSnap===undefined){st.likeSnap={};}
+  const seen=st.lastOpened||0;
+  const snap=st.likeSnap;
+  const items=[];
+  /* コメント（自分の投稿宛て・自分以外） */
+  if(mine.length){
+    try{
+      const q=mine.map(p=>encodeURIComponent(p.id)).join(',');
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/comments?select=id,post_id,author,body,created_at,user_id&post_id=in.(${q})&order=created_at.desc&limit=60`,{headers:sbHeaders});
+      if(r.ok){
+        (await r.json()).forEach(c=>{
+          if(c.user_id&&session.uid&&c.user_id===session.uid)return;
+          const p=mine.find(x=>x.id===c.post_id);
+          const t=new Date(c.created_at).getTime()||0;
+          items.push({type:"comment",postId:c.post_id,time:t,
+            title:`${c.author||"匿名"}さんがコメントしました`,
+            sub:`「${(p&&p.title)||"あなたの投稿"}」`,unread:t>seen});
+        });
+      }
+    }catch(e){console.warn("notif comments",e);}
+  }
+  /* いいね（カウント差分。個別記録が無いため件数で検知） */
+  mine.forEach(p=>{
+    const cur=p.likes||0;
+    if(!(p.id in snap)){snap[p.id]=cur;stChanged=true;return;}   // 新規投稿はベースライン化
+    if(cur>snap[p.id]){
+      items.push({type:"like",postId:p.id,time:Date.now(),
+        title:`「${p.title}」に ${cur-snap[p.id]}件の新しいいいね`,
+        sub:`合計 ${cur} いいね`,unread:true});
+    }
+  });
+  if(stChanged)saveNotifState(st);
+  items.sort((a,b)=>b.time-a.time);
+  NOTIFS=items.slice(0,60);
+  updateNotifBadge();
+  if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
+}
+function renderNotifs(){
+  const el=document.getElementById('notifList');if(!el)return;
+  if(!session){el.innerHTML='<div class="notif-empty">通知を見るにはログインが必要です。</div>';return;}
+  if(!NOTIFS.length){el.innerHTML='<div class="notif-empty">まだ通知はありません。<br>投稿にいいねやコメントが付くとここに表示されます。</div>';return;}
+  el.innerHTML=NOTIFS.map(n=>{
+    const ic=n.type==="like"?'<span class="notif-ic like">Like</span>':'<span class="notif-ic comment">C</span>';
+    return `<div class="notif-item${n.unread?' unread':''}" data-pid="${esc(String(n.postId))}">${ic}<div class="notif-tx"><div class="t">${esc(n.title)}</div><div class="w">${esc(n.sub||"")}・${esc(fmtWhen(new Date(n.time).toISOString()))}</div></div></div>`;
+  }).join('');
+  el.querySelectorAll('.notif-item').forEach(it=>{
+    it.addEventListener('click',()=>{const pid=it.dataset.pid;closeNotifs();const p=POSTS.find(x=>String(x.id)===pid);if(p)openPostView(p.id);});
+  });
+}
+function openNotifs(){
+  if(!requireLogin("通知を見るにはログインが必要です"))return;
+  document.getElementById('notifBg').classList.add('open');
+  renderNotifs();
+  refreshNotifs().then(()=>{renderNotifs();markNotifsRead();});
+}
+function closeNotifs(){document.getElementById('notifBg').classList.remove('open');}
+document.getElementById('notifBg').addEventListener('click',e=>{if(e.target.id==="notifBg")closeNotifs();});
+function markNotifsRead(){
+  if(!session)return;
+  const st=notifState();
+  st.lastOpened=Date.now();
+  const snap={};myPostList().forEach(p=>{snap[p.id]=p.likes||0;});
+  st.likeSnap=snap;
+  saveNotifState(st);
+  NOTIFS.forEach(n=>n.unread=false);
+  updateNotifBadge();
+}
+function startNotifPoll(){
+  if(notifPollTimer)clearInterval(notifPollTimer);
+  if(session&&SERVER){
+    notifPollTimer=setInterval(()=>{
+      if(document.hidden)return;
+      fetchPosts().then(()=>{render();refreshNotifs();}).catch(()=>{});
+    },90000);
+  }
+}
 function togglePass(){const i=document.getElementById('authPass'),b=document.getElementById('passToggle');
   if(i.type==="password"){i.type="text";b.textContent="隠す";}else{i.type="password";b.textContent="表示";}}
 async function handleAuthRedirect(){
@@ -2784,6 +2916,8 @@ async function init(){
   render();
   requestLoc();
   maybePromptUsername();
+  refreshNotifs();
+  startNotifPoll();
 }
 init();
 
