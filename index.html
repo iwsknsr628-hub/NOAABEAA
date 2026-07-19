@@ -919,7 +919,7 @@ async function geocode(q){
 
 /* Google Places（任意）: 参照元制限キーを下に貼ると最優先で使う。空なら無料のOSM検索のみ。
    ※ このキーは HTTP参照元(nanshiyo.com)＋「Maps JavaScript API / Places API(New)」に必ず制限すること。 */
-const GOOGLE_MAPS_KEY="";
+const GOOGLE_MAPS_KEY="AIzaSyBlj8H1HwpKpnmNr_RVNJnMzPc_sLIhfgU";
 let _gPlaces=null,_gLoading=null;
 function loadGooglePlaces(){
   if(!GOOGLE_MAPS_KEY)return Promise.resolve(null);
