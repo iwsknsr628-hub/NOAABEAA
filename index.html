@@ -916,6 +916,41 @@ async function geocode(q){
   return null;
 }
 /* ---- 場所検索：複数エンジン併用で「出てこない」を極力なくす ---- */
+
+/* Google Places（任意）: 参照元制限キーを下に貼ると最優先で使う。空なら無料のOSM検索のみ。
+   ※ このキーは HTTP参照元(nanshiyo.com)＋「Maps JavaScript API / Places API(New)」に必ず制限すること。 */
+const GOOGLE_MAPS_KEY="";
+let _gPlaces=null,_gLoading=null;
+function loadGooglePlaces(){
+  if(!GOOGLE_MAPS_KEY)return Promise.resolve(null);
+  if(_gPlaces)return Promise.resolve(_gPlaces);
+  if(_gLoading)return _gLoading;
+  _gLoading=new Promise((resolve)=>{
+    window.__gmapsReady=async()=>{
+      try{_gPlaces=await google.maps.importLibrary("places");resolve(_gPlaces);}catch(e){console.warn(e);resolve(null);}
+    };
+    const s=document.createElement("script");
+    s.src="https://maps.googleapis.com/maps/api/js?key="+encodeURIComponent(GOOGLE_MAPS_KEY)
+      +"&libraries=places&language=ja&region=JP&loading=async&callback=__gmapsReady";
+    s.async=true;s.onerror=()=>resolve(null);
+    document.head.appendChild(s);
+  });
+  return _gLoading;
+}
+async function fromGoogle(q){
+  const lib=await loadGooglePlaces();
+  if(!lib||!lib.Place)return [];
+  try{
+    const {places}=await lib.Place.searchByText({
+      textQuery:q,fields:["displayName","formattedAddress","location"],
+      language:"ja",region:"JP",maxResultCount:10});
+    return (places||[]).map(p=>({
+      lat:p.location.lat(),lng:p.location.lng(),
+      name:(p.displayName||"").toString(),
+      addr:(p.formattedAddress||"").replace(/^日本、?/,"").replace(/、?日本$/,"").trim()}));
+  }catch(e){console.warn("google places",e);return [];}
+}
+
 // 表記ゆれ吸収のための検索バリエーション（スペース有無など）
 function searchVariants(q){
   const set=[q];
@@ -971,8 +1006,12 @@ function dedupePlaces(list){
   }
   return out;
 }
-// Nominatim（日本語名・優先）+ Photon（あいまい一致に強い）をまとめて返す
+// Google Places（キーがあれば最優先）→ 無ければ Nominatim+Photon をまとめて返す
 async function geocodeList(q,{jpOnly=true,limit=10}={}){
+  if(GOOGLE_MAPS_KEY){
+    const g=await fromGoogle(q);         // Googleは「店名 地名」をそのまま高精度で解釈
+    if(g.length)return dedupePlaces(g).slice(0,limit);
+  }
   const bias=await areaBias(q);          // 「店名 地名」の地名で中心を決める
   const variants=searchVariants(q);
   const jobs=[fromNominatim(q,jpOnly).catch(()=>[])];
