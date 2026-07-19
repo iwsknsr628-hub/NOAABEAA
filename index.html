@@ -401,6 +401,12 @@
   #postViewBg{z-index:230}
   #cmtBg{z-index:240}
   #notifBg{z-index:245}
+  #avatarCropBg{z-index:260}
+  .crop-wrap{position:relative;width:260px;height:260px;margin:14px auto 0;border-radius:50%;overflow:hidden;
+    background:var(--bg2);touch-action:none;cursor:grab;user-select:none}
+  .crop-wrap:active{cursor:grabbing}
+  .crop-wrap img{position:absolute;top:0;left:0;max-width:none;pointer-events:none}
+  .crop-mask{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.85) inset,0 0 0 999px rgba(20,16,10,.28);pointer-events:none}
   .notif-list{margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto}
   .notif-empty{text-align:center;color:var(--ink-soft);font-size:.9rem;padding:26px 0}
   .notif-item{display:flex;gap:11px;align-items:flex-start;padding:12px;border:1px solid var(--line);
@@ -941,6 +947,24 @@
     <div class="field"><label>その他リンク</label><input type="text" id="mpWebsite" placeholder="https://"></div>
     <button class="btn btn-primary" style="width:100%" id="mpSave" onclick="saveMyProfile()">保存する</button>
     <p id="mpMsg" style="font-size:.82rem;text-align:center;margin-top:10px;min-height:1.2em"></p>
+  </div>
+</div>
+
+<!-- AVATAR CROP / REPOSITION -->
+<div class="modal-bg" id="avatarCropBg">
+  <div class="modal" style="max-width:340px">
+    <button class="close" onclick="closeAvatarCrop()">&times;</button>
+    <h2 style="font-size:1.15rem">表示範囲を調整</h2>
+    <p class="msub">ドラッグで移動、スライダーで拡大・縮小できます。</p>
+    <div class="crop-wrap" id="cropWrap">
+      <img id="cropImg" alt="" draggable="false">
+      <div class="crop-mask"></div>
+    </div>
+    <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" style="width:100%;margin:16px 0 6px">
+    <div style="display:flex;gap:10px">
+      <button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAvatarCrop()">取消</button>
+      <button type="button" class="btn btn-primary" style="flex:1" onclick="applyAvatarCrop()">この範囲で決定</button>
+    </div>
   </div>
 </div>
 
@@ -2391,14 +2415,97 @@ async function uploadToBucket(bucket,file){
 /* ---------- my page (full screen) ---------- */
 let pendingMpAvatar=null;
 document.getElementById('mpAvatarInput').addEventListener('change',e=>{
-  const f=e.target.files[0],msg=document.getElementById('mpAvatarMsg');pendingMpAvatar=null;
+  const f=e.target.files[0],msg=document.getElementById('mpAvatarMsg');
   if(!f)return;
-  if(!/^image\//.test(f.type)){msg.textContent="画像を選んでください";return;}
-  if(f.size>3*1024*1024){msg.textContent="3MB以下にしてください";return;}
-  pendingMpAvatar=f;
-  const av=document.getElementById('mpEditAvatar');av.style.backgroundImage=`url(${URL.createObjectURL(f)})`;av.textContent="";
-  msg.textContent="画像を選択（保存で反映）";
+  if(!/^image\//.test(f.type)){msg.textContent="画像を選んでください";e.target.value="";return;}
+  if(f.size>6*1024*1024){msg.textContent="6MB以下にしてください";e.target.value="";return;}
+  openAvatarCrop(f);
+  e.target.value="";  // 同じ画像を選び直せるように
 });
+
+/* ---------- avatar crop / reposition ---------- */
+let cropState=null;   // {natW,natH,scale,minScale,x,y,V,url}
+function openAvatarCrop(file){
+  const V=260;
+  const url=URL.createObjectURL(file);
+  const img=document.getElementById('cropImg');
+  img.onload=()=>{
+    const natW=img.naturalWidth,natH=img.naturalHeight;
+    const minScale=V/Math.min(natW,natH);
+    cropState={natW,natH,minScale,scale:minScale,x:0,y:0,V,url};
+    cropState.x=(V-natW*minScale)/2;
+    cropState.y=(V-natH*minScale)/2;
+    const z=document.getElementById('cropZoom');z.value="1";
+    applyCropTransform();
+  };
+  img.src=url;
+  document.getElementById('avatarCropBg').classList.add('open');
+}
+function closeAvatarCrop(){
+  document.getElementById('avatarCropBg').classList.remove('open');
+  if(cropState&&cropState.url){try{URL.revokeObjectURL(cropState.url);}catch(e){}}
+}
+function clampCrop(){
+  if(!cropState)return;
+  const {natW,natH,scale,V}=cropState;
+  const minX=V-natW*scale, minY=V-natH*scale;
+  cropState.x=Math.min(0,Math.max(minX,cropState.x));
+  cropState.y=Math.min(0,Math.max(minY,cropState.y));
+}
+function applyCropTransform(){
+  if(!cropState)return;
+  clampCrop();
+  const img=document.getElementById('cropImg');
+  img.style.width=(cropState.natW*cropState.scale)+"px";
+  img.style.height=(cropState.natH*cropState.scale)+"px";
+  img.style.left=cropState.x+"px";
+  img.style.top=cropState.y+"px";
+}
+(function(){
+  const wrap=document.getElementById('cropWrap');
+  let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  wrap.addEventListener('pointerdown',e=>{
+    if(!cropState)return;
+    dragging=true;sx=e.clientX;sy=e.clientY;ox=cropState.x;oy=cropState.y;
+    try{wrap.setPointerCapture(e.pointerId);}catch(err){}
+  });
+  wrap.addEventListener('pointermove',e=>{
+    if(!dragging||!cropState)return;
+    cropState.x=ox+(e.clientX-sx);cropState.y=oy+(e.clientY-sy);
+    applyCropTransform();
+  });
+  const end=e=>{dragging=false;try{wrap.releasePointerCapture(e.pointerId);}catch(err){}};
+  wrap.addEventListener('pointerup',end);
+  wrap.addEventListener('pointercancel',end);
+  document.getElementById('avatarCropBg').addEventListener('click',e=>{if(e.target.id==='avatarCropBg')closeAvatarCrop();});
+  document.getElementById('cropZoom').addEventListener('input',e=>{
+    if(!cropState)return;
+    const V=cropState.V;
+    const cx=(V/2-cropState.x)/cropState.scale, cy=(V/2-cropState.y)/cropState.scale;
+    const newScale=cropState.minScale*parseFloat(e.target.value);
+    cropState.x=V/2-cx*newScale;cropState.y=V/2-cy*newScale;cropState.scale=newScale;
+    applyCropTransform();
+  });
+})();
+function applyAvatarCrop(){
+  if(!cropState){closeAvatarCrop();return;}
+  const {scale,x,y,V}=cropState;
+  const S=400;
+  const canvas=document.createElement('canvas');canvas.width=S;canvas.height=S;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,S,S);
+  const img=document.getElementById('cropImg');
+  const srcX=(0-x)/scale, srcY=(0-y)/scale, srcW=V/scale, srcH=V/scale;
+  ctx.drawImage(img,srcX,srcY,srcW,srcH,0,0,S,S);
+  canvas.toBlob(blob=>{
+    if(!blob){document.getElementById('mpAvatarMsg').textContent="画像の処理に失敗しました";return;}
+    pendingMpAvatar=new File([blob],"avatar.jpg",{type:"image/jpeg"});
+    const data=canvas.toDataURL("image/jpeg",0.9);
+    const av=document.getElementById('mpEditAvatar');av.style.backgroundImage=`url(${data})`;av.textContent="";
+    document.getElementById('mpAvatarMsg').textContent="画像を調整しました（保存で反映）";
+    closeAvatarCrop();
+  },"image/jpeg",0.9);
+}
 function mpVal(id){return document.getElementById(id).value.trim()||null;}
 
 /* ---------- stats / follow helpers ---------- */
