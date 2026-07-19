@@ -955,7 +955,7 @@
   <div class="modal" style="max-width:340px">
     <button class="close" onclick="closeAvatarCrop()">&times;</button>
     <h2 style="font-size:1.15rem">表示範囲を調整</h2>
-    <p class="msub">指でドラッグして、表示したい部分を合わせてください。</p>
+    <p class="msub">ドラッグで移動、2本指ピンチ（PCはマウスホイール）で拡大・縮小できます。</p>
     <div class="crop-wrap" id="cropWrap">
       <img id="cropImg" alt="" draggable="false">
       <div class="crop-mask"></div>
@@ -2461,20 +2461,38 @@ function applyCropTransform(){
 }
 (function(){
   const wrap=document.getElementById('cropWrap');
-  let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  const pts=new Map();     // pointerId -> {x,y}（wrap内座標）
+  let pinch=null;          // {dist, scale}
+  function wrapPt(e){const r=wrap.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+  function zoomAt(px,py,newScale){
+    if(!cropState)return;
+    newScale=Math.max(cropState.minScale,Math.min(cropState.minScale*5,newScale));
+    const ix=(px-cropState.x)/cropState.scale, iy=(py-cropState.y)/cropState.scale;
+    cropState.x=px-ix*newScale;cropState.y=py-iy*newScale;cropState.scale=newScale;
+    applyCropTransform();
+  }
   wrap.addEventListener('pointerdown',e=>{
     if(!cropState)return;
-    dragging=true;sx=e.clientX;sy=e.clientY;ox=cropState.x;oy=cropState.y;
     try{wrap.setPointerCapture(e.pointerId);}catch(err){}
+    pts.set(e.pointerId,wrapPt(e));
+    if(pts.size===2){const[a,b]=[...pts.values()];pinch={dist:Math.hypot(a.x-b.x,a.y-b.y)||1,scale:cropState.scale};}
   });
   wrap.addEventListener('pointermove',e=>{
-    if(!dragging||!cropState)return;
-    cropState.x=ox+(e.clientX-sx);cropState.y=oy+(e.clientY-sy);
-    applyCropTransform();
+    if(!cropState||!pts.has(e.pointerId))return;
+    const prev=pts.get(e.pointerId), cur=wrapPt(e);
+    pts.set(e.pointerId,cur);
+    if(pts.size>=2&&pinch){
+      const[a,b]=[...pts.values()];
+      const dist=Math.hypot(a.x-b.x,a.y-b.y);
+      zoomAt((a.x+b.x)/2,(a.y+b.y)/2,pinch.scale*(dist/pinch.dist));
+    }else if(pts.size===1){
+      cropState.x+=cur.x-prev.x;cropState.y+=cur.y-prev.y;applyCropTransform();
+    }
   });
-  const end=e=>{dragging=false;try{wrap.releasePointerCapture(e.pointerId);}catch(err){}};
-  wrap.addEventListener('pointerup',end);
-  wrap.addEventListener('pointercancel',end);
+  function up(e){pts.delete(e.pointerId);try{wrap.releasePointerCapture(e.pointerId);}catch(err){}if(pts.size<2)pinch=null;}
+  wrap.addEventListener('pointerup',up);
+  wrap.addEventListener('pointercancel',up);
+  wrap.addEventListener('wheel',e=>{if(!cropState)return;e.preventDefault();const p=wrapPt(e);zoomAt(p.x,p.y,cropState.scale*(e.deltaY<0?1.08:1/1.08));},{passive:false});
   document.getElementById('avatarCropBg').addEventListener('click',e=>{if(e.target.id==='avatarCropBg')closeAvatarCrop();});
 })();
 function applyAvatarCrop(){
