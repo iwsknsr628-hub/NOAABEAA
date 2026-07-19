@@ -955,13 +955,12 @@
   <div class="modal" style="max-width:340px">
     <button class="close" onclick="closeAvatarCrop()">&times;</button>
     <h2 style="font-size:1.15rem">表示範囲を調整</h2>
-    <p class="msub">ドラッグで移動、スライダーで拡大・縮小できます。</p>
+    <p class="msub">指でドラッグして、表示したい部分を合わせてください。</p>
     <div class="crop-wrap" id="cropWrap">
       <img id="cropImg" alt="" draggable="false">
       <div class="crop-mask"></div>
     </div>
-    <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" style="width:100%;margin:16px 0 6px">
-    <div style="display:flex;gap:10px">
+    <div style="display:flex;gap:10px;margin-top:16px">
       <button type="button" class="btn btn-ghost" style="flex:1" onclick="closeAvatarCrop()">取消</button>
       <button type="button" class="btn btn-primary" style="flex:1" onclick="applyAvatarCrop()">この範囲で決定</button>
     </div>
@@ -2435,7 +2434,6 @@ function openAvatarCrop(file){
     cropState={natW,natH,minScale,scale:minScale,x:0,y:0,V,url};
     cropState.x=(V-natW*minScale)/2;
     cropState.y=(V-natH*minScale)/2;
-    const z=document.getElementById('cropZoom');z.value="1";
     applyCropTransform();
   };
   img.src=url;
@@ -2478,14 +2476,6 @@ function applyCropTransform(){
   wrap.addEventListener('pointerup',end);
   wrap.addEventListener('pointercancel',end);
   document.getElementById('avatarCropBg').addEventListener('click',e=>{if(e.target.id==='avatarCropBg')closeAvatarCrop();});
-  document.getElementById('cropZoom').addEventListener('input',e=>{
-    if(!cropState)return;
-    const V=cropState.V;
-    const cx=(V/2-cropState.x)/cropState.scale, cy=(V/2-cropState.y)/cropState.scale;
-    const newScale=cropState.minScale*parseFloat(e.target.value);
-    cropState.x=V/2-cx*newScale;cropState.y=V/2-cy*newScale;cropState.scale=newScale;
-    applyCropTransform();
-  });
 })();
 function applyAvatarCrop(){
   if(!cropState){closeAvatarCrop();return;}
