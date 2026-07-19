@@ -449,6 +449,7 @@
     font-size:.72rem;font-weight:800;color:#fff}
   .notif-ic.like{background:#e0245e}
   .notif-ic.comment{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .notif-ic.system{background:#e53935;font-size:1rem}
   .notif-tx{min-width:0;flex:1}
   .notif-tx .t{font-size:.9rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
   .notif-tx .w{font-size:.74rem;color:var(--ink-soft);margin-top:2px}
@@ -2362,6 +2363,8 @@ async function saveUsername(){
     session.name=name;saveSession(session);
     updateAcctUI();
     if(typeof render==='function')render();
+    updateNotifBadge();
+    if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
     closeUsernamePrompt();
     showToast("ユーザー名を設定しました");
   }catch(e){msg.style.color="#d33";msg.textContent="保存に失敗しました";}
@@ -2422,7 +2425,7 @@ function myPostList(){return session?POSTS.filter(p=>p.user_id===session.uid):[]
 function notifUnreadCount(){return NOTIFS.filter(n=>n.unread).length;}
 function updateNotifBadge(){
   const dot=document.getElementById('notifDot');if(!dot)return;
-  const n=notifUnreadCount();
+  const n=notifUnreadCount()+((session&&needsUsername())?1:0);
   if(session&&n>0){dot.style.display="";dot.textContent=n>9?"9+":String(n);}
   else dot.style.display="none";
 }
@@ -2472,13 +2475,19 @@ async function refreshNotifs(){
 function renderNotifs(){
   const el=document.getElementById('notifList');if(!el)return;
   if(!session){el.innerHTML='<div class="notif-empty">通知を見るにはログインが必要です。</div>';return;}
-  if(!NOTIFS.length){el.innerHTML='<div class="notif-empty">まだ通知はありません。<br>投稿にいいねやコメントが付くとここに表示されます。</div>';return;}
-  el.innerHTML=NOTIFS.map(n=>{
+  const nudge=needsUsername()
+    ?'<div class="notif-item unread" data-act="username"><span class="notif-ic system">!</span><div class="notif-tx"><div class="t">ユーザー名を設定してください</div><div class="w">タップして登録・他の人と同じ名前は使えません</div></div></div>'
+    :'';
+  if(!NOTIFS.length&&!nudge){el.innerHTML='<div class="notif-empty">まだ通知はありません。<br>投稿にいいねやコメントが付くとここに表示されます。</div>';return;}
+  el.innerHTML=nudge+NOTIFS.map(n=>{
     const ic=n.type==="like"?'<span class="notif-ic like">Like</span>':'<span class="notif-ic comment">C</span>';
     return `<div class="notif-item${n.unread?' unread':''}" data-pid="${esc(String(n.postId))}">${ic}<div class="notif-tx"><div class="t">${esc(n.title)}</div><div class="w">${esc(n.sub||"")}・${esc(fmtWhen(new Date(n.time).toISOString()))}</div></div></div>`;
   }).join('');
   el.querySelectorAll('.notif-item').forEach(it=>{
-    it.addEventListener('click',()=>{const pid=it.dataset.pid;closeNotifs();const p=POSTS.find(x=>String(x.id)===pid);if(p)openPostView(p.id);});
+    it.addEventListener('click',()=>{
+      if(it.dataset.act==="username"){closeNotifs();promptUsername();return;}
+      const pid=it.dataset.pid;closeNotifs();const p=POSTS.find(x=>String(x.id)===pid);if(p)openPostView(p.id);
+    });
   });
 }
 function openNotifs(){
