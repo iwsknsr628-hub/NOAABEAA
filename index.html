@@ -392,7 +392,8 @@
   /* カードの本文は数行だけ見せて、続きはポップアップで */
   .card>p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
     line-clamp:2;cursor:pointer}
-  .card .like.has{color:#e0245e}
+  .card .like.liked{color:#e0245e}
+  .pd-actions>span.like.liked{color:#e0245e}
   .card{cursor:pointer}
   .card .maps-row,.card .aff-row,.card .meta,.card-gallery,.card .tags{cursor:auto}
 
@@ -1266,6 +1267,7 @@ async function fetchPosts(){
   if(!res.ok)throw new Error("load "+res.status);
   POSTS=(await res.json()).map(mapRow);
   await fetchAvatars();
+  await loadMyLikes();
 }
 /* 投稿一覧に出てくる著者のアバター/名前をまとめて取得（カード表示用） */
 const AVATARS={};
@@ -1324,9 +1326,29 @@ async function deletePost(id){
     showToast("投稿を削除しました");
   }catch(err){alert(err.message||"削除に失敗しました");}
 }
-async function likeServer(id){
-  await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_like`,{method:"POST",
-    headers:sbHeaders,body:JSON.stringify({pid:id})});
+/* ---------- likes（1投稿1人1回・トグル） ---------- */
+let MYLIKES=new Set();      // 自分がいいねした post_id
+const likeBusy=new Set();   // 連打防止（処理中の post_id）
+async function loadMyLikes(){
+  if(!session||!SERVER){MYLIKES=new Set();return;}
+  try{
+    const token=await freshToken();
+    const headers=token?authHeadersWith(token):sbHeaders;
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?user_id=eq.${session.uid}&select=post_id`,{headers});
+    if(r.ok){const rows=await r.json();MYLIKES=new Set(rows.map(x=>String(x.post_id)));}
+  }catch(e){console.warn("likes",e);}
+}
+async function addLikeServer(id){
+  const token=await freshToken();if(!token)throw new Error("noauth");
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes`,{method:"POST",
+    headers:{...authHeadersWith(token),Prefer:"resolution=ignore-duplicates,return=minimal"},
+    body:JSON.stringify({post_id:id,user_id:session.uid})});
+  if(!r.ok&&r.status!==409){const e=await r.json().catch(()=>({}));throw new Error(e.message||"like failed");}
+}
+async function removeLikeServer(id){
+  const token=await freshToken();if(!token)throw new Error("noauth");
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=eq.${id}&user_id=eq.${session.uid}`,{method:"DELETE",headers:authHeadersWith(token)});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"unlike failed");}
 }
 async function reportServer(id){
   await fetch(`${SUPABASE_URL}/rest/v1/rpc/report_post`,{method:"POST",
@@ -1636,7 +1658,7 @@ function cardHTML(p){
   const gallery=imgs.length?`<div class="card-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
   const av=avatarOf(p.user_id);
   const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
-  const likeCls=(p.likes||0)>0?"like has":"like";
+  const likeCls=MYLIKES.has(String(p.id))?"like liked":"like";
   return `<div class="card" data-cat="${p.cat}" data-id="${p.id}">
     ${gallery}
     <div class="card-top">
@@ -1762,7 +1784,7 @@ function postDetailHTML(p){
       </div>
       <div class="pd-actions">
         <span class="cmt-btn" data-id="${p.id}">コメント</span>
-        <span class="like" data-id="${p.id}">いいね ${p.likes||0}</span>
+        <span class="like${MYLIKES.has(String(p.id))?' liked':''}" data-id="${p.id}">いいね ${p.likes||0}</span>
         ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
         ${canEdit?`<span class="del-btn" data-id="${p.id}">削除</span>`:""}
         ${canEdit?"":`<span class="report" data-id="${p.id}">通報</span>`}
@@ -1814,8 +1836,23 @@ async function handleCardInteractions(e,rerender){
   const l=e.target.closest('.like');
   if(l){if(!requireLogin("いいねするにはログインが必要です"))return true;
     const p=POSTS.find(x=>x.id===l.dataset.id);if(!p)return true;
-    p.likes=(p.likes||0)+1;if(rerender)rerender();else render();
-    if(SERVER){try{await likeServer(p.id);}catch(err){console.warn(err);}}
+    const key=String(p.id);
+    if(likeBusy.has(key))return true;
+    likeBusy.add(key);
+    const wasLiked=MYLIKES.has(key);
+    if(wasLiked){MYLIKES.delete(key);p.likes=Math.max((p.likes||0)-1,0);}
+    else{MYLIKES.add(key);p.likes=(p.likes||0)+1;}
+    if(rerender)rerender();else render();
+    if(SERVER){
+      try{ if(wasLiked)await removeLikeServer(p.id); else await addLikeServer(p.id); }
+      catch(err){ console.warn(err);
+        if(wasLiked){MYLIKES.add(key);p.likes=(p.likes||0)+1;}
+        else{MYLIKES.delete(key);p.likes=Math.max((p.likes||0)-1,0);}
+        if(rerender)rerender();else render();
+        showToast("いいねの更新に失敗しました");
+      }
+    }
+    likeBusy.delete(key);
     return true;}
   const r=e.target.closest('.report');
   if(r){if(!requireLogin("通報するにはログインが必要です"))return true;
@@ -2201,12 +2238,12 @@ async function submitAuth(){
       const d=await r.json();
       if(!r.ok||!d.access_token)throw new Error(d.error_description||d.msg||"メールまたはパスワードが違います");
       saveSession(sessionFrom(email,name,d));loadMyProfile();msg.style.color="#3a7";msg.textContent="ログインしました！";setTimeout(closeAuth,700);
-      refreshNotifs();startNotifPoll();
+      refreshNotifs();startNotifPoll();loadMyLikes().then(render);
     }
   }catch(err){msg.style.color="#d33";msg.textContent=err.message||"エラーが発生しました";}
   finally{btn.disabled=false;btn.textContent=orig;}
 }
-function logout(){if(confirm("ログアウトしますか？")){session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}NOTIFS=[];updateAcctUI();updateNotifBadge();}}
+function logout(){if(confirm("ログアウトしますか？")){session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}NOTIFS=[];MYLIKES=new Set();updateAcctUI();updateNotifBadge();render();}}
 
 /* ---------- notifications（自分の投稿へのいいね・コメント通知） ---------- */
 let NOTIFS=[];
