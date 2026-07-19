@@ -860,7 +860,7 @@
   <div class="modal" style="max-width:420px">
     <button class="close" onclick="closeUsernamePrompt()">&times;</button>
     <h2>ユーザー名を設定</h2>
-    <p class="msub">投稿やコメントに表示される名前です。あとから変更できます。</p>
+    <p class="msub">投稿やコメントに表示される名前です。他の人と同じ名前は使えません。あとから変更できます。</p>
     <div class="field">
       <label>ユーザー名 <span class="req">必須</span></label>
       <input type="text" id="unameInput" maxlength="40" placeholder="例: たびすき">
@@ -2342,6 +2342,7 @@ async function saveUsername(){
   const msg=document.getElementById('unameMsg');
   if(name.length<2){msg.style.color="#d33";msg.textContent="2文字以上で入力してください";return;}
   if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため保存できません";return;}
+  if(await nameTaken(name)){msg.style.color="#d33";msg.textContent="そのユーザー名は既に使われています。別の名前にしてください";return;}
   const handle=normHandle((document.getElementById('unameHandle')||{}).value);
   if(handle){
     if(!validHandle(handle)){msg.style.color="#d33";msg.textContent="@ユーザーIDは英小文字・数字・_ の3〜20文字にしてください";return;}
@@ -2387,13 +2388,16 @@ async function submitAuth(){
   if(!email||!pass){msg.style.color="#d33";msg.textContent="メールとパスワードを入力してください";return;}
   if(pass.length<6){msg.style.color="#d33";msg.textContent="パスワードは6文字以上にしてください";return;}
   if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため利用できません";return;}
+  if(authMode==="signup"&&await nameTaken(name)){msg.style.color="#d33";msg.textContent="そのユーザー名は既に使われています。別の名前にしてください";return;}
   const btn=document.getElementById('authSubmit');btn.disabled=true;const orig=btn.textContent;btn.textContent="処理中…";
   try{
     if(authMode==="signup"){
       const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:pass,data:{name}})});
       const d=await r.json();
       if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"登録に失敗しました");
-      if(d.access_token){saveSession(sessionFrom(email,name,d));loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
+      if(d.access_token){saveSession(sessionFrom(email,name,d));
+        try{await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,updated_at:new Date().toISOString()})});}catch(e){}
+        loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
         setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);}
       else{msg.style.color="#3a7";msg.textContent="確認メールを送りました。メール内のリンクを開くとログインできます。";authMode="login";}
     }else{
@@ -2569,6 +2573,15 @@ async function handleTaken(h){
   if(!SERVER||!h)return false;
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?handle=eq.${encodeURIComponent(h)}&select=user_id`,{headers:sbHeaders});
+    if(r.ok){const rows=await r.json();return rows.some(x=>!session||x.user_id!==session.uid);}
+  }catch(e){}
+  return false;
+}
+/* ユーザー名（表示名）の重複チェック：全アカウントで一意にする（大文字小文字は区別しない） */
+async function nameTaken(name){
+  if(!SERVER||!name)return false;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?name=ilike.${encodeURIComponent(name)}&select=user_id`,{headers:sbHeaders});
     if(r.ok){const rows=await r.json();return rows.some(x=>!session||x.user_id!==session.uid);}
   }catch(e){}
   return false;
@@ -2899,9 +2912,10 @@ async function saveMyProfile(){
       if(!validHandle(handle)){msg.style.color="#d33";msg.textContent="ユーザーIDは英小文字・数字・_ の3〜20文字にしてください";btn.disabled=false;btn.textContent="保存する";return;}
       if(await handleTaken(handle)){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";btn.disabled=false;btn.textContent="保存する";return;}
     }
+    const name=document.getElementById('mpName').value.trim()||currentName();
+    if(name&&await nameTaken(name)){msg.style.color="#d33";msg.textContent="そのユーザー名は既に使われています。別の名前にしてください";btn.disabled=false;btn.textContent="保存する";return;}
     let avatar_url=myProfile&&myProfile.avatar_url||null;
     if(pendingMpAvatar){msg.textContent="画像を送信中…";avatar_url=await uploadToBucket("avatars",pendingMpAvatar);}
-    const name=document.getElementById('mpName').value.trim()||currentName();
     const row={user_id:session.uid,name,handle:handle||null,bio:document.getElementById('mpBio').value.trim()||null,avatar_url,
       instagram:mpVal('mpInstagram'),tiktok:mpVal('mpTiktok'),x:mpVal('mpX'),youtube:mpVal('mpYoutube'),website:mpVal('mpWebsite'),updated_at:new Date().toISOString()};
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
