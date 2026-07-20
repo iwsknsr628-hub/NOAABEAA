@@ -255,44 +255,30 @@ async function loadDash(){
   if(!(await ensureToken())){logout();return;}
   try{
     const days=lastNDays(30);
-    const [users,posts,comments,likes,banned] = await Promise.all([
-      countRows("profiles"),
-      countRows("posts"),
-      countRows("comments"),
-      countRows("post_likes"),
-      countRows("profiles","&banned=eq.true")
-    ]);
-    document.getElementById("kpiUsers").textContent=users;
-    document.getElementById("kpiPosts").textContent=posts;
-    document.getElementById("kpiComments").textContent=comments;
-    document.getElementById("kpiLikes").textContent=likes;
-    document.getElementById("kpiBanned").textContent=banned;
-
     const since=new Date();since.setDate(since.getDate()-30);const sinceIso=since.toISOString();
-    const [profiles, postRows, loginRows] = await Promise.all([
-      fetchAll(`profiles?select=user_id,created_at,updated_at&or=(created_at.gte.${sinceIso},updated_at.gte.${sinceIso})&limit=5000`),
-      fetchAll(`posts?select=id,cat,created_at&created_at=gte.${sinceIso}&limit=5000`),
-      fetchAll(`login_events?select=id,created_at&created_at=gte.${sinceIso}&order=created_at.asc&limit=10000`).catch(()=>[])
-    ]);
-
-    const today=dayKey(new Date());
-    const loginsToday=(loginRows||[]).filter(x=>dayKey(new Date(x.created_at))===today).length;
-    document.getElementById("kpiLoginsToday").textContent=loginsToday;
-
-    const regMap=Object.fromEntries(days.map(d=>[d,0]));
-    profiles.forEach(p=>{
-      const t=p.created_at||p.updated_at;if(!t)return;
-      const k=dayKey(new Date(t));if(k in regMap)regMap[k]++;
+    /* 機密テーブルは直 REST せず admin_dashboard_bundle RPC 経由 */
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_dashboard_bundle`,{
+      method:"POST",headers:authH(),body:JSON.stringify({since_iso:sinceIso})
     });
-    const loginMap=Object.fromEntries(days.map(d=>[d,0]));
-    (loginRows||[]).forEach(e=>{const k=dayKey(new Date(e.created_at));if(k in loginMap)loginMap[k]++;});
-    const postMap=Object.fromEntries(days.map(d=>[d,0]));
-    const catMap={};
-    postRows.forEach(p=>{
-      const k=dayKey(new Date(p.created_at));if(k in postMap)postMap[k]++;
-      catMap[p.cat]=(catMap[p.cat]||0)+1;
-    });
+    if(!r.ok)throw new Error(await r.text());
+    const bundle=await r.json();
+    const c=bundle.counts||{};
+    document.getElementById("kpiUsers").textContent=c.users??0;
+    document.getElementById("kpiPosts").textContent=c.posts??0;
+    document.getElementById("kpiComments").textContent=c.comments??0;
+    document.getElementById("kpiLikes").textContent=c.likes??0;
+    document.getElementById("kpiBanned").textContent=c.banned??0;
+    document.getElementById("kpiLoginsToday").textContent=c.logins_today??0;
 
+    const toMap=(arr)=>{
+      const m=Object.fromEntries(days.map(d=>[d,0]));
+      (arr||[]).forEach(row=>{if(row&&row.d in m)m[row.d]=row.n||0;});
+      return m;
+    };
+    const regMap=toMap(bundle.registrations);
+    const loginMap=toMap(bundle.logins);
+    const postMap=toMap(bundle.posts);
+    const catMap=bundle.cats||{};
     const short=days.map(d=>d.slice(5));
     upsertChart("chartReg", lineCfg(short, days.map(d=>regMap[d]), "#e85d3a"));
     upsertChart("chartLogin", lineCfg(short, days.map(d=>loginMap[d]), "#2f9e78"));
@@ -305,7 +291,7 @@ async function loadDash(){
     });
   }catch(e){
     console.warn(e);
-    alert("概要の読み込みに失敗しました。スキーマ（login_events 等）を確認してください。\n"+e.message);
+    alert("概要の読み込みに失敗しました（admin_dashboard_bundle）。\n"+e.message);
   }
 }
 
@@ -315,13 +301,12 @@ async function loadUsers(q=""){
   const body=document.getElementById("userBody");
   body.innerHTML=`<tr><td colspan="7" class="empty">読み込み中…</td></tr>`;
   try{
-    let path=`profiles?select=user_id,name,handle,updated_at,created_at,last_login_at,banned&order=updated_at.desc&limit=200`;
     const v=(q||"").trim().replace(/^@/,"");
-    if(v){
-      const enc=encodeURIComponent(v);
-      path=`profiles?select=user_id,name,handle,updated_at,created_at,last_login_at,banned&or=(name.ilike.*${enc}*,handle.ilike.*${enc}*)&order=updated_at.desc&limit=200`;
-    }
-    userCache=await fetchAll(path);
+    const rr=await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_list_profiles`,{
+      method:"POST",headers:authH(),body:JSON.stringify({q:v||null})
+    });
+    if(!rr.ok)throw new Error(await rr.text());
+    userCache=await rr.json();
     const ids=userCache.map(u=>u.user_id).filter(Boolean);
     const postCount={};
     if(ids.length){

@@ -2717,8 +2717,13 @@ updateAcctUI();
 let myProfile=null;
 async function loadMyProfile(){
   if(!session||!SERVER)return;
-  try{const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=eq.${session.uid}&select=*`,{headers:sbHeaders});
-    if(r.ok){myProfile=(await r.json())[0]||null;}}catch(e){console.warn(e);}
+  try{
+    const token=await freshToken();
+    if(!token){myProfile=null;return;}
+    /* banned 等は profiles 公開列に無いため get_my_profile RPC（本人のみ）経由 */
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_profile`,{method:"POST",headers:authHeadersWith(token),body:"{}"});
+    if(r.ok){myProfile=await r.json();}
+  }catch(e){console.warn(e);}
   updateNotifBadge();
   if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
 }
@@ -3244,7 +3249,8 @@ async function openProfileView(userId,fallbackName){
   }
 
   try{
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=eq.${userId}&select=*`,{headers:sbHeaders});
+    /* 公開プロフィール列のみ（banned / last_login_at / created_at は含めない） */
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=eq.${userId}&select=user_id,name,handle,avatar_url,bio,instagram,tiktok,x,youtube,website,updated_at,is_private,username_changed_at`,{headers:sbHeaders});
     const p=(r.ok?await r.json():[])[0];
     const pvh=document.getElementById('pvHandle');
     if(!p){document.getElementById('pvName').textContent=fallbackName||"匿名";if(pvh)pvh.textContent="";document.getElementById('pvBio').textContent="プロフィール未設定です。";return;}

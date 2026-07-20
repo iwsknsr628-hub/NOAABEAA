@@ -159,25 +159,14 @@ URL: `https://nanshiyo.com/admin.html`（検索非公開 `noindex`）。
   - 登録者管理（検索・最終ログイン・投稿数・BAN/解除）
   - 投稿一覧からの削除
   - お知らせの配信・削除
-- **ログイン計測**: 本サイト側 `trackLogin()` → RPC `track_login` が `profiles.last_login_at` 更新＋`login_events` へ INSERT。
-- **BAN**: `profiles.banned`。本サイトの `requireLogin()` / ログイン時に停止中なら拒否。
-- **要スキーマ / RPC**（冪等）:
-  ```sql
-  alter table public.profiles add column if not exists created_at timestamptz default now();
-  alter table public.profiles add column if not exists last_login_at timestamptz;
-  alter table public.profiles add column if not exists banned boolean default false;
-
-  create table if not exists public.login_events (
-    id uuid primary key default gen_random_uuid(),
-    user_id uuid not null,
-    created_at timestamptz default now()
-  );
-
-  -- 関数: is_nanshiyo_admin / track_login / admin_set_banned /
-  --        admin_delete_post / admin_upsert_announcement / admin_delete_announcement
-  -- （定義はリポジトリ履歴または Supabase SQL Editor に保存済み）
-  ```
-
+- **権限設計（重要）**:
+  - `banned` / `last_login_at` / 登録日 `created_at` は **`profiles` 本体に置かない**。別テーブル `profiles_admin` に分離し、RLS 有効・ポリシー無し・`anon`/`authenticated` から REVOKE。一般の `profiles` SELECT（`openProfileView` 等）では見えない。
+  - `login_events` も同様に RLS 有効・ポリシー無し・直接 read/write 不可。書き込みは `track_login()`（security definer）のみ。
+  - 本人の BAN 判定は `get_my_profile()` RPC（認証済み・本人のみ）。運営一覧・集計は `admin_list_profiles` / `admin_dashboard_bundle`。
+  - `is_nanshiyo_admin()` は **JWT の `email`（`auth.jwt()->>'email'`）** をサーバー側で照合。クライアント改ざんではなりすまし不可。各 `admin_*` は冒頭で必ずチェック。
+- **ログイン計測**: 本サイト側 `trackLogin()` → RPC `track_login` が `profiles_admin.last_login_at` 更新＋`login_events` へ INSERT。
+- **BAN**: `profiles_admin.banned`。本サイトの `requireLogin()` / ログイン時に停止中なら拒否。
+- **SQL の正**: リポジトリ `supabase/admin_rpc.sql`（再実行可能な冪等マイグレーション）。Supabase SQL Editor で適用済み。
 ## メール（送信 / 受信 / 問い合わせ）
 
 - **ドメイン**: `nanshiyo.com`（Cloudflare で DNS 管理）。
@@ -232,4 +221,4 @@ support@nanshiyo.com
 
 - アプリ化: PWA → 将来 Capacitor でストアアプリ
 - 決済: **Supabase Edge Functions** で実装予定（GitHub Pages は静的のみ）
-- 未実施: Supabase の RLS（行レベルセキュリティ）確認
+- 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。その他テーブルの RLS 全点検は別途。
