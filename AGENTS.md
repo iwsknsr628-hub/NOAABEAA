@@ -36,9 +36,10 @@ git push origin main   # → GitHub Pages が自動デプロイ
 
 ## 作業ルール
 
-1. 変更は必ず**このプロジェクト（=GitHub）側の `index.html`** を編集する。Claudeアプリの旧サンドボックス内ファイルは使わない。
+1. 変更は必ず**このプロジェクト（=GitHub）側の `index.html` / `admin.html`** を編集する。Claudeアプリの旧サンドボックス内ファイルは使わない。
 2. セットアップ/デプロイ/URL/バックエンドに変更があったら、**この AGENTS.md を更新**する。
-3. 変更を push したら、ユーザーに「本番へ自動反映される」旨を伝える。
+3. 会話で確定したプロダクト判断（共有UI・PR方針・地図リンクなど）は **`.cursor/memory/LEARNED.md`** にも追記する（Cursor ルール `.cursor/rules/learned-product.mdc` が毎回参照）。
+4. 変更を push したら、ユーザーに「本番へ自動反映される」旨を伝える。
 
 ### 補足: Claude（Cowork）からの制約
 
