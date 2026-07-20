@@ -153,6 +153,9 @@
   .card-gallery.g1{grid-template-columns:1fr}
   .card-gallery.g1 img{height:150px}
   .card-gallery.g3 img:first-child{grid-column:1 / 3}
+  .card-gallery.g5 img:first-child,.card-gallery.g7 img:first-child{grid-column:1 / 3}
+  .pd-gallery.g2,.pd-gallery.g3,.pd-gallery.g4,.pd-gallery.g5,.pd-gallery.g6,.pd-gallery.g7,.pd-gallery.g8{grid-template-columns:1fr 1fr}
+  .pd-gallery.g3 img:first-child,.pd-gallery.g5 img:first-child,.pd-gallery.g7 img:first-child{grid-column:1/3}
 
   /* LIGHTBOX */
   .lightbox-bg{position:fixed;inset:0;background:rgba(10,8,6,.92);z-index:300;display:none}
@@ -480,8 +483,6 @@
   .pd-scroll{max-height:90vh;overflow-y:auto;padding:0 0 22px}
   .pd-gallery{display:grid;gap:3px;background:var(--bg2)}
   .pd-gallery img{width:100%;max-height:340px;object-fit:cover;display:block;cursor:zoom-in}
-  .pd-gallery.g2,.pd-gallery.g3,.pd-gallery.g4{grid-template-columns:1fr 1fr}
-  .pd-gallery.g3 img:first-child{grid-column:1/3}
   .pd-body{padding:20px 24px 0}
   #postViewBg .close{z-index:2;background:rgba(255,255,255,.9);border-radius:50%;width:34px;height:34px}
   .pd-body h2{font-size:1.35rem;font-weight:900;margin:8px 0 2px;line-height:1.3}
@@ -817,7 +818,7 @@
         <textarea name="desc" maxlength="600" placeholder="どこが・どう良かったかを教えてください（空欄でもOK）"></textarea>
       </div>
       <div class="field">
-        <label>写真（任意・4枚まで）</label>
+        <label>写真（任意・8枚まで）</label>
         <input type="file" name="photo" id="photoInput" accept="image/*" multiple>
         <div id="photoPreview" class="photo-preview hidden"></div>
         <span id="photoMsg" style="font-size:.78rem;color:var(--ink-soft)"></span>
@@ -1874,7 +1875,7 @@ function cardHTML(p){
   if(p.loc&&userLoc){const d=distKm(userLoc,p.loc);dist=`<span class="badge sub">約${d<10?d.toFixed(1):Math.round(d)}km</span>`;}
   const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""))+dist;
   const tags=(p.tags||[]).slice(0,3).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
-  const imgs=(p.photos||[]).slice(0,4);
+  const imgs=(p.photos||[]).slice(0,8);
   const gallery=imgs.length?`<div class="card-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
   const av=avatarOf(p.user_id);
   const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
@@ -2010,7 +2011,7 @@ function postDetailHTML(p){
   const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
   const showMaps=LOCATION_CATS.includes(p.cat)&&(p.loc||p.address||p.spot);
   const maps=showMaps?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
-  const imgs=(p.photos||[]).slice(0,4);
+  const imgs=(p.photos||[]).slice(0,8);
   const gallery=imgs.length?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
   const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
   const av=avatarOf(p.user_id);
@@ -2159,7 +2160,7 @@ const genreField=document.getElementById('genreField');
 const spotLabel=document.getElementById('spotLabel');
 const spotInput=document.getElementById('spotInput');
 
-/* photo select + preview (up to 4) */
+/* photo select + preview (up to 8) */
 let pendingPhotos=[];
 document.getElementById('photoInput').addEventListener('change',e=>{
   const files=[...e.target.files];
@@ -2172,8 +2173,8 @@ document.getElementById('photoInput').addEventListener('change',e=>{
     if(f.size>3*1024*1024){msg.textContent="1枚あたり3MB以下にしてください";continue;}
     valid.push(f);
   }
-  if(valid.length>4)msg.textContent="写真は4枚まで。最初の4枚を使います";
-  pendingPhotos=valid.slice(0,4);
+  if(valid.length>8)msg.textContent="写真は8枚まで。最初の8枚を使います";
+  pendingPhotos=valid.slice(0,8);
   prev.innerHTML=pendingPhotos.map(f=>`<img src="${URL.createObjectURL(f)}" alt="preview">`).join('');
   if(pendingPhotos.length)prev.classList.remove('hidden');
 });
