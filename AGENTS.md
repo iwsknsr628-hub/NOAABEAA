@@ -87,15 +87,18 @@ git push origin main   # → GitHub Pages が自動デプロイ
 
 直近で実装済みの主要UI。編集時はこの前提を壊さないこと。
 
-- **下部タブバー（タスクバー）** `#tabbar`：画面下に固定の3ボタン。
+- **下部タブバー（タスクバー）** `#tabbar`：画面下に固定。
   - 🏠 ホーム（`goHome()` = 投稿一覧先頭へスクロール＋開いている全画面/モーダルを閉じる）
+  - 🔍 さがす（`openSearchPage()` 全画面）
   - ＋ 投稿（中央・強調、`openModal()`。未ログインはログイン誘導）
+  - ✈ 通知（`#notifPage` 全画面。`openNotifs()`/`closeNotifs()`。プロフィール同様のページ切替。要ログイン）
   - 👤 マイページ / 🔑 ログイン（`#tabAcct`、ログイン状態で自動切替。`updateAcctUI()` が制御）
   - ヘッダー右上の旧「＋投稿する」ボタンは廃止。ヘッダーの「ログイン/登録」(`#acctBtnTop`) は**ログアウト時のみ表示**。
   - `body{padding-bottom:74px}` でバー分の余白を確保済み。
 - **未ログインは閲覧のみ**：投稿・コメント・フォロー・通知・**いいね・通報**は要ログイン。ガードは `requireLogin(msg)`（未ログインなら `showToast` ＋ `openAuth()`）。閲覧系（投稿詳細ポップアップ・写真・プロフィール・コメント一覧の表示）は誰でも可。
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。ユーザーの投稿一覧付き。z-index 200。
+- **通知は全画面ページ** `#notifPage`（紙飛行機タブ。ポップアップではなくプロフィール同様のページ切替）。
 - **カードのアバター**：`AVATARS` キャッシュに著者の `avatar_url`/`name` をまとめて取得（`fetchAvatars()`、`fetchPosts()` の後に実行）。`avatarOf(uid)` で参照。
 - **写真ビューア（ライトボックス）** `#lightboxBg`：スワイプ操作対応。横スワイプ＝写真切替、下スワイプ/タップ＝閉じる（PCは画像クリックで閉じる、←→キーで切替）。
 - カード/ポップアップ内の操作は共通ハンドラ `handleCardInteractions(e,rerender)` に集約（著者リンク/コメント/編集/いいね/通報/カードタップ）。

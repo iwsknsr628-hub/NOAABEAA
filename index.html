@@ -419,14 +419,14 @@
   /* POST DETAIL POPUP （プロフィール全画面 z-index:200 より上に重ねる） */
   #postViewBg{z-index:230}
   #cmtBg{z-index:240}
-  #notifBg{z-index:245}
   #avatarCropBg{z-index:260}
   .crop-wrap{position:relative;width:260px;height:260px;margin:14px auto 0;border-radius:50%;overflow:hidden;
     background:var(--bg2);touch-action:none;cursor:grab;user-select:none}
   .crop-wrap:active{cursor:grabbing}
   .crop-wrap img{position:absolute;top:0;left:0;max-width:none;pointer-events:none}
   .crop-mask{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.85) inset,0 0 0 999px rgba(20,16,10,.28);pointer-events:none}
-  .notif-list{margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto}
+  .notif-list{margin-top:4px;display:flex;flex-direction:column;gap:8px}
+  .notif-page-lead{font-size:.88rem;color:var(--ink-soft);margin:0 2px 14px;line-height:1.5}
   .ann-item{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
   .ann-item .ann-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
   .ann-item .ann-t{font-weight:800;font-size:.95rem;overflow-wrap:anywhere}
@@ -935,13 +935,18 @@
   </div>
 </div>
 
-<!-- NOTIFICATIONS MODAL -->
-<div class="modal-bg" id="notifBg">
-  <div class="modal" style="max-width:460px">
-    <button class="close" onclick="closeNotifs()">&times;</button>
-    <h2 style="font-size:1.2rem">通知</h2>
-    <p class="msub">あなたの投稿へのいいね・コメントが届きます。確認しても履歴は残ります。</p>
-    <div class="notif-list" id="notifList"></div>
+<!-- NOTIFICATIONS PAGE（プロフィール同様の全画面） -->
+<div class="full-page" id="notifPage">
+  <div class="full-page-head">
+    <button type="button" class="pin-back" onclick="closeNotifs()" title="戻る" aria-label="戻る">←</button>
+    <span class="pin-page-title">通知</span>
+    <div class="full-page-head-icons"></div>
+  </div>
+  <div class="full-page-body">
+    <div class="mp-wrap">
+      <p class="notif-page-lead">あなたの投稿へのいいね・コメントが届きます。確認しても履歴は残ります。</p>
+      <div class="notif-list" id="notifList"></div>
+    </div>
   </div>
 </div>
 
@@ -2432,6 +2437,7 @@ function updateAcctUI(){
 function goHome(){
   try{closeMyPage();}catch(e){}
   try{closeProfileView();}catch(e){}
+  try{closeNotifs();}catch(e){}
   try{closePostView();}catch(e){}
   try{closeModal();}catch(e){}
   try{closeSearchPage();}catch(e){}
@@ -2505,7 +2511,7 @@ async function saveUsername(){
     updateAcctUI();
     if(typeof render==='function')render();
     updateNotifBadge();
-    if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
+    if(document.getElementById('notifPage').classList.contains('open'))renderNotifs();
     closeUsernamePrompt();
     showToast("ユーザー名を設定しました");
   }catch(e){msg.style.color="#d33";msg.textContent="保存に失敗しました";}
@@ -2703,7 +2709,7 @@ async function refreshNotifs(){
   if(stChanged)saveNotifState(st);
   NOTIFS=st.history.slice().sort((a,b)=>b.time-a.time).slice(0,80);
   updateNotifBadge();
-  if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
+  if(document.getElementById('notifPage').classList.contains('open'))renderNotifs();
 }
 function renderNotifs(){
   const el=document.getElementById('notifList');if(!el)return;
@@ -2721,18 +2727,27 @@ function renderNotifs(){
   el.querySelectorAll('.notif-item').forEach(it=>{
     it.addEventListener('click',()=>{
       if(it.dataset.act==="username"||it.dataset.act==="handle"){closeNotifs();promptUsername();return;}
-      const pid=it.dataset.pid;closeNotifs();const p=POSTS.find(x=>String(x.id)===pid);if(p)openPostView(p.id);
+      const pid=it.dataset.pid;
+      const p=POSTS.find(x=>String(x.id)===pid);
+      if(p)openPostView(p.id); // 通知ページは開いたまま、詳細は上に重ねる
     });
   });
 }
 function openNotifs(){
   if(!requireLogin("通知を見るにはログインが必要です"))return;
-  document.getElementById('notifBg').classList.add('open');
+  try{closeMyPage();closeProfileView();closeSearchPage();}catch(e){}
+  const page=document.getElementById('notifPage');
+  page.classList.add('open');
+  document.body.style.overflow="hidden";
+  const body=page.querySelector('.full-page-body');if(body)body.scrollTop=0;
   renderNotifs();
   refreshNotifs().then(()=>{renderNotifs();markNotifsRead();});
 }
-function closeNotifs(){document.getElementById('notifBg').classList.remove('open');}
-document.getElementById('notifBg').addEventListener('click',e=>{if(e.target.id==="notifBg")closeNotifs();});
+function closeNotifs(){
+  const page=document.getElementById('notifPage');
+  if(page)page.classList.remove('open');
+  document.body.style.overflow="";
+}
 function markNotifsRead(){
   if(!session)return;
   const st=ensureNotifShape(notifState());
@@ -2744,7 +2759,7 @@ function markNotifsRead(){
   saveNotifState(st);
   NOTIFS.forEach(n=>n.unread=false);
   updateNotifBadge();
-  if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
+  if(document.getElementById('notifPage').classList.contains('open'))renderNotifs();
 }
 function startNotifPoll(){
   if(notifPollTimer)clearInterval(notifPollTimer);
@@ -2852,7 +2867,7 @@ async function loadMyProfile(){
     if(r.ok){myProfile=await r.json();}
   }catch(e){console.warn(e);}
   updateNotifBadge();
-  if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
+  if(document.getElementById('notifPage').classList.contains('open'))renderNotifs();
 }
 /* ---------- @ハンドル（一意のユーザーID） ---------- */
 function normHandle(v){return (v||"").trim().replace(/^@+/,"").toLowerCase();}
@@ -3077,7 +3092,7 @@ function renderMyProfileView(){
 }
 function openMyPage(){
   if(!session){openAuth();return;}
-  closeProfileView();closePostView();closeSearchPage();
+  closeProfileView();closePostView();closeSearchPage();closeNotifs();
   renderMyProfileView();
   document.getElementById('myPage').classList.add('open');
   document.body.style.overflow="hidden";
@@ -3087,7 +3102,7 @@ function closeMyPage(){document.getElementById('myPage').classList.remove('open'
 
 /* ---------- 検索ページ（検索＋人気の投稿） ---------- */
 function openSearchPage(){
-  try{closeMyPage();closeProfileView();closePostView();closeModal();}catch(e){}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();}catch(e){}
   renderSearchResults();
   document.getElementById('searchPage').classList.add('open');
   document.body.style.overflow="hidden";
@@ -3335,7 +3350,7 @@ function renderPvPosts(userId){
     :`<div class="empty">まだ投稿がありません。</div>`;
 }
 async function openProfileView(userId,fallbackName){
-  closePostView();closeMyPage();closeSearchPage();
+  closePostView();closeMyPage();closeSearchPage();closeNotifs();
   pvUserId=userId||null;
   const page=document.getElementById('pvPage');
   document.getElementById('pvName').textContent=fallbackName||"プロフィール";
