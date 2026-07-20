@@ -1530,6 +1530,27 @@ async function reportServer(id){
 let curCat="all",curPref="",curGenre="",curQuery="";
 let userLoc=null;      // {lat,lng} once geolocation succeeds
 let ASSIST=null;       // {scores:Map} when assistant is active
+let filterTouched=false; // ユーザーがカテゴリ等を自分で選んだら true（位置情報の自動切替で上書きしない）
+function saveFilters(){
+  try{sessionStorage.setItem("nanshiyo_filters",JSON.stringify({cat:curCat,pref:curPref,genre:curGenre}));}catch(e){}
+}
+function loadFilters(){
+  try{
+    const s=JSON.parse(sessionStorage.getItem("nanshiyo_filters")||"null");
+    if(!s||typeof s!=="object")return false;
+    curCat=s.cat||"all";curPref=s.pref||"";curGenre=s.genre||"";
+    return true;
+  }catch(e){return false;}
+}
+function applyFiltersToUI(){
+  setChip(curCat);
+  if(typeof prefFilter!=="undefined"&&prefFilter){
+    prefFilter.value=curPref||"";
+    genreFilter.value=curGenre||"";
+    prefFilter.classList.toggle("hidden",!LOCATION_CATS.includes(curCat));
+    genreFilter.classList.toggle("hidden",curCat!=="study");
+  }
+}
 
 /* ---------- helpers ---------- */
 function distKm(a,b){
@@ -1597,10 +1618,12 @@ function runAssistant(){
   if(cats.size===1){curCat=[...cats][0];} else {curCat="all";}
   curPref=pref&&LOCATION_CATS.includes(curCat)?pref:"";
   curGenre=genre&&curCat==="study"?genre:"";
+  filterTouched=true;
   setChip(curCat==="all"?"all":curCat);
   prefFilter.classList.toggle('hidden',!LOCATION_CATS.includes(curCat));
   genreFilter.classList.toggle('hidden',curCat!=="study");
   if(LOCATION_CATS.includes(curCat))prefFilter.value=curPref; if(curCat==="study")genreFilter.value=curGenre;
+  saveFilters();
 
   const found=scores.size;
   let say=hit.length?hit.slice(0,2).map(s=>s.say).join(" "):"キーワードから、近そうな投稿を探してみました。";
@@ -1644,6 +1667,7 @@ function matches(p){
 }
 function orderVal(p){ return p.loc && userLoc ? distKm(userLoc,p.loc) : Infinity; }
 function render(){
+  const keepY=window.scrollY;
   let list=POSTS.filter(matches);
   let mode="";
   if(ASSIST){
@@ -1658,6 +1682,7 @@ function render(){
   countEl.innerHTML=`<b>${list.length}</b> 件のおすすめ${mode?` ・ ${mode}`:""}`;
   if(!list.length){
     grid.innerHTML=`<div class="empty">該当する投稿がまだありません。<br>あなたが最初のおすすめを投稿してみませんか？</div>`;
+    if(Math.abs(window.scrollY-keepY)>1)window.scrollTo(0,keepY);
     return;
   }
   const html=[];
@@ -1668,6 +1693,8 @@ function render(){
   });
   grid.innerHTML=html.join('');
   activateAds();
+  /* 再描画でスクロールが跳ねないように維持（カテゴリ切替・定期更新時のあたふた防止） */
+  if(Math.abs(window.scrollY-keepY)>1)window.scrollTo(0,keepY);
 }
 function mapLinks(p){
   const addr=p.address&&p.address.trim();
@@ -2006,16 +2033,18 @@ document.getElementById('postViewBg').addEventListener('click',async e=>{
 /* ---------- filters ---------- */
 document.getElementById('filters').addEventListener('click',e=>{
   const btn=e.target.closest('.chip');if(!btn)return;
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#filters .chip').forEach(c=>c.classList.remove('active'));
   btn.classList.add('active');curCat=btn.dataset.cat;curPref="";curGenre="";
+  filterTouched=true;
   ASSIST=null;document.getElementById('assistant').classList.remove('show');
   prefFilter.value="";genreFilter.value="";
   prefFilter.classList.toggle('hidden',!LOCATION_CATS.includes(curCat));
   genreFilter.classList.toggle('hidden',curCat!=="study");
+  saveFilters();
   render();
 });
-prefFilter.addEventListener('change',()=>{curPref=prefFilter.value;render();});
-genreFilter.addEventListener('change',()=>{curGenre=genreFilter.value;render();});
+prefFilter.addEventListener('change',()=>{curPref=prefFilter.value;filterTouched=true;saveFilters();render();});
+genreFilter.addEventListener('change',()=>{curGenre=genreFilter.value;filterTouched=true;saveFilters();render();});
 const searchEl=document.getElementById('search');
 searchEl.addEventListener('keydown',e=>{if(e.key==="Enter")runAssistant();});
 searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant();});
@@ -2574,7 +2603,8 @@ function startNotifPoll(){
   if(session&&SERVER){
     notifPollTimer=setInterval(()=>{
       if(document.hidden)return;
-      fetchPosts().then(()=>{render();refreshNotifs();}).catch(()=>{});
+      /* 一覧の丸ごと再描画はちらつきの原因なので、データ更新＋通知だけ（カテゴリ選択は維持） */
+      fetchPosts().then(()=>refreshNotifs()).catch(()=>{});
     },90000);
   }
 }
@@ -3461,7 +3491,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
       prefField.classList.remove('hidden');document.getElementById('addressField').classList.remove('hidden');
       document.getElementById('pinField').classList.remove('hidden');genreField.classList.add('hidden');
       closeModal();
-      document.querySelector(`.chip[data-cat="${cat}"]`).click();
+      document.querySelector(`#filters .chip[data-cat="${cat}"]`).click();
       window.scrollTo({top:document.getElementById('board').offsetTop-40,behavior:'smooth'});
     }
   }catch(err){
@@ -3510,8 +3540,8 @@ function nearestPref(lat,lng){
   return best;
 }
 function setChip(cat){
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-  const el=document.querySelector(`.chip[data-cat="${cat}"]`);if(el)el.classList.add('active');
+  document.querySelectorAll('#filters .chip').forEach(c=>c.classList.remove('active'));
+  const el=document.querySelector(`#filters .chip[data-cat="${cat}"]`);if(el)el.classList.add('active');
 }
 function applyNearby(pref){
   detectedPref=pref;
@@ -3523,14 +3553,17 @@ function applyNearby(pref){
   locbar.classList.remove('loading');
   locTxt.innerHTML=`いま <b>${pref}</b> のあたりですね<small>${n>0?`近くのおすすめを ${n} 件表示中`:"この県の投稿はまだ0件。最初のおすすめを投稿してみませんか？"}</small>`;
   locBtn.style.display="none";allBtn.style.display="";
+  saveFilters();
   render();
 }
 function showAll(){
   detectedPref=null;curCat="all";curPref="";curGenre="";
+  filterTouched=true;
   setChip("all");prefFilter.classList.add('hidden');genreFilter.classList.add('hidden');
   locbar.classList.remove('loading');
   locTxt.innerHTML=`全国のおすすめを表示中<small>現在地の近くだけ見たいときはこちら →</small>`;
   allBtn.style.display="none";locBtn.style.display="";locBtn.textContent="現在地を使う";
+  saveFilters();
   render();
 }
 function locFail(msg){
@@ -3539,14 +3572,26 @@ function locFail(msg){
   locTxt.innerHTML=`${msg}<small>全国のおすすめを表示しています</small>`;
   locBtn.style.display="";locBtn.textContent="現在地を使う";allBtn.style.display="none";
 }
-function requestLoc(){
+/* mode: "nearby"=必ず県で絞る（ボタン） / "auto"=未選択時のみ絞る（初回） / "silent"=現在地のみ */
+function requestLoc(opts){
+  const mode=(opts&&opts.mode)||"nearby";
   if(!navigator.geolocation){locFail("この端末では位置情報が使えません");return;}
   locbar.classList.add('loading');
   locTxt.innerHTML=`現在地を確認しています…<small>ブラウザの許可ダイアログで「許可」を押してください</small>`;
   locBtn.style.display="none";allBtn.style.display="none";
   navigator.geolocation.getCurrentPosition(
-    pos=>{userLoc=[pos.coords.latitude,pos.coords.longitude];
-          applyNearby(nearestPref(pos.coords.latitude,pos.coords.longitude));},
+    pos=>{
+      userLoc=[pos.coords.latitude,pos.coords.longitude];
+      const pref=nearestPref(pos.coords.latitude,pos.coords.longitude);
+      /* ユーザーがすでにカテゴリを選んでいれば、自動取得では上書きしない */
+      if(mode==="nearby"||(mode==="auto"&&!filterTouched)){applyNearby(pref);return;}
+      detectedPref=pref;
+      locbar.classList.remove('loading');
+      locTxt.innerHTML=`現在地を取得しました（${pref}付近）<small>近い順の並び替えに使います。近くだけ見る場合は「現在地を使う」</small>`;
+      locBtn.style.display="";locBtn.textContent="現在地を使う";
+      allBtn.style.display=(curPref?"":"none");
+      render();
+    },
     err=>{locFail(err.code===1?"位置情報が許可されませんでした":"現在地を取得できませんでした");},
     {timeout:8000,maximumAge:600000}
   );
@@ -3558,13 +3603,17 @@ async function init(){
     ? "※ 投稿はサーバーに保存され、リンクを開いた全員に共有されます。"
     : "※ 現在はお試し表示（この端末のみ）。Supabaseを設定すると、みんなの投稿が全国で共有されます。";
   countEl.textContent="読み込み中…";
+  const hadSaved=loadFilters();
+  if(hadSaved){filterTouched=true;applyFiltersToUI();}
   await handleAuthRedirect();
   await loadMyProfile();
   try{await fetchPosts();}
   catch(err){console.warn(err);seedLocal();
     if(note)note.textContent="※ サーバーに接続できませんでした。お試し表示に切り替えています。";}
+  applyFiltersToUI();
   render();
-  requestLoc();
+  /* 保存済みカテゴリがある／ユーザーが選んだ後はカテゴリを上書きせず現在地のみ取得 */
+  requestLoc({mode:(hadSaved||filterTouched)?"silent":"auto"});
   maybePromptUsername();
   refreshNotifs();
   startNotifPoll();
@@ -3597,9 +3646,15 @@ function sendContact(){
 
 /* ---------- pull-to-refresh: scrolling back up to the top refreshes ---------- */
 async function refreshHome(){
+  const keepY=window.scrollY;
   showToast("更新中…");
-  try{await fetchPosts();render();showToast("更新しました");}
-  catch(e){showToast("更新に失敗しました");}
+  try{
+    await fetchPosts();
+    applyFiltersToUI(); /* 更新後も選択中カテゴリを維持 */
+    render();
+    window.scrollTo(0,keepY);
+    showToast("更新しました");
+  }catch(e){showToast("更新に失敗しました");}
 }
 (function(){
   let scrolledDown=false,cooldown=0;
