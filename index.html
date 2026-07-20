@@ -778,13 +778,13 @@
         </div>
       </div>
       <div class="field" id="prefField">
-        <label>県 <span class="req">必須</span></label>
+        <label id="prefLabel">県 <span class="req">必須</span></label>
         <select name="pref" id="prefInput"></select>
       </div>
       <div class="field" id="addressField">
         <label>住所・場所名（地図に表示・任意）</label>
         <input type="text" name="address" id="addressInput" maxlength="200" placeholder="例: 京都市東山区清水1丁目294 / 〇〇カフェ 渋谷">
-        <span style="font-size:.78rem;color:var(--ink-soft)">入れておくと、見た人が1タップで地図アプリで開けます</span>
+        <span id="addressHint" style="font-size:.78rem;color:var(--ink-soft)">入れておくと、見た人が1タップで地図アプリで開けます。下の地図検索でも場所を選べます</span>
       </div>
       <div class="field" id="pinField">
         <label>地図でピンを打つ（任意）</label>
@@ -852,7 +852,7 @@
     <button type="button" class="btn btn-primary btn-sm pin-done" onclick="closePinPage(true)">この場所に決定</button>
   </div>
   <div class="pin-search">
-    <input id="pinSearch" type="text" placeholder="住所・店名・ホテル名で検索（例: 清水寺 / 渋谷 スターバックス / ○○ホテル）">
+    <input id="pinSearch" type="text" placeholder="住所・店名・サロン名で検索（例: 清水寺 / 渋谷 スターバックス / 〇〇美容室）">
     <button type="button" id="pinSearchBtn" onclick="pinSearchGo()">検索</button>
   </div>
   <div id="pinResults" class="pin-results"></div>
@@ -1192,17 +1192,24 @@
 <script>
 /* ---------- data ---------- */
 const CAT_LABEL={travel:"旅行/遊び",study:"勉強・学び",fun:"暇つぶし・趣味",life:"暮らし・自己成長",beauty:"美容",finance:"金融・マネー",food:"ご飯",drink:"呑み"};
-const LOCATION_CATS=["travel","food","drink"];  // 県・住所・地図を使うカテゴリ
+const LOCATION_CATS=["travel","food","drink","beauty"];  // 県・住所・地図を使うカテゴリ
+const PREF_REQUIRED_CATS=["travel","food","drink"]; // beauty は都道府県任意（店舗宣伝向け）
 const SPOT_LABEL={travel:"スポット名",study:"勉強法・やり方の名前",fun:"おすすめの内容",life:"習慣・方法の名前",beauty:"アイテム・お店・方法",finance:"銘柄・サービス・方法",food:"店名・料理名",drink:"店名・ドリンク名"};
 const SPOT_PH={
   travel:"例: 〇〇カフェ / △△展望台",
   study:"例: 隙間時間シャドーイング",
   fun:"例: 混ぜて焼くだけレシピ / 〇〇のプレイリスト",
   life:"例: 1カ所リセット術 / 手ぶらウォーク",
-  beauty:"例: 〇〇の化粧水 / △△サロン / 朝のスキンケア",
+  beauty:"例: 〇〇サロン / △△クリニック / 朝のスキンケア",
   finance:"例: 積立NISAの始め方 / 〇〇証券 / 家計簿アプリ",
   food:"例: 〇〇食堂 / 名物の海鮮丼",
   drink:"例: 〇〇バル / クラフトビールが旨い店"
+};
+const ADDR_PH={
+  travel:"例: 京都市東山区清水1丁目294 / 〇〇カフェ 渋谷",
+  food:"例: 渋谷区道玄坂2-1 / 〇〇食堂",
+  drink:"例: 新宿区歌舞伎町1-1 / 〇〇バー",
+  beauty:"例: 渋谷区神宮前1-2-3 / 〇〇美容室 表参道店"
 };
 const PREFS=["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
 const GENRES=["語学","資格・検定","プログラミング","受験・進学","数学・理科","株・投資","ビジネス・自己啓発","趣味・教養"];
@@ -1648,7 +1655,10 @@ const prefFilter=document.getElementById('prefFilter');
 const genreFilter=document.getElementById('genreFilter');
 const prefInput=document.getElementById('prefInput');
 const genreInput=document.getElementById('genreInput');
+prefInput.add(new Option("指定なし（任意）",""));
 PREFS.forEach(p=>{prefFilter.add(new Option(p,p));prefInput.add(new Option(p,p));});
+/* 旅行/ご飯/呑みは県必須のため、初期値は先頭の県（北海道）ではなく空＋旅行選択時に必須チェック */
+prefInput.value="";
 GENRES.forEach(g=>{genreFilter.add(new Option(g,g));genreInput.add(new Option(g,g));});
 
 /* ---------- render ---------- */
@@ -1986,7 +1996,8 @@ function postDetailHTML(p){
   };
   const pref=mapPref();
   const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
-  const maps=LOCATION_CATS.includes(p.cat)?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
+  const showMaps=LOCATION_CATS.includes(p.cat)&&(p.loc||p.address||p.spot);
+  const maps=showMaps?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
   const imgs=(p.photos||[]).slice(0,4);
   const gallery=imgs.length?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
   const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
@@ -3458,16 +3469,32 @@ async function submitComment(){
   }catch(err){alert(err.message||"送信に失敗しました");if(btn){btn.disabled=false;btn.textContent=cmtReplyTo?"返信する":"コメントする";}}
 }
 
+function syncLocationFields(cat){
+  const loc=LOCATION_CATS.includes(cat);
+  prefField.classList.toggle('hidden',!loc);
+  document.getElementById('addressField').classList.toggle('hidden',!loc);
+  document.getElementById('pinField').classList.toggle('hidden',!loc);
+  genreField.classList.toggle('hidden',cat!=="study");
+  spotLabel.innerHTML = (SPOT_LABEL[cat]||"おすすめの内容")+' <span class="req">必須</span>';
+  spotInput.placeholder = SPOT_PH[cat]||"例: おすすめの内容";
+  const prefLab=document.getElementById('prefLabel');
+  if(prefLab){
+    prefLab.innerHTML=PREF_REQUIRED_CATS.includes(cat)
+      ? '県 <span class="req">必須</span>'
+      : '県 <span style="font-weight:600;color:var(--ink-soft);font-size:.82rem">任意</span>';
+  }
+  const addr=document.getElementById('addressInput');
+  if(addr)addr.placeholder=ADDR_PH[cat]||ADDR_PH.travel;
+  const hint=document.getElementById('addressHint');
+  if(hint){
+    hint.textContent=cat==="beauty"
+      ? "サロン・クリニックなどの住所を入れると、見た人が地図アプリで開けます。下の地図検索でも場所を選べます"
+      : "入れておくと、見た人が1タップで地図アプリで開けます。下の地図検索でも場所を選べます";
+  }
+}
 document.querySelectorAll('input[name="cat"]').forEach(r=>{
   r.addEventListener('change',()=>{
-    const v=document.querySelector('input[name="cat"]:checked').value;
-    const loc=LOCATION_CATS.includes(v);
-    prefField.classList.toggle('hidden',!loc);
-    document.getElementById('addressField').classList.toggle('hidden',!loc);
-    document.getElementById('pinField').classList.toggle('hidden',!loc);
-    genreField.classList.toggle('hidden',v!=="study");
-    spotLabel.innerHTML = (SPOT_LABEL[v]||"おすすめの内容")+' <span class="req">必須</span>';
-    spotInput.placeholder = SPOT_PH[v]||"例: おすすめの内容";
+    syncLocationFields(document.querySelector('input[name="cat"]:checked').value);
   });
 });
 
@@ -3490,7 +3517,11 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
     const orig=POSTS.find(x=>x.id===editingPostId);
     if(orig&&orig.aff_url)post.aff_url=null; // 既存リンクを空にした → クリア
   }
-  if(LOCATION_CATS.includes(cat)){post.pref=f.pref.value;post.address=(f.address.value||"").trim()||null;}
+  if(LOCATION_CATS.includes(cat)){
+    post.pref=(f.pref.value||"").trim()||null;
+    post.address=(f.address.value||"").trim()||null;
+    if(PREF_REQUIRED_CATS.includes(cat)&&!post.pref){alert("県を選んでください。");return;}
+  }
   if(cat==="study")post.genre=f.genre.value;
   if(!post.title||!post.spot){alert("スポット名とタイトルは必須です。");return;}
   const submitBtn=f.querySelector('button[type="submit"]');
@@ -3520,8 +3551,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
       editingPostId=null;
       f.reset();resetPhoto();resetPin();
       document.querySelector('input[name="cat"][value="travel"]').checked=true;
-      prefField.classList.remove('hidden');document.getElementById('addressField').classList.remove('hidden');
-      document.getElementById('pinField').classList.remove('hidden');genreField.classList.add('hidden');
+      syncLocationFields("travel");
       closeModal();
       render();renderMyPosts();
       showToast("変更を保存しました");
@@ -3532,8 +3562,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
       POSTS.unshift(saved);
       f.reset();resetPhoto();resetPin();
       document.querySelector('input[name="cat"][value="travel"]').checked=true;
-      prefField.classList.remove('hidden');document.getElementById('addressField').classList.remove('hidden');
-      document.getElementById('pinField').classList.remove('hidden');genreField.classList.add('hidden');
+      syncLocationFields("travel");
       closeModal();
       document.querySelector(`#filters .chip[data-cat="${cat}"]`).click();
       window.scrollTo({top:document.getElementById('board').offsetTop-40,behavior:'smooth'});
