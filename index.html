@@ -1701,8 +1701,8 @@ async function loadMyLikes(){
   if(!session||!SERVER){MYLIKES=new Set();return;}
   try{
     const token=await freshToken();
-    const headers=token?authHeadersWith(token):sbHeaders;
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?user_id=eq.${session.uid}&select=post_id`,{headers});
+    if(!token){MYLIKES=new Set();return;}
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?user_id=eq.${session.uid}&select=post_id`,{headers:authHeadersWith(token)});
     if(r.ok){const rows=await r.json();MYLIKES=new Set(rows.map(x=>String(x.post_id)));}
   }catch(e){console.warn("likes",e);}
 }
@@ -2226,8 +2226,9 @@ let pvPostId=null;
 async function loadPostLikers(postId){
   const body=document.getElementById('pdLikersBody');if(!body||!SERVER)return;
   try{
-    const headers=session?(await freshToken().then(t=>t?authHeadersWith(t):sbHeaders)):sbHeaders;
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=eq.${encodeURIComponent(postId)}&select=user_id`,{headers});
+    const token=await freshToken();
+    if(!token){body.innerHTML=`<span class="pd-likers-empty">合計 ${(POSTS.find(x=>x.id===postId)||{}).likes||0} いいね</span>`;return;}
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=eq.${encodeURIComponent(postId)}&select=user_id`,{headers:authHeadersWith(token)});
     if(!r.ok){body.innerHTML=`<span class="pd-likers-empty">合計 ${(POSTS.find(x=>x.id===postId)||{}).likes||0} いいね</span>`;return;}
     const rows=await r.json();
     const uids=rows.map(x=>x.user_id).filter(Boolean);
@@ -2824,8 +2825,11 @@ async function refreshNotifs(){
   /* いいね（誰が押したか post_likes から取得 → 投稿主向けに履歴へ残す） */
   if(mine.length){
     try{
+      const token=await freshToken();
       const q=mine.map(p=>encodeURIComponent(p.id)).join(',');
-      const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=in.(${q})&select=post_id,user_id`,{headers:sbHeaders});
+      const r=token
+        ? await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=in.(${q})&select=post_id,user_id`,{headers:authHeadersWith(token)})
+        : {ok:false};
       const newlyLikedPosts=new Set();
       if(r.ok){
         const rows=(await r.json()).filter(x=>x.user_id&&x.user_id!==session.uid);

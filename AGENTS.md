@@ -100,6 +100,7 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。ユーザーの投稿一覧付き。z-index 200。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。
+- **投稿詳細の「いいねした人」**: 投稿者本人のみ表示（`loadPostLikers()`）。**DB側は `post_likes` RLS**（`supabase/post_likes_rls.sql`）で保護。クライアントの if だけに頼らない。
 - **設定UI**: マイページの三本線 → 右ドロワー → 項目選択で全画面（アカウント情報／アカウント設定／プライバシー／表示＝地図アプリ）。戻るでドロワー再表示。
 - **カードのアバター**：`AVATARS` キャッシュに著者の `avatar_url`/`name` をまとめて取得（`fetchAvatars()`、`fetchPosts()` の後に実行）。`avatarOf(uid)` で参照。
 - **写真ビューア（ライトボックス）** `#lightboxBg`：スワイプ操作対応。横スワイプ＝写真切替、下スワイプ/タップ＝閉じる（PCは画像クリックで閉じる、←→キーで切替）。
@@ -227,4 +228,4 @@ support@nanshiyo.com
 
 - アプリ化: PWA → 将来 Capacitor でストアアプリ
 - 決済: **Supabase Edge Functions** で実装予定（GitHub Pages は静的のみ）
-- 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。その他テーブルの RLS 全点検は別途。
+- 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。**`post_likes` も RLS＋anon REVOKE 済み**（`supabase/post_likes_rls.sql`：自分のいいね／自分の投稿へのいいねのみ SELECT、INSERT/DELETE は本人のみ）。その他テーブルの RLS 全点検は別途。
