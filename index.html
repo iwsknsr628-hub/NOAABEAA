@@ -220,7 +220,9 @@
   .card .spot{font-size:.84rem;font-weight:700;color:var(--ink)}
   .card p{color:var(--ink-soft);font-size:.85rem;line-height:1.55;margin:0}
   .card .tags{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap;padding-top:2px}
-  .card .tags span{font-size:.72rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px}
+  .card .tags .tag-link,.pd-body .tags .tag-link{font-size:.72rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px;
+    cursor:pointer;user-select:none;transition:color .15s,background .15s,border-color .15s;border:1px solid transparent}
+  .card .tags .tag-link:hover,.pd-body .tags .tag-link:hover{color:var(--accent);background:#fff5f0;border-color:#f3d6bf}
   .card .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:9px;margin-top:4px}
   .card .meta-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .card .like{cursor:pointer;user-select:none;font-weight:700;transition:transform .1s}
@@ -560,7 +562,7 @@
   .pd-likers-empty{font-size:.82rem;color:var(--ink-soft)}
   .pd-body .aff-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px}
   .pd-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-  .pd-body .tags span{font-size:.75rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px}
+  .pd-body .tags .tag-link{font-size:.75rem}
 
   /* mobile: 2 columns, compact */
   @media(max-width:640px){
@@ -574,7 +576,7 @@
     .card-gallery{margin:-12px -11px 4px}
     .card-gallery img{height:78px}
     .card-gallery.g1 img{height:120px}
-    .card .tags span{font-size:.66rem;padding:2px 8px}
+    .card .tags .tag-link{font-size:.66rem;padding:2px 8px}
     .badge{font-size:.64rem;padding:3px 8px}
     .badge.sub{font-size:.64rem}
     .maps-row{gap:4px}
@@ -1797,6 +1799,8 @@ function runAssistant(){
   const q=document.getElementById('search').value.trim();
   const assistant=document.getElementById('assistant');
   if(!q){clearAssistant();return;}
+  const onlyTag=q.match(/^#([^\s#]+)$/);
+  if(onlyTag){searchByTag(onlyTag[1]);return;}
   curQuery=q;
   const ql=q.toLowerCase();
   const hit=SIGNALS.filter(s=>s.keys.some(k=>ql.includes(k.toLowerCase())));
@@ -1849,6 +1853,50 @@ function clearAssistant(){
   ASSIST=null;curQuery="";
   document.getElementById('assistant').classList.remove('show');
   render();
+}
+function normalizeTag(t){return String(t||"").replace(/^#+/,"").trim();}
+function tagChipsHTML(tags,limit){
+  const list=Array.isArray(tags)?tags:[];
+  const slice=limit!=null?list.slice(0,limit):list;
+  return slice.map(t=>{
+    const raw=normalizeTag(t);if(!raw)return "";
+    return `<span class="tag-link" data-tag="${esc(raw)}" role="link" tabindex="0" title="#${esc(raw)} で検索">#${esc(raw)}</span>`;
+  }).join("");
+}
+function searchByTag(tag){
+  const t=normalizeTag(tag);if(!t)return;
+  try{closePostView();}catch(e){}
+  try{closeSearchPage();}catch(e){}
+  try{closeMyPage();}catch(e){}
+  try{closeProfileView();}catch(e){}
+  try{closeNotifs();}catch(e){}
+  try{closeComments();}catch(e){}
+  const search=document.getElementById('search');
+  if(search)search.value="#"+t;
+  const tl=t.toLowerCase();
+  const scores=new Map();
+  POSTS.forEach(p=>{
+    if((p.tags||[]).some(x=>normalizeTag(x).toLowerCase()===tl))scores.set(p.id,10);
+  });
+  ASSIST={scores,mode:"tag",tag:t};
+  curQuery="#"+t;
+  curCat="all";curPref="";curGenre="";
+  filterTouched=true;
+  setChip("all");
+  prefFilter.classList.add("hidden");
+  genreFilter.classList.add("hidden");
+  prefFilter.value="";genreFilter.value="";
+  saveFilters();
+  const found=scores.size;
+  document.getElementById('assistantSay').innerHTML=`タグ <b>#${esc(t)}</b> の投稿を集めました。`;
+  document.getElementById('assistantPicks').innerHTML=found
+    ?`<b>${found}</b> 件見つかりました。別のタグやキーワードでも探せます。`
+    :`このタグの投稿はまだありません。`;
+  document.getElementById('assistant').classList.add('show');
+  render();
+  const board=document.getElementById('board');
+  if(board)board.scrollIntoView({behavior:'smooth',block:'start'});
+  else window.scrollTo({top:0,behavior:'smooth'});
 }
 
 /* ---------- populate selects ---------- */
@@ -2073,7 +2121,7 @@ function cardHTML(p){
   let dist="";
   if(p.loc&&userLoc){const d=distKm(userLoc,p.loc);dist=`<span class="badge sub">約${d<10?d.toFixed(1):Math.round(d)}km</span>`;}
   const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""))+dist;
-  const tags=(p.tags||[]).slice(0,3).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
+  const tags=tagChipsHTML(p.tags,3);
   const imgs=(p.photos||[]).slice(0,8);
   const gallery=imgs.length?`<div class="card-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
   const av=avatarOf(p.user_id);
@@ -2248,7 +2296,7 @@ document.body.addEventListener('click',e=>{
 /* ---------- 投稿詳細ポップアップ ---------- */
 function postDetailHTML(p){
   const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""));
-  const tags=(p.tags||[]).map(t=>`<span>#${esc(String(t).replace(/^#+/,''))}</span>`).join('');
+  const tags=tagChipsHTML(p.tags);
   const ml=mapLinks(p);
   const btns={
     google:`<a class="maps-btn g" href="${ml.google}" target="_blank" rel="noopener noreferrer">Google</a>`,
@@ -2368,7 +2416,7 @@ function closePostView(opts){
   function onDown(e){
     if(!bg.classList.contains('open'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    if(e.target.closest('a,button,input,textarea,select,.close,.maps-btn,.aff-btn'))return;
+    if(e.target.closest('a,button,input,textarea,select,.close,.maps-btn,.aff-btn,.tag-link'))return;
     active=true;sx=e.clientX;sy=e.clientY;dx=0;dy=0;axis=null;pid=e.pointerId;
     bg.classList.remove('pd-swiping');
     try{modal.setPointerCapture(e.pointerId);}catch(err){}
@@ -2440,6 +2488,8 @@ searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant()
 /* like / report / comment */
 /* カード共通のクリック処理。処理したら true。rerender は いいね後の再描画関数。 */
 async function handleCardInteractions(e,rerender){
+  const tg=e.target.closest('.tag-link');
+  if(tg){searchByTag(tg.dataset.tag||tg.textContent);return true;}
   const sh=e.target.closest('.share-btn');
   if(sh){
     if((sh.dataset.share||'post')==='post')sharePost(sh.dataset.id,sh.dataset.title);
