@@ -4,15 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>なんしよ？ — みんなのおすすめが集まる場所</title>
-<script>
-(function(){try{var t=localStorage.getItem("nanshiyo_theme");document.documentElement.setAttribute("data-theme",(t==="classic")?"classic":"v2");}catch(e){document.documentElement.setAttribute("data-theme","v2");}})();
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* デフォルト = v2（新ロゴ案）。classic は元デザイン */
-  :root, html[data-theme="v2"]{
+  :root{
     --coral:#FF5F4E; --coral-deep:#E8452F; --sun:#FFC93C; --paper:#FBF9F6;
     --bg:#FBF9F6; --bg2:#ffffff; --ink:#16213D; --ink-soft:#5c574e;
     --line:#E7E2D9; --card:#ffffff;
@@ -25,19 +21,6 @@
     --tabbar-bg:rgba(251,249,246,.97);
     --notif-ring:rgba(251,249,246,.97);
   }
-  html[data-theme="classic"]{
-    --coral:#ff8a5b; --coral-deep:#ff6f4d; --sun:#ffc247; --paper:#fffaf3;
-    --bg:#fffaf3; --bg2:#fff3e4; --ink:#2b2620; --ink-soft:#6b6157;
-    --line:#efe3d3; --card:#ffffff;
-    --accent:#ff8a5b; --accent2:#ffc247; --accent3:#6ec6c0; --accent4:#a685e2;
-    --shadow:0 10px 30px rgba(90,70,40,.10); --shadow-sm:0 4px 14px rgba(90,70,40,.08);
-    --radius:20px;
-    --font-body:"Hiragino Kaku Gothic ProN","Yu Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    --font-display:var(--font-body);
-    --header-bg:rgba(255,250,243,.88);
-    --tabbar-bg:rgba(255,250,243,.97);
-    --notif-ring:rgba(255,250,243,.97);
-  }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{font-family:var(--font-body);
@@ -47,23 +30,11 @@
   header.site{position:sticky;top:0;z-index:50;background:var(--header-bg);
     backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
   .navbar{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
-  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.15rem}
-  .logo .mark{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:900;box-shadow:var(--shadow-sm);overflow:hidden}
-  .logo .mark-v2{background:transparent;box-shadow:none;padding:0;border-radius:0}
-  .logo .mark-v2 svg{width:34px;height:34px;display:block}
+  .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:900;font-size:1.15rem;letter-spacing:.02em}
+  .logo .mark{width:34px;height:34px;display:grid;place-items:center;background:transparent;padding:0;border-radius:0;box-shadow:none;overflow:visible}
+  .logo .mark svg{width:34px;height:34px;display:block}
   .logo .logo-text .dot{color:var(--coral-deep)}
-  html[data-theme="v2"] .logo{font-family:var(--font-display);font-weight:900;letter-spacing:.02em}
-  html[data-theme="v2"] .mark-classic,html[data-theme="v2"] .logo-classic{display:none !important}
-  html[data-theme="classic"] .mark-v2,html[data-theme="classic"] .logo-v2{display:none !important}
-  html[data-theme="v2"] .hero h1,html[data-theme="v2"] .sec-head h2,html[data-theme="v2"] .gacha-card h2{font-family:var(--font-display)}
-  .theme-switch{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .theme-switch button{flex:1;min-width:120px;border:1px solid var(--line);background:#fff;color:var(--ink);
-    font-family:inherit;font-weight:700;font-size:.82rem;padding:10px 12px;border-radius:10px;cursor:pointer}
-  .theme-switch button.on{border-color:var(--accent);background:var(--bg2);color:var(--accent);box-shadow:var(--shadow-sm)}
-  .theme-foot{margin-top:14px;font-size:.78rem}
-  .theme-foot a{color:var(--ink-soft);text-decoration:underline;cursor:pointer;margin:0 6px}
-  .theme-foot a.on{color:var(--accent);font-weight:800;text-decoration:none}
+  .hero h1,.sec-head h2,.gacha-card h2{font-family:var(--font-display)}
   .nav-right{display:flex;align-items:center;gap:16px}
   .nav-links{display:flex;gap:20px}
   .nav-links a{color:var(--ink-soft);text-decoration:none;font-size:.92rem;font-weight:600;transition:color .2s}
@@ -99,58 +70,26 @@
   .btn-ghost:hover{transform:translateY(-2px)}
   .btn-sm{padding:9px 18px;font-size:.88rem}
 
-  /* HERO — classic 見た目（blob / eyebrow / 黄色マーカー）がベース。v2 は下で上書き */
-  .hero{position:relative;overflow:hidden;padding:66px 0 40px;text-align:center}
-  .blob{position:absolute;border-radius:50%;filter:blur(6px);opacity:.5;z-index:0}
-  .b1{width:280px;height:280px;background:radial-gradient(circle,var(--accent2),transparent 70%);top:-70px;left:-40px}
-  .b2{width:320px;height:320px;background:radial-gradient(circle,var(--accent3),transparent 70%);bottom:-140px;right:-60px}
-  .b3{width:200px;height:200px;background:radial-gradient(circle,var(--accent4),transparent 70%);top:20px;right:18%}
+  /* HERO */
+  .hero{position:relative;overflow:hidden;padding:52px 0 36px;text-align:center;
+    background:linear-gradient(180deg,#fff 0%,var(--paper) 72%)}
   .hero-inner{position:relative;z-index:1}
-  .eyebrow{display:inline-block;background:#fff;border:1px solid var(--line);padding:6px 16px;border-radius:999px;
-    font-size:.82rem;font-weight:700;color:var(--accent);box-shadow:var(--shadow-sm);margin-bottom:20px}
-  .hero h1{font-size:clamp(1.9rem,5.2vw,3.1rem);line-height:1.28;font-weight:900}
-  .hero h1 .hl{background:linear-gradient(transparent 62%,rgba(255,194,71,.55) 62%);padding:0 .1em}
-  .hero p.lead{margin:10px auto 0;max-width:520px;color:var(--ink-soft);font-size:.95rem;line-height:1.55}
+  .hero h1{font-size:clamp(1.9rem,5.2vw,3.1rem);line-height:1.32;font-weight:900;letter-spacing:-.01em}
+  .hero h1 .hl{background:linear-gradient(transparent 72%,rgba(255,95,78,.2) 72%);padding:0 .06em}
+  .hero p.lead{margin:12px auto 0;max-width:420px;color:var(--ink-soft);font-size:.9rem;line-height:1.5;letter-spacing:.01em}
 
-  /* SEARCH BAR — classic は入力と虫眼鏡を分離 */
-  .searchbar{position:relative;z-index:1;max-width:620px;width:100%;margin:18px auto 0;display:flex;align-items:center;gap:8px;min-width:0}
-  .searchbar input{flex:1;min-width:0;border:1px solid var(--line);background:#fff;border-radius:999px;
-    padding:14px 18px;font-size:1rem;font-family:inherit;box-shadow:var(--shadow-sm);outline:none;transition:border .2s}
-  .searchbar input:focus{border-color:var(--accent)}
-  .searchbar .search-go{flex:0 0 auto;width:48px;height:48px;padding:0;border:none;border-radius:50%;
+  /* SEARCH BAR */
+  .searchbar{position:relative;z-index:1;max-width:540px;width:100%;margin:22px auto 0;display:flex;align-items:center;gap:0;min-width:0;
+    padding:5px 5px 5px 6px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow-sm)}
+  .searchbar input{flex:1;min-width:0;border:none;background:transparent;border-radius:999px;
+    padding:12px 14px;font-size:1rem;font-family:inherit;box-shadow:none;outline:none}
+  .searchbar input:focus{border:none;box-shadow:none}
+  .searchbar .search-go{flex:0 0 auto;width:44px;height:44px;padding:0;border:none;border-radius:50%;
     background:linear-gradient(135deg,var(--accent),var(--coral-deep));color:#fff;cursor:pointer;
-    display:grid;place-items:center;box-shadow:0 8px 18px rgba(255,95,78,.28);transition:transform .15s,box-shadow .2s}
+    display:grid;place-items:center;box-shadow:none;transition:transform .15s,box-shadow .2s}
   .searchbar .search-go svg{display:block;width:22px;height:22px}
-  .searchbar .search-go:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(255,95,78,.36)}
+  .searchbar .search-go:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(255,95,78,.28)}
   .searchbar .search-go:active{transform:scale(.96)}
-
-  /* HERO — v2 すっきり（blob/eyebrow 非表示、検索は一体型） */
-  html[data-theme="v2"] .blob,
-  html[data-theme="v2"] .eyebrow{display:none !important}
-  html[data-theme="v2"] .hero{
-    padding:52px 0 36px;
-    background:linear-gradient(180deg,#fff 0%,var(--paper) 72%);
-  }
-  html[data-theme="v2"] .hero h1{letter-spacing:-.01em;line-height:1.32}
-  html[data-theme="v2"] .hero h1 .hl{
-    background:linear-gradient(transparent 72%,rgba(255,95,78,.2) 72%);
-    padding:0 .06em;
-  }
-  html[data-theme="v2"] .hero p.lead{
-    margin-top:12px;max-width:420px;font-size:.9rem;line-height:1.5;letter-spacing:.01em;
-  }
-  html[data-theme="v2"] .searchbar{
-    margin-top:22px;max-width:540px;gap:0;padding:5px 5px 5px 6px;
-    background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow-sm);
-  }
-  html[data-theme="v2"] .searchbar input{
-    border:none;box-shadow:none;background:transparent;padding:12px 14px;border-radius:999px;
-  }
-  html[data-theme="v2"] .searchbar input:focus{border:none;box-shadow:none}
-  html[data-theme="v2"] .searchbar .search-go{
-    width:44px;height:44px;box-shadow:none;
-  }
-  html[data-theme="v2"] .searchbar .search-go:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(255,95,78,.28)}
 
   section{padding:44px 0}
   .sec-head{text-align:center;margin-bottom:26px}
@@ -643,17 +582,12 @@
     .card .meta-actions{gap:8px}
     .sec-head h2{font-size:1.5rem}
     .hero h1{font-size:2rem}
-    .hero{padding:48px 0 32px}
-    .hero p.lead{font-size:.86rem;padding:0 8px;margin-top:8px}
-    .searchbar{margin:14px auto 0;gap:6px}
-    .searchbar input{padding:12px 14px;font-size:.9rem}
-    .searchbar .search-go{width:44px;height:44px}
+    .hero{padding:36px 0 28px}
+    .hero p.lead{font-size:.84rem;padding:0 8px;margin-top:10px}
+    .searchbar{margin:16px auto 0;padding:4px;gap:0}
+    .searchbar input{padding:11px 12px;font-size:.9rem}
+    .searchbar .search-go{width:42px;height:42px}
     .searchbar .search-go svg{width:20px;height:20px}
-    html[data-theme="v2"] .hero{padding:36px 0 28px}
-    html[data-theme="v2"] .hero p.lead{margin-top:10px;font-size:.84rem}
-    html[data-theme="v2"] .searchbar{margin-top:16px;padding:4px;gap:0}
-    html[data-theme="v2"] .searchbar input{padding:11px 12px;font-size:.9rem}
-    html[data-theme="v2"] .searchbar .search-go{width:42px;height:42px}
   }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -664,16 +598,14 @@
 <header class="site">
   <div class="wrap navbar">
     <div class="logo">
-      <span class="mark mark-classic">な</span>
-      <span class="mark mark-v2" aria-hidden="true">
+      <span class="mark" aria-hidden="true">
         <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M60 10C32.4 10 10 30.7 10 56.2C10 70.5 17 83.2 28.3 91.6C27.6 97.9 25.1 104.4 21 109.7C29.9 108.6 38.3 105 45 99.6C49.8 100.9 54.8 101.6 60 101.6C87.6 101.6 110 80.9 110 55.4C110 29.9 87.6 10 60 10Z" fill="var(--coral)"/>
           <path d="M42 44C42 33 50.5 26 61 26C71.8 26 79.5 32.6 79.5 42.2C79.5 50.4 74.6 54.8 68.4 58.6C63.5 61.6 61.5 64.3 61.3 69" stroke="var(--ink)" stroke-width="9.5" stroke-linecap="round" fill="none"/>
           <circle cx="61" cy="85" r="8.5" fill="var(--sun)"/>
         </svg>
       </span>
-      <span class="logo-text logo-classic">なんしよ？</span>
-      <span class="logo-text logo-v2">なんしよ<span class="dot">。</span></span>
+      <span class="logo-text">なんしよ<span class="dot">。</span></span>
     </div>
     <div class="nav-right">
       <nav class="nav-links">
@@ -712,9 +644,7 @@
 
 <!-- HERO -->
 <section class="hero">
-  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
   <div class="wrap hero-inner">
-    <span class="eyebrow">みんなの「これいいよ」が集まる場所</span>
     <h1>その「<span class="hl">なんしよ？</span>」、<br>誰かのおすすめで解決。</h1>
     <p class="lead">みんなの投稿から、次の一歩が見つかる。</p>
     <div class="searchbar">
@@ -794,16 +724,14 @@
 <footer>
   <div class="wrap">
     <div class="logo">
-      <span class="mark mark-classic">な</span>
-      <span class="mark mark-v2" aria-hidden="true">
+      <span class="mark" aria-hidden="true">
         <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M60 10C32.4 10 10 30.7 10 56.2C10 70.5 17 83.2 28.3 91.6C27.6 97.9 25.1 104.4 21 109.7C29.9 108.6 38.3 105 45 99.6C49.8 100.9 54.8 101.6 60 101.6C87.6 101.6 110 80.9 110 55.4C110 29.9 87.6 10 60 10Z" fill="var(--coral)"/>
           <path d="M42 44C42 33 50.5 26 61 26C71.8 26 79.5 32.6 79.5 42.2C79.5 50.4 74.6 54.8 68.4 58.6C63.5 61.6 61.5 64.3 61.3 69" stroke="var(--ink)" stroke-width="9.5" stroke-linecap="round" fill="none"/>
           <circle cx="61" cy="85" r="8.5" fill="var(--sun)"/>
         </svg>
       </span>
-      <span class="logo-text logo-classic">なんしよ？</span>
-      <span class="logo-text logo-v2">なんしよ<span class="dot">。</span></span>
+      <span class="logo-text">なんしよ<span class="dot">。</span></span>
     </div>
     <p>すべての「何しよう」に、みんなのおすすめを。</p>
     <p class="note" id="footNote"></p>
@@ -1428,32 +1356,6 @@ const SEED=[
    ====================================================================== */
 const SUPABASE_URL="https://akftypucwfretxqrinej.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_qRfRyDoXFQpO2Gb_6jZ-Lg_aXcaV_Ew";
-
-/* ---------- デザイントライアル切替（v2=新 / classic=元） ---------- */
-const THEME_KEY="nanshiyo_theme";
-function getTheme(){
-  try{const t=localStorage.getItem(THEME_KEY);return t==="classic"?"classic":"v2";}catch(e){return "v2";}
-}
-function syncThemeUI(theme){
-  const t=theme||getTheme();
-  document.querySelectorAll("[data-theme-set]").forEach(el=>{
-    const on=el.getAttribute("data-theme-set")===t;
-    el.classList.toggle("on",on);
-    if(el.tagName==="BUTTON")el.setAttribute("aria-pressed",on?"true":"false");
-  });
-}
-function applyTheme(theme){
-  const t=(theme==="classic")?"classic":"v2";
-  document.documentElement.setAttribute("data-theme",t);
-  syncThemeUI(t);
-}
-function setTheme(theme){
-  const t=(theme==="classic")?"classic":"v2";
-  try{localStorage.setItem(THEME_KEY,t);}catch(e){}
-  applyTheme(t);
-  showToast(t==="v2"?"新デザインに切り替えました":"元のデザインに戻しました");
-}
-applyTheme(getTheme());
 
 const SERVER = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 const sbHeaders={apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY,"Content-Type":"application/json"};
