@@ -179,12 +179,7 @@
   .lb-slide{flex:0 0 100vw;width:100vw;height:100%;display:flex;align-items:center;justify-content:center;
     padding:30px;box-sizing:border-box}
   .lb-slide img{max-width:92vw;max-height:86vh;object-fit:contain;border-radius:4px;user-select:none;
-    -webkit-user-drag:none;pointer-events:none;transform-origin:center center;will-change:transform}
-  #lbImgCur{pointer-events:auto;touch-action:none}
-  .lightbox-bg.round-avatar #lbImgCur{
-    width:min(78vw,78vh);height:min(78vw,78vh);max-width:min(78vw,78vh);max-height:min(78vw,78vh);
-    object-fit:cover;border-radius:50%;box-shadow:0 8px 28px rgba(0,0,0,.35)}
-  .lightbox-bg.round-avatar .lb-slide{padding:24px}
+    -webkit-user-drag:none;pointer-events:none}
   .lb-close{position:fixed;top:10px;right:12px;background:rgba(255,255,255,.14);border:none;color:#fff;font-size:1.7rem;
     cursor:pointer;line-height:1;opacity:.9;width:44px;height:44px;border-radius:50%;display:flex;
     align-items:center;justify-content:center}
@@ -447,7 +442,6 @@
   .cmt-login{background:var(--bg2);border-radius:12px;padding:14px;text-align:center;font-size:.9rem;color:var(--ink-soft)}
   .avatar-lg{width:88px;height:88px;border-radius:50%;background:var(--bg2) center/cover no-repeat;border:2px solid #fff;
     box-shadow:var(--shadow-sm);display:grid;place-items:center;font-size:2rem;color:var(--ink-soft)}
-  .avatar-lg.viewable{cursor:zoom-in}
   .sns-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:800;font-size:.85rem;
     padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:#fff;transition:.15s}
   .sns-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
@@ -539,14 +533,11 @@
   .pd-author .mini-av{width:38px;height:38px;font-size:1.1rem}
   .pd-author .nm{font-weight:800;cursor:pointer;white-space:nowrap}
   .pd-author .nm:hover{color:var(--accent)}
-  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem;flex-wrap:wrap}
+  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem}
   .pd-actions>span{cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:700}
   .pd-actions>span:hover{color:var(--accent)}
   .pd-actions>span.del-btn{color:#c0392b}
   .pd-actions>span.del-btn:hover{color:#a93226}
-  .pd-actions .share-btn,.card .share-btn{display:inline-flex;align-items:center;gap:4px}
-  .pd-actions .share-btn svg,.card .share-btn svg,.head-icon-btn.share-ic svg{display:block;width:18px;height:18px}
-  .head-icon-btn.share-ic{width:34px;padding:0}
   .pd-body .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .pd-body .maps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
   .pd-body .maps-label{font-size:.8rem;color:var(--ink-soft);font-weight:700}
@@ -1048,18 +1039,12 @@
   <div class="full-page-head">
     <button type="button" class="pin-back" onclick="closeProfileView()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">プロフィール</span>
-    <div class="full-page-head-icons">
-      <span class="head-icon-btn share-ic" id="pvShareBtn" onclick="shareCurrentProfile()" title="共有" aria-label="共有" style="display:none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line>
-        </svg>
-      </span>
-    </div>
+    <div class="full-page-head-icons"></div>
   </div>
   <div class="full-page-body">
     <div class="mp-wrap">
       <div class="mp-section" style="text-align:center">
-        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto" role="button" tabindex="0" title="プロフィール画像を見る" aria-label="プロフィール画像を見る"></div>
+        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto"></div>
         <h2 id="pvName" style="margin-top:12px;font-size:1.15rem">プロフィール</h2>
         <div id="pvHandle" class="mp-handle-view" style="text-align:center"></div>
         <div class="ig-stats">
@@ -1111,11 +1096,6 @@
     <button type="button" class="pin-back" onclick="closeMyPage()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">マイページ</span>
     <div class="full-page-head-icons">
-      <span class="head-icon-btn share-ic" onclick="shareMyProfile()" title="プロフィールを共有" aria-label="プロフィールを共有">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line>
-        </svg>
-      </span>
       <span class="head-icon-btn" onclick="openAnnounce()" title="お知らせ" aria-label="お知らせ">
         <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.5 21a1.8 1.8 0 0 1-3 0"></path>
@@ -1134,7 +1114,7 @@
 
       <!-- 自己紹介・SNSリンク（シンプル表示、IG/TikTok風） -->
       <div class="mp-section" style="text-align:center">
-        <div id="mpAvatar" class="avatar-lg" style="margin:0 auto" role="button" tabindex="0" title="プロフィール画像を見る" aria-label="プロフィール画像を見る"></div>
+        <div id="mpAvatar" class="avatar-lg" style="margin:0 auto"></div>
         <div class="mp-name-row">
           <h2 id="mpNameView" style="font-size:1.15rem">ニックネーム</h2>
           <span class="mp-edit-pen" onclick="openProfileEditPopup()" title="プロフィールを編集" aria-label="プロフィールを編集">
@@ -1525,7 +1505,80 @@ async function areaFallback(q){
   }
   return null;
 }
+async function reverseGeocodeGoogle(lat,lng){
+  try{
+    await loadGooglePlaces();
+    if(typeof google==="undefined"||!google.maps||!google.maps.Geocoder)return null;
+  }catch(e){return null;}
+  return new Promise(resolve=>{
+    try{
+      const g=new google.maps.Geocoder();
+      g.geocode({location:{lat:Number(lat),lng:Number(lng)},language:"ja",region:"JP"},(results,status)=>{
+        if(status!=="OK"||!results||!results.length){resolve(null);return;}
+        const score=r=>{
+          const types=r.types||[];
+          let s=0;
+          if(types.includes("street_address"))s+=4;
+          if(types.includes("premise")||types.includes("subpremise"))s+=3;
+          if((r.address_components||[]).some(c=>c.types.includes("street_number")))s+=2;
+          if((r.formatted_address||"").match(/[0-9０-９]/))s+=1;
+          return s;
+        };
+        const best=[...results].sort((a,b)=>score(b)-score(a))[0];
+        let pref=null;
+        (best.address_components||[]).forEach(c=>{
+          if(c.types.includes("administrative_area_level_1")&&PREFS.includes(c.long_name))pref=c.long_name;
+        });
+        resolve({pref,address:cleanJpAddress(best.formatted_address)});
+      });
+    }catch(e){resolve(null);}
+  });
+}
+function cleanJpAddress(s){
+  if(!s)return null;
+  const out=String(s)
+    .replace(/^日本[、,]\s*/,"")
+    .replace(/[、,]\s*日本$/,"")
+    .replace(/〒\s*\d{3}-?\d{4}\s*/g,"")
+    .replace(/\s+/g,"")
+    .trim();
+  return out||null;
+}
+function addressFromNominatim(d,pref){
+  const a=(d&&d.address)||{};
+  const parts=[
+    a.city||a.town||a.village||a.municipality||a.county,
+    a.city_district||a.borough||a.suburb,
+    a.neighbourhood||a.quarter||a.hamlet||a.residential,
+    a.road||a.pedestrian||a.footway||a.path,
+    a.block_number,
+    a.house_number||a.housenumber,
+    a.unit
+  ].filter(Boolean);
+  let address=parts.filter((p,i)=>p!==parts[i-1]).join("");
+  /* 番地が欠けることが多いので display_name から補完 */
+  if(d&&d.display_name){
+    const fromDisp=cleanJpAddress(
+      d.display_name.split(",").map(x=>x.trim()).filter(b=>{
+        if(!b||b==="日本")return false;
+        if(pref&&b===pref)return false;
+        if(/^〒?\d{3}-?\d{4}$/.test(b))return false;
+        return true;
+      }).reverse().join("")
+    );
+    if(fromDisp){
+      const hasNum=s=>/[0-9０-９]/.test(s||"");
+      if(!address)address=fromDisp;
+      else if(hasNum(fromDisp)&&!hasNum(address))address=fromDisp;
+      else if(fromDisp.length>address.length)address=fromDisp;
+    }
+  }
+  return address||null;
+}
 async function reverseGeocode(lat,lng){
+  /* Google の方が日本の番地まで返りやすい。失敗時は Nominatim */
+  const g=await reverseGeocodeGoogle(lat,lng);
+  if(g&&(g.address||g.pref))return g;
   try{
     const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=ja&addressdetails=1&zoom=18`);
     const d=await r.json();
@@ -1538,27 +1591,31 @@ async function reverseGeocode(lat,lng){
       if(n>=1&&n<=47)pref=PREFS[n-1];
     }
     if(!pref){const name=a.province||a.state;if(name&&PREFS.includes(name))pref=name;}
-    const parts=[a.city||a.town||a.county,a.city_district||a.suburb,a.neighbourhood||a.quarter,a.road,a.house_number]
-      .filter(Boolean);
-    // dedupe consecutive repeats (Nominatim sometimes repeats the same name at two levels)
-      const dedup=parts.filter((p,i)=>p!==parts[i-1]);
-    const address=dedup.join('')||null;
-    return {pref,address};
+    return {pref,address:addressFromNominatim(d,pref)};
   }catch(e){console.warn(e);}
   return {pref:null,address:null};
 }
-async function autofillPrefFromPin(latlng){
+async function autofillPrefFromPin(latlng,preferredAddr){
   const {pref,address}=await reverseGeocode(latlng[0],latlng[1]);
   if(pref){
     const sel=document.getElementById('prefInput');
     if(sel)sel.value=pref;
   }
-  if(address){
+  /* ピン由来の住所は上書き（番地なしのまま残さない）。検索結果の方が詳しい場合はそれを優先 */
+  const prefer=preferredAddr?cleanJpAddress(preferredAddr):null;
+  const hasNum=s=>/[0-9０-９]/.test(s||"");
+  let best=address||null;
+  if(prefer){
+    if(!best)best=prefer;
+    else if(hasNum(prefer)&&!hasNum(best))best=prefer;
+    else if(prefer.length>=(best||"").length)best=prefer;
+  }
+  if(best){
     const addrInput=document.getElementById('addressInput');
-    if(addrInput&&!addrInput.value.trim())addrInput.value=address;
+    if(addrInput)addrInput.value=best;
   }
   const hint=document.getElementById('pinPageHint');
-  if(hint&&pref)hint.textContent=`${pref}${address?"・"+address:""}を自動で入力しました。よければ右上の「この場所に決定」を押してください`;
+  if(hint&&(pref||best))hint.textContent=`${pref||""}${pref&&best?"・":""}${best||""}を自動で入力しました。よければ右上の「この場所に決定」を押してください`;
 }
 async function uploadPhoto(file){
   if(!SERVER) return null;
@@ -1595,27 +1652,6 @@ async function fetchAvatars(extraIds){
   }catch(e){console.warn("avatars",e);}
 }
 function avatarOf(uid){return (uid&&AVATARS[uid]&&AVATARS[uid].avatar)||"";}
-function setAvatarEl(el,url){
-  if(!el)return;
-  const u=(url||"").trim();
-  if(u){
-    el.style.backgroundImage=`url(${u})`;
-    el.textContent="";
-    el.dataset.avatarUrl=u;
-    el.classList.add('viewable');
-  }else{
-    el.style.backgroundImage="";
-    el.textContent="";
-    delete el.dataset.avatarUrl;
-    el.classList.remove('viewable');
-  }
-}
-function openAvatarView(el){
-  const u=el&&(el.dataset.avatarUrl||"");
-  if(!u){showToast('プロフィール画像はまだありません');return;}
-  openLightbox([u],0,{round:true});
-}
-
 async function addPostServer(post){
   const token=await freshToken();
   if(!token) throw new Error("ログインが必要です");
@@ -2033,9 +2069,6 @@ function cardHTML(p){
     <div class="meta">
       <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}<span>by ${esc(p.author||"匿名")}</span></span>
       <span class="meta-actions">
-        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有" aria-label="共有">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-        </span>
         <span class="cmt-btn" data-id="${p.id}" title="コメント">コメント</span>
         <span class="${likeCls}" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
       </span>
@@ -2044,69 +2077,8 @@ function cardHTML(p){
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-/* ---------- 共有リンク ---------- */
-function siteShareUrl(params){
-  const u=new URL(location.origin+(location.pathname||'/'));
-  Object.entries(params||{}).forEach(([k,v])=>{if(v!=null&&v!=='')u.searchParams.set(k,String(v));});
-  return u.toString();
-}
-function postShareUrl(id){return siteShareUrl({post:id});}
-function profileShareUrl(uid,handle){
-  const p={user:uid};
-  if(handle)p.h=String(handle).replace(/^@+/,'');
-  return siteShareUrl(p);
-}
-async function shareLink(url,title){
-  const t=title||'なんしよ？';
-  try{
-    if(navigator.share){await navigator.share({title:t,text:t,url});return;}
-  }catch(e){if(e&&e.name==='AbortError')return;}
-  try{
-    await navigator.clipboard.writeText(url);
-    showToast('リンクをコピーしました');
-  }catch(err){
-    try{prompt('このリンクをコピーしてください',url);}catch(e2){showToast('共有に失敗しました');}
-  }
-}
-function sharePost(id,title){
-  if(!id)return;
-  shareLink(postShareUrl(id),(title?title+' | ':'')+'なんしよ？');
-}
-function shareCurrentProfile(){
-  if(!pvUserId){showToast('プロフィールを開けません');return;}
-  const name=pvShareName||((document.getElementById('pvName')||{}).textContent)||'プロフィール';
-  shareLink(profileShareUrl(pvUserId,pvShareHandle),name+' | なんしよ？');
-}
-function shareMyProfile(){
-  if(!session){openAuth();return;}
-  const name=currentName()||(myProfile&&myProfile.name)||'マイページ';
-  shareLink(profileShareUrl(session.uid,myProfile&&myProfile.handle),name+' | なんしよ？');
-}
-async function openFromShareQuery(){
-  try{
-    const q=new URLSearchParams(location.search);
-    const postId=q.get('post');
-    const userId=q.get('user');
-    const handle=(q.get('h')||'').replace(/^@+/,'').toLowerCase();
-    if(postId){
-      if(POSTS.some(p=>String(p.id)===String(postId))){openPostView(postId);return;}
-      showToast('共有された投稿が見つかりませんでした');
-      return;
-    }
-    if(userId){openProfileView(userId);return;}
-    if(handle&&SERVER){
-      const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?handle=eq.${encodeURIComponent(handle)}&select=user_id,name,handle&limit=1`,{headers:sbHeaders});
-      const row=(r.ok?await r.json():[])[0];
-      if(row&&row.user_id){openProfileView(row.user_id,row.name||handle);return;}
-      showToast('共有されたプロフィールが見つかりませんでした');
-    }
-  }catch(e){console.warn(e);}
-}
-
 /* ---------- lightbox (view posted photos full size) ---------- */
 let lbPhotos=[],lbIndex=0,lbAnimating=false;
-let lbScale=1,lbTX=0,lbTY=0;
-const LB_MIN=1,LB_MAX=4;
 function lbW(){return window.innerWidth;}
 function lbBase(){return -lbW();}
 function lbSetTrack(x,y,anim){
@@ -2119,45 +2091,23 @@ function lbRenderSlides(){
   document.getElementById('lbImgPrev').src=lbPhotos.length>1?lbAt(lbIndex-1):'';
   document.getElementById('lbImgCur').src=lbAt(lbIndex);
   document.getElementById('lbImgNext').src=lbPhotos.length>1?lbAt(lbIndex+1):'';
-  lbResetZoom(false);
 }
-function lbApplyZoom(anim){
-  const img=document.getElementById('lbImgCur');if(!img)return;
-  img.style.transition=anim?'transform .2s ease':'none';
-  img.style.transform=`translate(${lbTX}px,${lbTY}px) scale(${lbScale})`;
-}
-function lbClampPan(){
-  if(lbScale<=1.01){lbTX=0;lbTY=0;return;}
-  const maxX=Math.max(40,(lbW()*0.46)*(lbScale-1));
-  const maxY=Math.max(40,(window.innerHeight*0.43)*(lbScale-1));
-  lbTX=Math.max(-maxX,Math.min(maxX,lbTX));
-  lbTY=Math.max(-maxY,Math.min(maxY,lbTY));
-}
-function lbResetZoom(anim){
-  lbScale=1;lbTX=0;lbTY=0;lbApplyZoom(!!anim);
-}
-function lbReset(){lbSetTrack(lbBase(),0,false);const t=document.getElementById('lbTrack');if(t)t.style.opacity='1';lbResetZoom(false);}
+function lbReset(){lbSetTrack(lbBase(),0,false);const t=document.getElementById('lbTrack');if(t)t.style.opacity='1';}
 function updateLightbox(){
   const multi=lbPhotos.length>1;
   document.getElementById('lbPrev').style.display=multi?'flex':'none';
   document.getElementById('lbNext').style.display=multi?'flex':'none';
   document.getElementById('lbCount').textContent=multi?`${lbIndex+1} / ${lbPhotos.length}`:'';
-  document.getElementById('lbHint').textContent=multi
-    ?'ピンチで拡大・横スワイプで切替・下スワイプで閉じる'
-    :'ピンチで拡大・下スワイプまたは×で閉じる';
+  document.getElementById('lbHint').textContent=multi?'スワイプで写真を切替・下スワイプで閉じる':'タップまたは下スワイプで閉じる';
 }
-function openLightbox(photos,idx,opts){
+function openLightbox(photos,idx){
   if(!photos||!photos.length)return;
   lbPhotos=photos;lbIndex=idx||0;lbAnimating=false;
-  const bg=document.getElementById('lightboxBg');
-  bg.classList.toggle('round-avatar',!!(opts&&opts.round));
   lbRenderSlides();lbReset();updateLightbox();
-  bg.classList.add('open');
+  document.getElementById('lightboxBg').classList.add('open');
 }
 function lbNav(d){
   if(lbPhotos.length<2||lbAnimating)return;
-  if(lbScale>1.05){lbResetZoom(true);return;}
-  document.getElementById('lightboxBg').classList.remove('round-avatar');
   lbAnimating=true;
   const W=lbW();
   lbSetTrack(lbBase()+(d>0?-W:W),0,true);
@@ -2166,144 +2116,56 @@ function lbNav(d){
     lbRenderSlides();lbReset();updateLightbox();lbAnimating=false;
   },200);
 }
-function closeLightbox(){
-  const bg=document.getElementById('lightboxBg');
-  bg.classList.remove('open');
-  bg.classList.remove('round-avatar');
-  lbReset();
-}
+function closeLightbox(){document.getElementById('lightboxBg').classList.remove('open');lbReset();}
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('lightboxBg').classList.contains('open'))return;
   if(e.key==="Escape")closeLightbox();
   else if(e.key==="ArrowLeft")lbNav(-1);
   else if(e.key==="ArrowRight")lbNav(1);
 });
-window.addEventListener('resize',()=>{if(document.getElementById('lightboxBg').classList.contains('open')&&!lbAnimating){lbClampPan();lbApplyZoom(false);lbSetTrack(lbBase(),0,false);}});
-/* ピンチ拡大 + スワイプ切替/閉じる */
+window.addEventListener('resize',()=>{if(document.getElementById('lightboxBg').classList.contains('open')&&!lbAnimating)lbReset();});
+/* ドラッグ追従スワイプ: 横=画像も動いてしきい値で切替 / 下=閉じる / タップ=閉じる */
 (function(){
   const vp=document.getElementById('lbViewport');
   if(!vp)return;
-  const pts=new Map();
-  let mode=null; // pinch | pan | swipe
-  let sx=0,sy=0,dx=0,dy=0,axis=null,moved=false,W=0;
-  let startScale=1,startDist=0,startTX=0,startTY=0,midX=0,midY=0;
-  let lastTap=0,tapTimer=null;
-
-  function dist(a,b){const dx=a.x-b.x,dy=a.y-b.y;return Math.hypot(dx,dy);}
-  function mid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2};}
-  function list(){return [...pts.values()];}
-
+  let active=false,sx=0,sy=0,dx=0,dy=0,axis=null,moved=false,W=0;
   vp.addEventListener('pointerdown',e=>{
     if(lbAnimating)return;
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    active=true;W=lbW();sx=e.clientX;sy=e.clientY;dx=0;dy=0;axis=null;moved=false;
+    lbSetTrack(lbBase(),0,false);
     try{vp.setPointerCapture(e.pointerId);}catch(err){}
-    const arr=list();
-    if(arr.length>=2){
-      mode='pinch';moved=true;
-      const a=arr[0],b=arr[1];
-      startDist=dist(a,b)||1;startScale=lbScale;startTX=lbTX;startTY=lbTY;
-      const m=mid(a,b);midX=m.x;midY=m.y;
-      lbSetTrack(lbBase(),0,false);
-      return;
-    }
-    mode=lbScale>1.05?'pan':'swipe';
-    sx=e.clientX;sy=e.clientY;dx=0;dy=0;axis=null;moved=false;W=lbW();
-    startTX=lbTX;startTY=lbTY;
-    if(mode==='swipe')lbSetTrack(lbBase(),0,false);
   });
-
   vp.addEventListener('pointermove',e=>{
-    if(!pts.has(e.pointerId))return;
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-    const arr=list();
-    if(arr.length>=2||mode==='pinch'){
-      if(arr.length<2)return;
-      mode='pinch';moved=true;
-      const a=arr[0],b=arr[1];
-      const d=dist(a,b)||1;
-      const m=mid(a,b);
-      lbScale=Math.max(LB_MIN,Math.min(LB_MAX,startScale*(d/startDist)));
-      lbTX=startTX+(m.x-midX);
-      lbTY=startTY+(m.y-midY);
-      lbClampPan();
-      lbApplyZoom(false);
-      return;
-    }
+    if(!active)return;
     dx=e.clientX-sx;dy=e.clientY-sy;
-    if(!moved&&(Math.abs(dx)>8||Math.abs(dy)>8))moved=true;
-    if(mode==='pan'){
-      lbTX=startTX+dx;lbTY=startTY+dy;lbClampPan();lbApplyZoom(false);return;
-    }
-    if(mode==='swipe'){
-      if(!axis&&(Math.abs(dx)>8||Math.abs(dy)>8))axis=Math.abs(dx)>=Math.abs(dy)?'x':'y';
-      if(axis==='x'){
-        const move=lbPhotos.length>1?dx:dx*0.25;
-        lbSetTrack(lbBase()+move,0,false);
-      }else if(axis==='y'){
-        lbSetTrack(lbBase(),dy,false);
-        const t=document.getElementById('lbTrack');if(t)t.style.opacity=String(Math.max(.25,1-Math.abs(dy)/500));
-      }
+    if(!axis&&(Math.abs(dx)>8||Math.abs(dy)>8)){axis=Math.abs(dx)>=Math.abs(dy)?'x':'y';moved=true;}
+    if(axis==='x'){
+      const move=lbPhotos.length>1?dx:dx*0.25;   // 1枚だけの時は弾性表示
+      lbSetTrack(lbBase()+move,0,false);
+    }else if(axis==='y'){
+      lbSetTrack(lbBase(),dy,false);
+      const t=document.getElementById('lbTrack');if(t)t.style.opacity=String(Math.max(.25,1-Math.abs(dy)/500));
     }
   });
-
   function end(e){
-    if(!pts.has(e.pointerId))return;
-    pts.delete(e.pointerId);
+    if(!active)return;active=false;
     try{vp.releasePointerCapture(e.pointerId);}catch(err){}
-    if(pts.size>=1){
-      /* もう1本残っている → 次の操作の基準を更新 */
-      const arr=list();
-      if(arr.length===1){
-        mode=lbScale>1.05?'pan':'swipe';
-        sx=arr[0].x;sy=arr[0].y;dx=0;dy=0;axis=null;
-        startTX=lbTX;startTY=lbTY;W=lbW();
-      }
-      return;
-    }
-    const wasMode=mode;mode=null;
-    if(wasMode==='pinch'||wasMode==='pan'){
-      if(lbScale<1.05)lbResetZoom(true);
-      else{lbClampPan();lbApplyZoom(true);}
-      return;
-    }
     const thX=Math.max(60,W*0.18);
     if(axis==='x'&&lbPhotos.length>1&&Math.abs(dx)>thX){
       lbNav(dx<0?1:-1);
     }else if(axis==='y'&&dy>90){
       closeLightbox();
     }else if(!moved){
-      const now=Date.now();
-      if(now-lastTap<300){
-        clearTimeout(tapTimer);lastTap=0;
-        if(lbScale>1.05)lbResetZoom(true);
-        else{lbScale=2.5;lbTX=0;lbTY=0;lbApplyZoom(true);}
-      }else{
-        lastTap=now;
-        clearTimeout(tapTimer);
-        tapTimer=setTimeout(()=>{
-          if(lastTap&&Date.now()-lastTap>=280&&lbScale<=1.05){
-            lastTap=0;closeLightbox();
-          }
-        },280);
-      }
+      closeLightbox();                            // タップで閉じる
     }else{
-      lbSetTrack(lbBase(),0,true);
+      lbSetTrack(lbBase(),0,true);                // スナップバック
       const t=document.getElementById('lbTrack');if(t)t.style.opacity='1';
     }
   }
   vp.addEventListener('pointerup',end);
   vp.addEventListener('pointercancel',end);
-  vp.addEventListener('wheel',e=>{
-    if(!document.getElementById('lightboxBg').classList.contains('open'))return;
-    e.preventDefault();
-    const next=lbScale*(e.deltaY>0?0.9:1.1);
-    lbScale=Math.max(LB_MIN,Math.min(LB_MAX,next));
-    if(lbScale<=1.01)lbResetZoom(false);else{lbClampPan();lbApplyZoom(false);}
-  },{passive:false});
 })();
 document.body.addEventListener('click',e=>{
-  /* カード外（投稿詳細など）のギャラリー用。カード内は handleCardInteractions で処理 */
-  if(e.target.closest('.card'))return;
   const img=e.target.closest('.pd-gallery img');
   if(!img)return;
   const wrap=img.closest('.pd-gallery');
@@ -2311,15 +2173,6 @@ document.body.addEventListener('click',e=>{
   try{photos=JSON.parse(wrap.dataset.photos||'[]');}catch(err){}
   openLightbox(photos,parseInt(img.dataset.idx)||0);
 });
-(function(){
-  function bindAvatarTap(id){
-    const el=document.getElementById(id);if(!el)return;
-    el.addEventListener('click',()=>openAvatarView(el));
-    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openAvatarView(el);}});
-  }
-  bindAvatarTap('mpAvatar');
-  bindAvatarTap('pvAvatar');
-})();
 
 /* ---------- 投稿詳細ポップアップ ---------- */
 function postDetailHTML(p){
@@ -2360,10 +2213,6 @@ function postDetailHTML(p){
         <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${esc(p.author||"匿名")}</span>
       </div>
       <div class="pd-actions">
-        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-          共有
-        </span>
         <span class="cmt-btn" data-id="${p.id}">コメント</span>
         <span class="like${MYLIKES.has(String(p.id))?' liked':''}" data-id="${p.id}">いいね ${p.likes||0}</span>
         ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
@@ -2398,20 +2247,8 @@ function openPostView(id){
   document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
   document.getElementById('postViewBg').classList.add('open');
   if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(id);
-  try{
-    const u=new URL(location.href);
-    u.searchParams.set('post',String(id));
-    u.searchParams.delete('user');u.searchParams.delete('h');
-    history.replaceState(null,'',u.pathname+u.search+(u.hash||''));
-  }catch(e){}
 }
-function closePostView(){
-  document.getElementById('postViewBg').classList.remove('open');pvPostId=null;
-  try{
-    const u=new URL(location.href);
-    if(u.searchParams.has('post')){u.searchParams.delete('post');history.replaceState(null,'',u.pathname+(u.searchParams.toString()?u.search:'')+(u.hash||''));}
-  }catch(e){}
-}
+function closePostView(){document.getElementById('postViewBg').classList.remove('open');pvPostId=null;}
 document.getElementById('postViewBg').addEventListener('click',async e=>{
   if(e.target.id==="postViewBg"){closePostView();return;}
   const handled=await handleCardInteractions(e,()=>{
@@ -2449,20 +2286,6 @@ searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant()
 /* like / report / comment */
 /* カード共通のクリック処理。処理したら true。rerender は いいね後の再描画関数。 */
 async function handleCardInteractions(e,rerender){
-  const gimg=e.target.closest('.card-gallery img, .pd-gallery img');
-  if(gimg){
-    const wrap=gimg.closest('.card-gallery, .pd-gallery');
-    let photos=[];
-    try{photos=JSON.parse((wrap&&wrap.dataset.photos)||'[]');}catch(err){}
-    if(photos.length)openLightbox(photos,parseInt(gimg.dataset.idx)||0);
-    return true;
-  }
-  const sh=e.target.closest('.share-btn');
-  if(sh){
-    const kind=sh.dataset.share||'post';
-    if(kind==='post')sharePost(sh.dataset.id,sh.dataset.title);
-    return true;
-  }
   const au=e.target.closest('.author-link');
   if(au){openProfileView(au.dataset.uid,au.dataset.name);return true;}
   const c=e.target.closest('.cmt-btn');
@@ -2588,7 +2411,7 @@ function applyPinResult(item){
   if(pinMapObj){pinMapObj.setView(c,17);pendingPin=c;placeMarker({lat:c[0],lng:c[1]});
     setTimeout(()=>pinMapObj.invalidateSize(),120);}
   if(hint)hint.textContent="選択しました。ここでよければ右上「この場所に決定」";
-  autofillPrefFromPin(c);
+  autofillPrefFromPin(c,item.addr||"");
 }
 function renderPinResults(list){
   const box=document.getElementById('pinResults');
@@ -3433,7 +3256,7 @@ function renderMyProfileView(){
   if(mh)mh.innerHTML=p.handle?handleViewHTML(p.handle):'<span class="handle-set-link" onclick="promptUsername()">＋ ユーザーID（@〜）を設定</span>';
   document.getElementById('mpBioView').textContent=p.bio||"自己紹介はまだ設定されていません。";
   const av=document.getElementById('mpAvatar');
-  setAvatarEl(av,p.avatar_url);
+  if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="";}
   const defs=[["Instagram","instagram"],["TikTok","tiktok"],["X","x"],["YouTube","youtube"],["サイト","website"]];
   const html=defs.map(([label,key])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`:"";}).join("");
   document.getElementById('mpLinksView').innerHTML=html||'<span style="color:var(--ink-soft);font-size:.85rem">リンクはまだありません</span>';
@@ -3737,7 +3560,7 @@ async function getFollowRow(uid){
     return d[0]||null;
   }catch(e){return null;}
 }
-let pvUserId=null,pvShareHandle=null,pvShareName=null;
+let pvUserId=null;
 function renderPvPosts(userId){
   const grid=document.getElementById('pvPostsGrid');
   const mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
@@ -3748,11 +3571,7 @@ function renderPvPosts(userId){
 async function openProfileView(userId,fallbackName){
   closePostView();closeMyPage();closeSearchPage();closeNotifs();
   pvUserId=userId||null;
-  pvShareHandle=null;
-  pvShareName=fallbackName||null;
   const page=document.getElementById('pvPage');
-  const shareBtn=document.getElementById('pvShareBtn');
-  if(shareBtn)shareBtn.style.display=userId?"":"none";
   document.getElementById('pvName').textContent=fallbackName||"プロフィール";
   {const pvh=document.getElementById('pvHandle');if(pvh)pvh.textContent="";}
   document.getElementById('pvBio').textContent="読み込み中…";
@@ -3761,20 +3580,12 @@ async function openProfileView(userId,fallbackName){
   document.getElementById('pvStatFollowers').textContent="—";
   document.getElementById('pvStatFollowing').textContent="—";
   document.getElementById('pvStatLikes').textContent="—";
-  const av=document.getElementById('pvAvatar');setAvatarEl(av,"");
+  const av=document.getElementById('pvAvatar');av.style.backgroundImage="";av.textContent="";
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
   const notifyBtn=document.getElementById('pvNotifyBtn');notifyBtn.style.display="none";notifyBtn.onclick=null;
   renderPvPosts(userId);
   page.classList.add('open');
   const body=page.querySelector('.full-page-body');if(body)body.scrollTop=0;
-  try{
-    if(userId){
-      const u=new URL(location.href);
-      u.searchParams.set('user',String(userId));
-      u.searchParams.delete('post');u.searchParams.delete('h');
-      history.replaceState(null,'',u.pathname+u.search+(u.hash||''));
-    }
-  }catch(e){}
   if(!SERVER||!userId){document.getElementById('pvBio').textContent="このユーザーのプロフィールはまだありません。";return;}
 
   const st=statsForUser(userId);
@@ -3805,17 +3616,8 @@ async function openProfileView(userId,fallbackName){
     const pvh=document.getElementById('pvHandle');
     if(!p){document.getElementById('pvName').textContent=fallbackName||"匿名";if(pvh)pvh.textContent="";document.getElementById('pvBio').textContent="プロフィール未設定です。";return;}
     document.getElementById('pvName').textContent=p.name||fallbackName||"匿名";
-    pvShareName=p.name||fallbackName||"匿名";
-    pvShareHandle=(p.handle||"").trim()||null;
     if(pvh)pvh.innerHTML=p.handle?handleViewHTML(p.handle):"";
-    setAvatarEl(av,p.avatar_url||"");
-    try{
-      const u=new URL(location.href);
-      u.searchParams.set('user',String(userId));
-      if(pvShareHandle){u.searchParams.set('h',pvShareHandle);}else{u.searchParams.delete('h');}
-      u.searchParams.delete('post');
-      history.replaceState(null,'',u.pathname+u.search+(u.hash||''));
-    }catch(e){}
+    if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}
 
     if(p.is_private&&!isSelf&&!amFollowing){
       document.getElementById('pvBio').textContent="このアカウントは非公開です。フォローすると自己紹介やリンクが見られます。";
@@ -3887,17 +3689,7 @@ async function togglePvNotify(userId){
   }catch(e){alert("処理に失敗しました");}
   finally{notifyBtn.disabled=false;}
 }
-function closeProfileView(){
-  document.getElementById('pvPage').classList.remove('open');
-  pvUserId=null;pvShareHandle=null;pvShareName=null;
-  try{
-    const u=new URL(location.href);
-    if(u.searchParams.has('user')||u.searchParams.has('h')){
-      u.searchParams.delete('user');u.searchParams.delete('h');
-      history.replaceState(null,'',u.pathname+(u.searchParams.toString()?u.search:'')+(u.hash||''));
-    }
-  }catch(e){}
-}
+function closeProfileView(){document.getElementById('pvPage').classList.remove('open');}
 /* プロフィールページ内の投稿カード操作（いいね/コメント/詳細ポップアップ/著者） */
 document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
   if(handleCardInteractions(e,renderPvPostsCurrent))return;
@@ -4255,7 +4047,6 @@ async function init(){
     if(note)note.textContent="※ サーバーに接続できませんでした。お試し表示に切り替えています。";}
   applyFiltersToUI();
   render();
-  await openFromShareQuery();
   /* 保存済みカテゴリがある／ユーザーが選んだ後はカテゴリを上書きせず現在地のみ取得 */
   requestLoc({mode:(hadSaved||filterTouched)?"silent":"auto"});
   /* 起動時の強制プロンプトは出さない（紙飛行機のナッジとマイページ編集で足りる） */
