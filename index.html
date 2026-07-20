@@ -1901,12 +1901,13 @@ function mapLinks(p){
   const fallback=`${p.spot||""} ${p.pref||""}`.trim();
   const gq=encodeURIComponent(addr||(p.loc?`${p.loc[0]},${p.loc[1]}`:fallback));
   let yahoo,apple;
-  if(p.loc && !addr){
+  /* Yahoo公式URL仕様: 座標は /place?lat=&lon=、キーワード検索は /search?q=（旧 p= は無効） */
+  if(p.loc){
     yahoo=`https://map.yahoo.co.jp/place?lat=${p.loc[0]}&lon=${p.loc[1]}&zoom=17`;
-    apple=`https://maps.apple.com/?ll=${p.loc[0]},${p.loc[1]}&q=${encodeURIComponent(p.spot||"ここ")}`;
+    apple=`https://maps.apple.com/?ll=${p.loc[0]},${p.loc[1]}&q=${encodeURIComponent(p.spot||addr||"ここ")}`;
   }else{
     const t=encodeURIComponent(addr||fallback);
-    yahoo=`https://map.yahoo.co.jp/search?p=${t}`;
+    yahoo=`https://map.yahoo.co.jp/search?q=${t}`;
     apple=`https://maps.apple.com/?q=${t}`;
   }
   return {google:"https://www.google.com/maps/search/?api=1&query="+gq, yahoo, apple};
