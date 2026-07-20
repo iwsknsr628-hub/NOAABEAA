@@ -79,8 +79,9 @@ git push origin main   # → GitHub Pages が自動デプロイ
 
 ## Google Maps / Places
 
-- `const GOOGLE_MAPS_KEY` に参照元制限付きキーを設定済み。**Places API (New) が有効**である必要あり。
+- `const GOOGLE_MAPS_KEY` に参照元制限付きキーを設定済み。**Places API (New)** およびピン確定時の住所自動入力用に **Geocoding API** が有効である必要あり。
 - 検索は Google Places 優先 → OSM(Nominatim+Photon) フォールバック。
+- ピン確定の住所: Google Geocoder 優先（番地まで）→ Nominatim フォールバック。
 - 課金対策: Places API (New) の1日ハードキャップはGoogle仕様で不可。代わりに **予算アラート（月¥1,000）** を設定済み。現在は無料トライアル（クレジット/90日、超過時は自動停止・自動課金なし）。
 
 ## UI/UX 構成（現状）
@@ -99,10 +100,9 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。ユーザーの投稿一覧付き。z-index 200。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。
-- **共有**: 投稿カード／詳細・プロフィール（他ユーザー／マイページ）に共有マーク。`?post=` / `?user=` / `?h=`（@ハンドル）でディープリンク。端末の共有シート、無ければリンクコピー。
 - **設定UI**: マイページの三本線 → 右ドロワー → 項目選択で全画面（アカウント情報／アカウント設定／プライバシー／表示＝地図アプリ）。戻るでドロワー再表示。
 - **カードのアバター**：`AVATARS` キャッシュに著者の `avatar_url`/`name` をまとめて取得（`fetchAvatars()`、`fetchPosts()` の後に実行）。`avatarOf(uid)` で参照。
-- **写真ビューア（ライトボックス）** `#lightboxBg`：ピンチ／ホイール／ダブルタップで拡大、拡大中はパン。等倍時は横スワイプ＝写真切替、下スワイプ／タップ＝閉じる（PCは←→キーで切替）。
+- **写真ビューア（ライトボックス）** `#lightboxBg`：スワイプ操作対応。横スワイプ＝写真切替、下スワイプ/タップ＝閉じる（PCは画像クリックで閉じる、←→キーで切替）。
 - カード/ポップアップ内の操作は共通ハンドラ `handleCardInteractions(e,rerender)` に集約（著者リンク/コメント/編集/いいね/通報/カードタップ）。
 
 ## 認証・アカウント（ログイン / ユーザー名 / @ID）
