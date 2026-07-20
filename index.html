@@ -953,7 +953,7 @@
   <div class="modal" style="max-width:420px">
     <button class="close" onclick="closeAuth()">&times;</button>
     <h2 id="authTitle">アカウント登録</h2>
-    <p class="msub" id="authSub">登録すると、投稿にあなたの名前が付きます。</p>
+    <p class="msub" id="authSub">検索・閲覧は登録なしでOK。投稿やいいねをするときに登録してください。</p>
     <div class="field">
       <label>ニックネーム（ユーザー名） <span class="req">必須</span></label>
       <input type="text" id="authName" maxlength="40" placeholder="表示名（例: たびすき）">
@@ -2637,7 +2637,7 @@ function toggleAuthMode(){authMode=authMode==="signup"?"login":"signup";applyAut
 function applyAuthMode(){
   const s=authMode==="signup";
   document.getElementById('authTitle').textContent=s?"アカウント登録":"ログイン";
-  document.getElementById('authSub').textContent=s?"登録すると、投稿にあなたの名前が付きます。":"登録済みのメールとパスワードでログイン。";
+  document.getElementById('authSub').textContent=s?"検索・閲覧は登録なしでOK。投稿やいいねをするときに登録してください。":"登録済みのメールとパスワードでログイン。";
   document.getElementById('authSubmit').textContent=s?"登録する":"ログイン";
   document.getElementById('authSwitch').textContent=s?"すでにアカウントをお持ちの方はこちら":"新規登録はこちら";
   document.getElementById('authName').parentElement.style.display=s?"":"none";

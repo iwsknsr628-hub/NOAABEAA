@@ -95,7 +95,7 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - 👤 マイページ / 🔑 ログイン（`#tabAcct`、ログイン状態で自動切替。`updateAcctUI()` が制御）
   - ヘッダー右上の旧「＋投稿する」ボタンは廃止。ヘッダーの「ログイン/登録」(`#acctBtnTop`) は**ログアウト時のみ表示**。
   - `body{padding-bottom:74px}` でバー分の余白を確保済み。
-- **未ログインは閲覧のみ**：投稿・コメント・フォロー・通知・**いいね・通報**は要ログイン。ガードは `requireLogin(msg)`（未ログインなら `showToast` ＋ `openAuth()`）。閲覧系（投稿詳細ポップアップ・写真・プロフィール・コメント一覧の表示）は誰でも可。
+- **未ログインは閲覧・検索OK**：ヒーロー検索／さがす／投稿一覧・詳細・写真・プロフィール・コメント一覧の表示は誰でも可。投稿・コメント投稿・フォロー・通知・**いいね・通報**は要ログイン（`requireLogin(msg)` → `showToast` ＋ `openAuth()`）。
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。ユーザーの投稿一覧付き。z-index 200。
 - **デザイントライアル**: `html[data-theme="v2"|"classic"]`。デフォルトは新ロゴ案（v2）。設定モーダル／フッターから切替。キー `nanshiyo_theme`（端末ローカル）。
