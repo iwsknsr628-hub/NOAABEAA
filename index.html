@@ -1768,7 +1768,7 @@ const prefFilter=document.getElementById('prefFilter');
 const genreFilter=document.getElementById('genreFilter');
 const prefInput=document.getElementById('prefInput');
 const genreInput=document.getElementById('genreInput');
-prefInput.add(new Option("指定なし（任意）",""));
+prefInput.add(new Option("指定なし",""));
 PREFS.forEach(p=>{prefFilter.add(new Option(p,p));prefInput.add(new Option(p,p));});
 /* 旅行/ご飯/呑みは県必須のため、初期値は先頭の県（北海道）ではなく空＋旅行選択時に必須チェック */
 prefInput.value="";
