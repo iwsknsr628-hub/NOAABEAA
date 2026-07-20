@@ -181,6 +181,10 @@
   .lb-slide img{max-width:92vw;max-height:86vh;object-fit:contain;border-radius:4px;user-select:none;
     -webkit-user-drag:none;pointer-events:none;transform-origin:center center;will-change:transform}
   #lbImgCur{pointer-events:auto;touch-action:none}
+  .lightbox-bg.round-avatar #lbImgCur{
+    width:min(78vw,78vh);height:min(78vw,78vh);max-width:min(78vw,78vh);max-height:min(78vw,78vh);
+    object-fit:cover;border-radius:50%;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+  .lightbox-bg.round-avatar .lb-slide{padding:24px}
   .lb-close{position:fixed;top:10px;right:12px;background:rgba(255,255,255,.14);border:none;color:#fff;font-size:1.7rem;
     cursor:pointer;line-height:1;opacity:.9;width:44px;height:44px;border-radius:50%;display:flex;
     align-items:center;justify-content:center}
@@ -1609,7 +1613,7 @@ function setAvatarEl(el,url){
 function openAvatarView(el){
   const u=el&&(el.dataset.avatarUrl||"");
   if(!u){showToast('プロフィール画像はまだありません');return;}
-  openLightbox([u],0);
+  openLightbox([u],0,{round:true});
 }
 
 async function addPostServer(post){
@@ -2142,15 +2146,18 @@ function updateLightbox(){
     ?'ピンチで拡大・横スワイプで切替・下スワイプで閉じる'
     :'ピンチで拡大・下スワイプまたは×で閉じる';
 }
-function openLightbox(photos,idx){
+function openLightbox(photos,idx,opts){
   if(!photos||!photos.length)return;
   lbPhotos=photos;lbIndex=idx||0;lbAnimating=false;
+  const bg=document.getElementById('lightboxBg');
+  bg.classList.toggle('round-avatar',!!(opts&&opts.round));
   lbRenderSlides();lbReset();updateLightbox();
-  document.getElementById('lightboxBg').classList.add('open');
+  bg.classList.add('open');
 }
 function lbNav(d){
   if(lbPhotos.length<2||lbAnimating)return;
   if(lbScale>1.05){lbResetZoom(true);return;}
+  document.getElementById('lightboxBg').classList.remove('round-avatar');
   lbAnimating=true;
   const W=lbW();
   lbSetTrack(lbBase()+(d>0?-W:W),0,true);
@@ -2159,7 +2166,12 @@ function lbNav(d){
     lbRenderSlides();lbReset();updateLightbox();lbAnimating=false;
   },200);
 }
-function closeLightbox(){document.getElementById('lightboxBg').classList.remove('open');lbReset();}
+function closeLightbox(){
+  const bg=document.getElementById('lightboxBg');
+  bg.classList.remove('open');
+  bg.classList.remove('round-avatar');
+  lbReset();
+}
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('lightboxBg').classList.contains('open'))return;
   if(e.key==="Escape")closeLightbox();
