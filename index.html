@@ -533,11 +533,14 @@
   .pd-author .mini-av{width:38px;height:38px;font-size:1.1rem}
   .pd-author .nm{font-weight:800;cursor:pointer;white-space:nowrap}
   .pd-author .nm:hover{color:var(--accent)}
-  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem}
+  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem;flex-wrap:wrap}
   .pd-actions>span{cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:700}
   .pd-actions>span:hover{color:var(--accent)}
   .pd-actions>span.del-btn{color:#c0392b}
   .pd-actions>span.del-btn:hover{color:#a93226}
+  .pd-actions .share-btn,.card .share-btn{display:inline-flex;align-items:center;gap:4px}
+  .pd-actions .share-btn svg,.card .share-btn svg,.head-icon-btn.share-ic svg{display:block;width:18px;height:18px}
+  .head-icon-btn.share-ic{width:34px;padding:0}
   .pd-body .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .pd-body .maps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
   .pd-body .maps-label{font-size:.8rem;color:var(--ink-soft);font-weight:700}
@@ -1039,7 +1042,13 @@
   <div class="full-page-head">
     <button type="button" class="pin-back" onclick="closeProfileView()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">プロフィール</span>
-    <div class="full-page-head-icons"></div>
+    <div class="full-page-head-icons">
+      <span class="head-icon-btn share-ic" id="pvShareBtn" onclick="shareCurrentProfile()" title="共有" aria-label="共有" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line>
+        </svg>
+      </span>
+    </div>
   </div>
   <div class="full-page-body">
     <div class="mp-wrap">
@@ -1096,6 +1105,11 @@
     <button type="button" class="pin-back" onclick="closeMyPage()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">マイページ</span>
     <div class="full-page-head-icons">
+      <span class="head-icon-btn share-ic" onclick="shareMyProfile()" title="プロフィールを共有" aria-label="プロフィールを共有">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line>
+        </svg>
+      </span>
       <span class="head-icon-btn" onclick="openAnnounce()" title="お知らせ" aria-label="お知らせ">
         <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.5 21a1.8 1.8 0 0 1-3 0"></path>
@@ -1992,6 +2006,9 @@ function cardHTML(p){
     <div class="meta">
       <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}<span>by ${esc(p.author||"匿名")}</span></span>
       <span class="meta-actions">
+        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有" aria-label="共有">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+        </span>
         <span class="cmt-btn" data-id="${p.id}" title="コメント">コメント</span>
         <span class="${likeCls}" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
       </span>
@@ -1999,6 +2016,65 @@ function cardHTML(p){
   </div>`;
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- 共有リンク ---------- */
+function siteShareUrl(params){
+  const u=new URL(location.origin+(location.pathname||'/'));
+  Object.entries(params||{}).forEach(([k,v])=>{if(v!=null&&v!=='')u.searchParams.set(k,String(v));});
+  return u.toString();
+}
+function postShareUrl(id){return siteShareUrl({post:id});}
+function profileShareUrl(uid,handle){
+  const p={user:uid};
+  if(handle)p.h=String(handle).replace(/^@+/,'');
+  return siteShareUrl(p);
+}
+async function shareLink(url,title){
+  const t=title||'なんしよ？';
+  try{
+    if(navigator.share){await navigator.share({title:t,text:t,url});return;}
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast('リンクをコピーしました');
+  }catch(err){
+    try{prompt('このリンクをコピーしてください',url);}catch(e2){showToast('共有に失敗しました');}
+  }
+}
+function sharePost(id,title){
+  if(!id)return;
+  shareLink(postShareUrl(id),(title?title+' | ':'')+'なんしよ？');
+}
+function shareCurrentProfile(){
+  if(!pvUserId){showToast('プロフィールを開けません');return;}
+  const name=pvShareName||((document.getElementById('pvName')||{}).textContent)||'プロフィール';
+  shareLink(profileShareUrl(pvUserId,pvShareHandle),name+' | なんしよ？');
+}
+function shareMyProfile(){
+  if(!session){openAuth();return;}
+  const name=currentName()||(myProfile&&myProfile.name)||'マイページ';
+  shareLink(profileShareUrl(session.uid,myProfile&&myProfile.handle),name+' | なんしよ？');
+}
+async function openFromShareQuery(){
+  try{
+    const q=new URLSearchParams(location.search);
+    const postId=q.get('post');
+    const userId=q.get('user');
+    const handle=(q.get('h')||'').replace(/^@+/,'').toLowerCase();
+    if(postId){
+      if(POSTS.some(p=>String(p.id)===String(postId))){openPostView(postId);return;}
+      showToast('共有された投稿が見つかりませんでした');
+      return;
+    }
+    if(userId){openProfileView(userId);return;}
+    if(handle&&SERVER){
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?handle=eq.${encodeURIComponent(handle)}&select=user_id,name,handle&limit=1`,{headers:sbHeaders});
+      const row=(r.ok?await r.json():[])[0];
+      if(row&&row.user_id){openProfileView(row.user_id,row.name||handle);return;}
+      showToast('共有されたプロフィールが見つかりませんでした');
+    }
+  }catch(e){console.warn(e);}
+}
 
 /* ---------- lightbox (view posted photos full size) ---------- */
 let lbPhotos=[],lbIndex=0,lbAnimating=false;
@@ -2136,6 +2212,10 @@ function postDetailHTML(p){
         <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${esc(p.author||"匿名")}</span>
       </div>
       <div class="pd-actions">
+        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+          共有
+        </span>
         <span class="cmt-btn" data-id="${p.id}">コメント</span>
         <span class="like${MYLIKES.has(String(p.id))?' liked':''}" data-id="${p.id}">いいね ${p.likes||0}</span>
         ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
@@ -2170,8 +2250,20 @@ function openPostView(id){
   document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
   document.getElementById('postViewBg').classList.add('open');
   if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(id);
+  try{
+    const u=new URL(location.href);
+    u.searchParams.set('post',String(id));
+    u.searchParams.delete('user');u.searchParams.delete('h');
+    history.replaceState(null,'',u.pathname+u.search+(u.hash||''));
+  }catch(e){}
 }
-function closePostView(){document.getElementById('postViewBg').classList.remove('open');pvPostId=null;}
+function closePostView(){
+  document.getElementById('postViewBg').classList.remove('open');pvPostId=null;
+  try{
+    const u=new URL(location.href);
+    if(u.searchParams.has('post')){u.searchParams.delete('post');history.replaceState(null,'',u.pathname+(u.searchParams.toString()?u.search:'')+(u.hash||''));}
+  }catch(e){}
+}
 document.getElementById('postViewBg').addEventListener('click',async e=>{
   if(e.target.id==="postViewBg"){closePostView();return;}
   const handled=await handleCardInteractions(e,()=>{
@@ -2209,6 +2301,12 @@ searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant()
 /* like / report / comment */
 /* カード共通のクリック処理。処理したら true。rerender は いいね後の再描画関数。 */
 async function handleCardInteractions(e,rerender){
+  const sh=e.target.closest('.share-btn');
+  if(sh){
+    const kind=sh.dataset.share||'post';
+    if(kind==='post')sharePost(sh.dataset.id,sh.dataset.title);
+    return true;
+  }
   const au=e.target.closest('.author-link');
   if(au){openProfileView(au.dataset.uid,au.dataset.name);return true;}
   const c=e.target.closest('.cmt-btn');
@@ -3483,7 +3581,7 @@ async function getFollowRow(uid){
     return d[0]||null;
   }catch(e){return null;}
 }
-let pvUserId=null;
+let pvUserId=null,pvShareHandle=null,pvShareName=null;
 function renderPvPosts(userId){
   const grid=document.getElementById('pvPostsGrid');
   const mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
@@ -3494,7 +3592,11 @@ function renderPvPosts(userId){
 async function openProfileView(userId,fallbackName){
   closePostView();closeMyPage();closeSearchPage();closeNotifs();
   pvUserId=userId||null;
+  pvShareHandle=null;
+  pvShareName=fallbackName||null;
   const page=document.getElementById('pvPage');
+  const shareBtn=document.getElementById('pvShareBtn');
+  if(shareBtn)shareBtn.style.display=userId?"":"none";
   document.getElementById('pvName').textContent=fallbackName||"プロフィール";
   {const pvh=document.getElementById('pvHandle');if(pvh)pvh.textContent="";}
   document.getElementById('pvBio').textContent="読み込み中…";
@@ -3509,6 +3611,14 @@ async function openProfileView(userId,fallbackName){
   renderPvPosts(userId);
   page.classList.add('open');
   const body=page.querySelector('.full-page-body');if(body)body.scrollTop=0;
+  try{
+    if(userId){
+      const u=new URL(location.href);
+      u.searchParams.set('user',String(userId));
+      u.searchParams.delete('post');u.searchParams.delete('h');
+      history.replaceState(null,'',u.pathname+u.search+(u.hash||''));
+    }
+  }catch(e){}
   if(!SERVER||!userId){document.getElementById('pvBio').textContent="このユーザーのプロフィールはまだありません。";return;}
 
   const st=statsForUser(userId);
@@ -3539,8 +3649,17 @@ async function openProfileView(userId,fallbackName){
     const pvh=document.getElementById('pvHandle');
     if(!p){document.getElementById('pvName').textContent=fallbackName||"匿名";if(pvh)pvh.textContent="";document.getElementById('pvBio').textContent="プロフィール未設定です。";return;}
     document.getElementById('pvName').textContent=p.name||fallbackName||"匿名";
+    pvShareName=p.name||fallbackName||"匿名";
+    pvShareHandle=(p.handle||"").trim()||null;
     if(pvh)pvh.innerHTML=p.handle?handleViewHTML(p.handle):"";
     if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}
+    try{
+      const u=new URL(location.href);
+      u.searchParams.set('user',String(userId));
+      if(pvShareHandle){u.searchParams.set('h',pvShareHandle);}else{u.searchParams.delete('h');}
+      u.searchParams.delete('post');
+      history.replaceState(null,'',u.pathname+u.search+(u.hash||''));
+    }catch(e){}
 
     if(p.is_private&&!isSelf&&!amFollowing){
       document.getElementById('pvBio').textContent="このアカウントは非公開です。フォローすると自己紹介やリンクが見られます。";
@@ -3612,7 +3731,17 @@ async function togglePvNotify(userId){
   }catch(e){alert("処理に失敗しました");}
   finally{notifyBtn.disabled=false;}
 }
-function closeProfileView(){document.getElementById('pvPage').classList.remove('open');}
+function closeProfileView(){
+  document.getElementById('pvPage').classList.remove('open');
+  pvUserId=null;pvShareHandle=null;pvShareName=null;
+  try{
+    const u=new URL(location.href);
+    if(u.searchParams.has('user')||u.searchParams.has('h')){
+      u.searchParams.delete('user');u.searchParams.delete('h');
+      history.replaceState(null,'',u.pathname+(u.searchParams.toString()?u.search:'')+(u.hash||''));
+    }
+  }catch(e){}
+}
 /* プロフィールページ内の投稿カード操作（いいね/コメント/詳細ポップアップ/著者） */
 document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
   if(handleCardInteractions(e,renderPvPostsCurrent))return;
@@ -3970,6 +4099,7 @@ async function init(){
     if(note)note.textContent="※ サーバーに接続できませんでした。お試し表示に切り替えています。";}
   applyFiltersToUI();
   render();
+  await openFromShareQuery();
   /* 保存済みカテゴリがある／ユーザーが選んだ後はカテゴリを上書きせず現在地のみ取得 */
   requestLoc({mode:(hadSaved||filterTouched)?"silent":"auto"});
   /* 起動時の強制プロンプトは出さない（紙飛行機のナッジとマイページ編集で足りる） */
