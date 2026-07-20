@@ -63,7 +63,12 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - 画像バナー: `{ img, url, title?, label? }`／自由なHTML・広告タグ: `{ html, label? }`。`PR` ラベルと `rel="noopener sponsored"` 付与済み。
   - 優先順位: `DIRECT_ADS` があればそれを表示、無ければ AdSense。両方空なら枠は出ない（`slotHTMLForIndex()`/`directAdHTML()`）。
 
-送客ボタン: `affButtonsHTML()`。travel → 楽天トラベル(宿)＋楽天市場、その他 → 楽天市場＋Amazon。投稿カードとガチャ結果に表示。`PR` ラベル＋`rel="sponsored"` 付与済み（規約・景表法対策）。
+送客ボタン: `affButtonsHTML()`。投稿詳細ポップアップとガチャ結果に表示。`PR` ラベル＋`rel="sponsored"` 付与済み（規約・景表法対策）。
+- **投稿者リンク優先**: `posts.aff_url` があればそれ1つだけ（運営の自動リンクは出さない）。
+- **運営の自動PRは必要なカテゴリだけ**（`AFF_AUTO_CATS`）: `travel` / `study` / `fun` / `life` / `beauty` / `finance`。
+  - `food` / `drink`（ご飯屋・呑み屋など現地店舗）は自動PRなし（地図リンクで十分）。
+  - `travel` → 楽天トラベル「宿・ホテル」のみ。検索語は **スポット名＋県**（`travelHotelKeyword()`）。県だけだと投稿と無関係な宿ばかりになるため使わない。
+  - 上記以外の自動PR対象 → 楽天市場＋Amazon。検索語はスポット名・ジャンルなど投稿内容優先（`shopKeyword()`）。
 - 楽天トラベル宿検索: `kw.travel.rakuten.co.jp/keyword/Search.do?charset=utf-8&f_query=`（**`charset=utf-8` 必須**。無いと文字化け・0件）。
 
 ### 投稿者アフィリンク（`posts.aff_url`）

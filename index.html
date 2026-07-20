@@ -1964,6 +1964,8 @@ function affLinkMeta(u){
   if(/a8\.net|px\.a8|moshimo|valuecommerce|linksynergy/.test(host))return {label:"公式・詳細を見る"};
   return {label:"おすすめリンク"};
 }
+/* 運営の自動PRを出すカテゴリのみ（ご飯・呑みなど現地店舗向けは地図で十分なので出さない） */
+const AFF_AUTO_CATS=["travel","study","fun","life","beauty","finance"];
 function affButtonsHTML(p){
   /* 投稿者が自分のアフィリンクを貼っていれば、それを最優先（投稿者の成果）。運営リンクは出さない。 */
   if(p.aff_url){
@@ -1971,37 +1973,42 @@ function affButtonsHTML(p){
     return `<div class="aff-row"><span class="aff-label">PR</span>`
       +`<a class="aff-btn r" href="${esc(p.aff_url)}" target="_blank" rel="noopener sponsored">${m.label}</a></div>`;
   }
-  const area=(p.pref||"").trim();
-  const genre=(p.genre||"").trim();
-  const kw=shopKeyword(p);            // 必ず検索結果が出る語（店名などの空振りワードは使わない）
+  if(!AFF_AUTO_CATS.includes(p.cat))return "";
   const out=[];
   if(p.cat==="travel"){
-    /* 宿・ホテルは「県／エリア」で検索 → 必ず宿が出る（店名だと0件になるため使わない） */
-    const hotelKw=area||"人気 温泉";
-    out.push(`<a class="aff-btn r" href="${rakutenTravel(hotelKw)}" target="_blank" rel="noopener sponsored">宿・ホテル</a>`);
-    out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">楽天</a>`);
+    /* 投稿の宿・スポット名で検索（県だけだと投稿と無関係な宿ばかりになる） */
+    out.push(`<a class="aff-btn r" href="${rakutenTravel(travelHotelKeyword(p))}" target="_blank" rel="noopener sponsored">宿・ホテル</a>`);
   }else{
+    const kw=shopKeyword(p);
     out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">楽天</a>`);
     out.push(`<a class="aff-btn a" href="${amazonSearch(kw)}" target="_blank" rel="noopener sponsored">Amazon</a>`);
   }
+  if(!out.length)return "";
   return `<div class="aff-row"><span class="aff-label">PR</span>${out.join('')}</div>`;
 }
-/* カテゴリごとに「必ず商品が出る」定番ワード。ジャンルがあれば足して関連性も少し上げる。
-   ※店名やスポット名は楽天/Amazonでヒットしないことが多いので検索語には使わない。 */
+/* 楽天トラベル用。スポット名を優先し、県を足して絞る（投稿の宿に近い結果を狙う） */
+function travelHotelKeyword(p){
+  const spot=(p.spot||"").trim();
+  const pref=(p.pref||"").trim();
+  if(spot&&pref)return `${spot} ${pref}`;
+  if(spot)return spot;
+  if(pref)return pref;
+  return "人気 温泉";
+}
+/* 通販向けカテゴリの検索語。スポット名・ジャンルなど投稿内容を優先。 */
 const AFF_CAT_KW={
-  travel:"ご当地グルメ お取り寄せ",
   study:"参考書 問題集",
   fun:"ホビー グッズ",
   life:"生活雑貨 日用品",
   beauty:"コスメ スキンケア",
-  finance:"マネー 投資 本",
-  food:"お取り寄せ グルメ",
-  drink:"お酒 おつまみ"
+  finance:"マネー 投資 本"
 };
 function shopKeyword(p){
+  const spot=(p.spot||"").trim();
   const genre=(p.genre||"").trim();
-  const base=AFF_CAT_KW[p.cat]||"人気 ランキング";
-  return [genre,base].filter(Boolean).join(" ").trim()||base;
+  const fromPost=[spot,genre].filter(Boolean).join(" ").trim();
+  if(fromPost)return fromPost;
+  return AFF_CAT_KW[p.cat]||"人気 ランキング";
 }
 
 /* 広告枠（AdSense）: ADSENSE_CLIENT/SLOT を入れると記事一覧内に表示。空なら枠を出さない。 */
