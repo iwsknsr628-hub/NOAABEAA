@@ -506,6 +506,13 @@
   .pd-body .maps-btn.g{color:#1a73e8;background:#eaf1fe;border-color:#d3e3fd}
   .pd-body .maps-btn.y{color:#e8322f;background:#fdeceb;border-color:#f8d3d1}
   .pd-body .maps-btn.a{color:#444;background:#f1f1f3;border-color:#e2e2e6}
+  .pd-likers{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .pd-likers-h{font-size:.78rem;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
+  .pd-likers-b{display:flex;flex-wrap:wrap;gap:8px}
+  .pd-liker{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;
+    border-radius:999px;padding:4px 10px 4px 4px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .pd-liker:hover{border-color:var(--accent);background:var(--bg2)}
+  .pd-likers-empty{font-size:.82rem;color:var(--ink-soft)}
   .pd-body .aff-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px}
   .pd-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
   .pd-body .tags span{font-size:.75rem;color:var(--ink-soft);background:var(--bg2);padding:3px 10px;border-radius:999px}
@@ -933,7 +940,7 @@
   <div class="modal" style="max-width:460px">
     <button class="close" onclick="closeNotifs()">&times;</button>
     <h2 style="font-size:1.2rem">通知</h2>
-    <p class="msub">あなたの投稿へのいいね・コメントが届きます。</p>
+    <p class="msub">あなたの投稿へのいいね・コメントが届きます。確認しても履歴は残ります。</p>
     <div class="notif-list" id="notifList"></div>
   </div>
 </div>
@@ -1449,10 +1456,11 @@ async function fetchPosts(){
 }
 /* 投稿一覧に出てくる著者のアバター/名前をまとめて取得（カード表示用） */
 const AVATARS={};
-async function fetchAvatars(){
+async function fetchAvatars(extraIds){
   if(!SERVER)return;
   try{
-    const ids=[...new Set(POSTS.map(p=>p.user_id).filter(Boolean))].filter(id=>!(id in AVATARS));
+    const base=POSTS.map(p=>p.user_id).filter(Boolean);
+    const ids=[...new Set([...(extraIds||[]),...base])].filter(id=>id&&!(id in AVATARS));
     if(!ids.length)return;
     const q=ids.map(encodeURIComponent).join(',');
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?user_id=in.(${q})&select=user_id,avatar_url,name`,{headers:sbHeaders});
@@ -2004,6 +2012,10 @@ function postDetailHTML(p){
   const av=avatarOf(p.user_id);
   const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
   const canEdit=session&&p.user_id&&session.uid===p.user_id;
+  const isOwner=canEdit;
+  const likersBox=isOwner
+    ?`<div class="pd-likers" id="pdLikers"><div class="pd-likers-h">いいねした人（自分の投稿のみ表示）</div><div class="pd-likers-b" id="pdLikersBody"><span class="pd-likers-empty">読み込み中…</span></div></div>`
+    :"";
   return `${gallery}
     <div class="pd-body">
       <div class="card-top"><span class="badge cat" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>${sub}</div>
@@ -2025,19 +2037,48 @@ function postDetailHTML(p){
         ${canEdit?`<span class="del-btn" data-id="${p.id}">削除</span>`:""}
         ${canEdit?"":`<span class="report" data-id="${p.id}">通報</span>`}
       </div>
+      ${likersBox}
     </div>`;
 }
 let pvPostId=null;
+async function loadPostLikers(postId){
+  const body=document.getElementById('pdLikersBody');if(!body||!SERVER)return;
+  try{
+    const headers=session?(await freshToken().then(t=>t?authHeadersWith(t):sbHeaders)):sbHeaders;
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=eq.${encodeURIComponent(postId)}&select=user_id`,{headers});
+    if(!r.ok){body.innerHTML=`<span class="pd-likers-empty">合計 ${(POSTS.find(x=>x.id===postId)||{}).likes||0} いいね</span>`;return;}
+    const rows=await r.json();
+    const uids=rows.map(x=>x.user_id).filter(Boolean);
+    if(!uids.length){body.innerHTML=`<span class="pd-likers-empty">まだいいねはありません</span>`;return;}
+    await fetchAvatars(uids);
+    body.innerHTML=uids.map(uid=>{
+      const av=AVATARS[uid]||{};
+      const name=av.name||"ユーザー";
+      const img=av.avatar?` style="background-image:url(${esc(av.avatar)})"`:"";
+      return `<button type="button" class="pd-liker author-link" data-uid="${esc(uid)}" data-name="${esc(name)}"><span class="mini-av"${img}></span><span>${esc(name)}</span></button>`;
+    }).join('');
+  }catch(e){body.innerHTML=`<span class="pd-likers-empty">読み込みに失敗しました</span>`;}
+}
 function openPostView(id){
   const p=POSTS.find(x=>x.id===id);if(!p)return;
   pvPostId=id;
   document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
   document.getElementById('postViewBg').classList.add('open');
+  if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(id);
 }
 function closePostView(){document.getElementById('postViewBg').classList.remove('open');pvPostId=null;}
 document.getElementById('postViewBg').addEventListener('click',async e=>{
   if(e.target.id==="postViewBg"){closePostView();return;}
-  const handled=await handleCardInteractions(e,()=>{if(pvPostId){const p=POSTS.find(x=>x.id===pvPostId);if(p)document.getElementById('pdScroll').innerHTML=postDetailHTML(p);}render();});
+  const handled=await handleCardInteractions(e,()=>{
+    if(pvPostId){
+      const p=POSTS.find(x=>x.id===pvPostId);
+      if(p){
+        document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
+        if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(p.id);
+      }
+    }
+    render();
+  });
   /* 詳細内は既に開いているので、カード自身のタップで再度開かない */
 });
 
@@ -2535,7 +2576,8 @@ async function submitAuth(){
 }
 function logout(){if(confirm("ログアウトしますか？")){session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}NOTIFS=[];MYLIKES=new Set();updateAcctUI();updateNotifBadge();render();}}
 
-/* ---------- notifications（自分の投稿へのいいね・コメント通知） ---------- */
+/* ---------- notifications（自分の投稿へのいいね・コメント通知） ----------
+   履歴は localStorage に残す。開いて確認しても消さず、未読マークだけ外す。 */
 let NOTIFS=[];
 let notifPollTimer=null;
 function notifKey(){return "nanshiyo_notif_"+(session?session.uid:"guest");}
@@ -2549,46 +2591,117 @@ function updateNotifBadge(){
   if(session&&n>0){dot.style.display="";dot.textContent=n>9?"9+":String(n);}
   else dot.style.display="none";
 }
+function ensureNotifShape(st){
+  if(!Array.isArray(st.history))st.history=[];
+  if(!st.seenCommentIds||typeof st.seenCommentIds!=="object")st.seenCommentIds={};
+  if(!st.seenLikeKeys||typeof st.seenLikeKeys!=="object")st.seenLikeKeys={};
+  if(!st.likeSnap||typeof st.likeSnap!=="object")st.likeSnap={};
+  return st;
+}
+function pushNotifHistory(st,item){
+  if(st.history.some(x=>x.id===item.id))return;
+  st.history.unshift(item);
+  if(st.history.length>100)st.history=st.history.slice(0,100);
+}
 async function refreshNotifs(){
   if(!session||!SERVER){NOTIFS=[];updateNotifBadge();return;}
   const mine=myPostList();
-  const st=notifState();
+  const st=ensureNotifShape(notifState());
   let stChanged=false;
   if(st.lastOpened===undefined){st.lastOpened=Date.now();stChanged=true;}   // 初回は既存分を既読扱い
-  if(st.likeSnap===undefined){st.likeSnap={};}
   const seen=st.lastOpened||0;
   const snap=st.likeSnap;
-  const items=[];
-  /* コメント（自分の投稿宛て・自分以外） */
+
+  /* コメント（自分の投稿宛て・自分以外）→ 履歴に追記して残す */
   if(mine.length){
     try{
       const q=mine.map(p=>encodeURIComponent(p.id)).join(',');
-      const r=await fetch(`${SUPABASE_URL}/rest/v1/comments?select=id,post_id,author,body,created_at,user_id&post_id=in.(${q})&order=created_at.desc&limit=60`,{headers:sbHeaders});
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/comments?select=id,post_id,author,body,created_at,user_id&post_id=in.(${q})&order=created_at.desc&limit=80`,{headers:sbHeaders});
       if(r.ok){
         (await r.json()).forEach(c=>{
           if(c.user_id&&session.uid&&c.user_id===session.uid)return;
+          const cid=String(c.id);
+          if(st.seenCommentIds[cid])return;
           const p=mine.find(x=>x.id===c.post_id);
-          const t=new Date(c.created_at).getTime()||0;
-          items.push({type:"comment",postId:c.post_id,time:t,
+          const t=new Date(c.created_at).getTime()||Date.now();
+          st.seenCommentIds[cid]=1;
+          pushNotifHistory(st,{
+            id:"cmt_"+cid,type:"comment",postId:c.post_id,time:t,
             title:`${c.author||"匿名"}さんがコメントしました`,
-            sub:`「${(p&&p.title)||"あなたの投稿"}」`,unread:t>seen});
+            sub:`「${(p&&p.title)||"あなたの投稿"}」`,
+            unread:t>seen
+          });
+          stChanged=true;
         });
       }
     }catch(e){console.warn("notif comments",e);}
   }
-  /* いいね（カウント差分。個別記録が無いため件数で検知） */
-  mine.forEach(p=>{
-    const cur=p.likes||0;
-    if(!(p.id in snap)){snap[p.id]=cur;stChanged=true;return;}   // 新規投稿はベースライン化
-    if(cur>snap[p.id]){
-      items.push({type:"like",postId:p.id,time:Date.now(),
-        title:`「${p.title}」に ${cur-snap[p.id]}件の新しいいいね`,
-        sub:`合計 ${cur} いいね`,unread:true});
+
+  /* いいね（誰が押したか post_likes から取得 → 投稿主向けに履歴へ残す） */
+  if(mine.length){
+    try{
+      const q=mine.map(p=>encodeURIComponent(p.id)).join(',');
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/post_likes?post_id=in.(${q})&select=post_id,user_id`,{headers:sbHeaders});
+      const newlyLikedPosts=new Set();
+      if(r.ok){
+        const rows=(await r.json()).filter(x=>x.user_id&&x.user_id!==session.uid);
+        const uids=[...new Set(rows.map(x=>x.user_id))];
+        if(uids.length)await fetchAvatars(uids);
+        rows.forEach(row=>{
+          const key=String(row.post_id)+":"+String(row.user_id);
+          if(st.seenLikeKeys[key])return;
+          const p=mine.find(x=>String(x.id)===String(row.post_id));
+          const av=AVATARS[row.user_id];
+          const nm=(av&&av.name)||"誰か";
+          st.seenLikeKeys[key]=1;
+          newlyLikedPosts.add(String(row.post_id));
+          pushNotifHistory(st,{
+            id:"like_"+key,type:"like",postId:row.post_id,time:Date.now(),
+            title:`${nm}さんがいいねしました`,
+            sub:`「${(p&&p.title)||"あなたの投稿"}」`,
+            unread:true
+          });
+          stChanged=true;
+        });
+      }
+      /* 個別が取れない／増え分があるときは件数でも履歴に残す */
+      mine.forEach(p=>{
+        const cur=p.likes||0;
+        if(!(p.id in snap)){snap[p.id]=cur;stChanged=true;return;}
+        if(cur>snap[p.id]){
+          if(!newlyLikedPosts.has(String(p.id))){
+            const diff=cur-snap[p.id];
+            pushNotifHistory(st,{
+              id:"like_cnt_"+p.id+"_"+cur,type:"like",postId:p.id,time:Date.now(),
+              title:`「${p.title}」に ${diff}件の新しいいいね`,
+              sub:`合計 ${cur} いいね`,unread:true
+            });
+            stChanged=true;
+          }
+          snap[p.id]=cur;stChanged=true;
+        }
+      });
+    }catch(e){
+      console.warn("notif likes",e);
+      mine.forEach(p=>{
+        const cur=p.likes||0;
+        if(!(p.id in snap)){snap[p.id]=cur;stChanged=true;return;}
+        if(cur>snap[p.id]){
+          const diff=cur-snap[p.id];
+          pushNotifHistory(st,{
+            id:"like_cnt_"+p.id+"_"+cur,type:"like",postId:p.id,time:Date.now(),
+            title:`「${p.title}」に ${diff}件の新しいいいね`,
+            sub:`合計 ${cur} いいね`,unread:true
+          });
+          snap[p.id]=cur;stChanged=true;
+        }
+      });
     }
-  });
+  }
+
+  st.likeSnap=snap;
   if(stChanged)saveNotifState(st);
-  items.sort((a,b)=>b.time-a.time);
-  NOTIFS=items.slice(0,60);
+  NOTIFS=st.history.slice().sort((a,b)=>b.time-a.time).slice(0,80);
   updateNotifBadge();
   if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
 }
@@ -2602,7 +2715,7 @@ function renderNotifs(){
       :'');
   if(!NOTIFS.length&&!nudge){el.innerHTML='<div class="notif-empty">まだ通知はありません。<br>投稿にいいねやコメントが付くとここに表示されます。</div>';return;}
   el.innerHTML=nudge+NOTIFS.map(n=>{
-    const ic=n.type==="like"?'<span class="notif-ic like">Like</span>':'<span class="notif-ic comment">C</span>';
+    const ic=n.type==="like"?'<span class="notif-ic like">♥</span>':'<span class="notif-ic comment">C</span>';
     return `<div class="notif-item${n.unread?' unread':''}" data-pid="${esc(String(n.postId))}">${ic}<div class="notif-tx"><div class="t">${esc(n.title)}</div><div class="w">${esc(n.sub||"")}・${esc(fmtWhen(new Date(n.time).toISOString()))}</div></div></div>`;
   }).join('');
   el.querySelectorAll('.notif-item').forEach(it=>{
@@ -2622,13 +2735,16 @@ function closeNotifs(){document.getElementById('notifBg').classList.remove('open
 document.getElementById('notifBg').addEventListener('click',e=>{if(e.target.id==="notifBg")closeNotifs();});
 function markNotifsRead(){
   if(!session)return;
-  const st=notifState();
+  const st=ensureNotifShape(notifState());
   st.lastOpened=Date.now();
+  /* 履歴は消さず、未読フラグだけ落とす */
+  (st.history||[]).forEach(n=>{n.unread=false;});
   const snap={};myPostList().forEach(p=>{snap[p.id]=p.likes||0;});
   st.likeSnap=snap;
   saveNotifState(st);
   NOTIFS.forEach(n=>n.unread=false);
   updateNotifBadge();
+  if(document.getElementById('notifBg').classList.contains('open'))renderNotifs();
 }
 function startNotifPoll(){
   if(notifPollTimer)clearInterval(notifPollTimer);
@@ -2716,10 +2832,10 @@ async function handleAuthRedirect(){
     trackLogin(at);
     updateAcctUI();updateNotifBadge();
     history.replaceState(null,"",location.pathname);
-    const done=assignedRandom
-      ?"【なんしよ運営事務局】\nGoogleでログインしました！\n\nユーザー名は仮のランダムなものを設定しています。\nマイページ →（右上メニュー）→ プロフィール編集 から、いつでも変更できます。"
-      :"【なんしよ運営事務局】\nおかえりなさい！Googleでログインしました。";
-    setTimeout(()=>alert(done),300);
+    /* 毎回の「おかえりなさい」アラートは出さない。初回の仮名付与時だけ一度案内 */
+    if(assignedRandom){
+      setTimeout(()=>showToast("仮のユーザー名を設定しました。マイページから変更できます"),400);
+    }
   }catch(e){console.warn(e);}
 }
 updateAcctUI();
@@ -3687,7 +3803,7 @@ async function init(){
   render();
   /* 保存済みカテゴリがある／ユーザーが選んだ後はカテゴリを上書きせず現在地のみ取得 */
   requestLoc({mode:(hadSaved||filterTouched)?"silent":"auto"});
-  maybePromptUsername();
+  /* 起動時の強制プロンプトは出さない（紙飛行機のナッジとマイページ編集で足りる） */
   refreshNotifs();
   startNotifPoll();
   loadAnnouncements();
