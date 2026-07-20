@@ -2437,7 +2437,11 @@ async function saveUsername(){
     if(idChanged)row.username_changed_at=new Date().toISOString();
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
       headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
-    if(!r.ok&&r.status===409){msg.style.color="#d33";msg.textContent="その@ユーザーIDは既に使われています";return;}
+    if(!r.ok&&r.status===409){
+      const e=await r.json().catch(()=>({}));
+      msg.style.color="#d33";msg.textContent=profileConflictMsg(e,"そのユーザー名または@ユーザーIDは既に使われています");
+      return;
+    }
     if(r.ok){myProfile=(await r.json())[0]||myProfile;}
     session.name=name;saveSession(session);
     updateAcctUI();
@@ -2487,7 +2491,10 @@ async function submitAuth(){
       const d=await r.json();
       if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"登録に失敗しました");
       if(d.access_token){saveSession(sessionFrom(email,name,d));
-        try{await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,handle:handle||null,updated_at:new Date().toISOString()})});}catch(e){}
+        try{
+          const pr=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,handle:handle||null,updated_at:new Date().toISOString()})});
+          if(!pr.ok){const pe=await pr.json().catch(()=>({}));console.warn("signup profile save failed",pr.status,pe);}
+        }catch(e){console.warn("signup profile save error",e);}
         loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
         setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);}
       else{msg.style.color="#3a7";msg.textContent="確認メールを送りました。メール内のリンクを開くとログインできます。";authMode="login";}
@@ -2738,6 +2745,16 @@ async function nameTaken(name){
     if(r.ok){const rows=await r.json();return rows.some(x=>!session||x.user_id!==session.uid);}
   }catch(e){}
   return false;
+}
+/* 409（unique 制約）の原因を name / handle で出し分け。DB側は lower(name)/lower(handle) のユニークINDEX */
+function profileConflictMsg(errBody,fallback){
+  const raw=((errBody&&(errBody.message||errBody.details||errBody.hint))||"")+"";
+  const m=raw.toLowerCase();
+  const isName=/profiles_name_lower|lower\(name\)/.test(m);
+  const isHandle=/profiles_handle_lower|lower\(handle\)/.test(m);
+  if(isName&&!isHandle)return "そのユーザー名は既に使われています。別の名前にしてください";
+  if(isHandle&&!isName)return "その@ユーザーIDは既に使われています";
+  return fallback||"そのユーザー名または@ユーザーIDは既に使われています";
 }
 function socialUrl(kind,v){
   if(!v)return null;v=(""+v).trim();if(!v)return null;
@@ -3082,7 +3099,7 @@ async function saveMyProfile(){
     if(idChanged)row.username_changed_at=new Date().toISOString();
     const r=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",
       headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(row)});
-    if(!r.ok){const e=await r.json();throw new Error(r.status===409?"その@ユーザーIDは既に使われています":(e.message||"保存に失敗しました"));}
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(r.status===409?profileConflictMsg(e): (e.message||"保存に失敗しました"));}
     myProfile=(await r.json())[0];
     session.name=name;saveSession(session);
     updateAcctUI();

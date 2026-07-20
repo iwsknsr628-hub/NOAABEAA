@@ -104,7 +104,7 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - 認証モーダル `#authBg` に「Googleで続ける」ボタン（`oauthLogin('google')`）。OAuthコールバックは `handleAuthRedirect()`。
   - Google Cloud の OAuth 同意画面は **本番公開済み**（全Googleアカウントでログイン可）。SupabaseのGoogleプロバイダに Client ID / Secret 設定済み。**Client Secret はリポジトリに置かない**（Supabase側に保存）。
   - Supabase: Site URL = `https://nanshiyo.com`、Redirect許可 = `https://nanshiyo.com/**`。
-- **表示名（ユーザー名）**: 全アカウントで一意（`nameTaken()` が自分以外の重複を拒否）。必須。
+- **表示名（ユーザー名）**: 全アカウントで一意（`nameTaken()` が自分以外の重複を拒否）。必須。**DBでも担保**（`profiles_name_lower_idx` = `unique (lower(name))`）。
 - **@ID（ハンドル / `profiles.handle`）**: 全アカウントで一意・必須。英小文字/数字/`_` の3〜20文字（`validHandle()`）。
   - 登録フォーム・設定モーダル・プロフィール編集では **最初からランダムID（`randomHandle()` = `user_xxxxxxxx`）が入力済み**。変えたい人だけ書き換える方式（空欄不可）。
   - **Googleログインの新規ユーザー**は、表示名＝`ユーザーxxxxxxxx`／@ID＝`user_xxxxxxxx` を**自動付与**（`handleAuthRedirect()` 内）。後からプロフィール編集で変更可。
@@ -117,8 +117,33 @@ git push origin main   # → GitHub Pages が自動デプロイ
   ```sql
   alter table public.profiles add column if not exists handle text;
   alter table public.profiles add column if not exists username_changed_at timestamptz;
+  -- 表示名・@ID の一意（大文字小文字無視）。既存で設定済みなら if not exists で何もしない
+  create unique index if not exists profiles_name_lower_idx on public.profiles (lower(name));
+  create unique index if not exists profiles_handle_lower_idx on public.profiles (lower(handle));
   ```
-  ※ `handle` の一意インデックス（大文字小文字無視）も設定済み。
+  ※ クライアントの 409 は `profileConflictMsg()` で name / handle を出し分け。
+
+## お知らせ（announcements）
+
+マイページのハンバーガーメニューから表示。`loadAnnouncements()` が `announcements` を取得し、未読は赤バッジ（`announceDot`）。
+
+- **要スキーマ**（Supabase に実在。無ければ以下で作成）:
+  ```sql
+  create table if not exists public.announcements (
+    id uuid primary key default gen_random_uuid(),
+    title text not null,
+    body text,
+    created_at timestamptz default now()
+  );
+  -- サイトは anon key で select のみ。公開読み取りを許可（未設定なら）:
+  -- alter table public.announcements enable row level security;
+  -- create policy "announcements_public_read" on public.announcements for select using (true);
+  ```
+- **運用**: 運営が Supabase → Table Editor（または SQL）で直接 INSERT してお知らせを配信する。アプリ側の投稿UIは無し。
+  ```sql
+  insert into public.announcements (title, body)
+  values ('お知らせタイトル', '本文（任意）');
+  ```
 
 ## メール（送信 / 受信 / 問い合わせ）
 
