@@ -110,3 +110,12 @@
 - 投稿詳細: 左→右スワイプで閉じられるように（✕以外）。
 - タグタップで同タグ投稿を検索（`searchByTag`／検索欄 `#タグ`）。
 - トプ画タップ拡大・投稿写真ピンチズームを復元（`3de957c` で誤削除されていた）。
+
+### 2026-07-21（セキュリティ強化）
+- anon 公開キー前提なので防御は **Supabase RLS / Storage ポリシーが本命**。クライアントの所有者チェックは補助。
+- コア: `supabase/core_rls.sql`（posts/comments/profiles/follows/announcements）。SELECT 公開・書き込み本人のみ。`posts` の `user_id`/`likes`/`reports` はトリガーで保護。`report_post` は authenticated + `auth.uid()` 必須。
+- Storage: `supabase/storage_policies.sql`（photos/avatars）。公開 READ、書き込みは `{uid}/` または `{uid}-` パスのみ。緩い旧ポリシーは OR で穴になるので関連ポリシーを落としてから作り直す。
+- クライアント: 写真 JWT アップロード、PATCH/DELETE に `user_id=eq.`、通報 JWT、`setAvatarEl` は http(s) のみ、ガチャの pref/genre は `esc()`。
+- `is_private` のフィールド隠蔽 RLS は今回やらない（フォロワー判定が複雑で UX 破壊リスク）。
+- SQL 適用はデータ削除ではないが、ポリシー誤りで投稿不能になり得る → 本番実行は説明＋明示承認後。
+- 2026-07-21 監査: `uploadPhoto` が anon キーのみだった／photos に anon INSERT 可 → 容量悪用リスク。JWT＋uid パス＋Storage ポリシーで封じ。監査テスト画像 `security-audit-test-1627237152.jpg` は SQL で削除。

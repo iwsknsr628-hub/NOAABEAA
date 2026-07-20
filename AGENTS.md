@@ -237,4 +237,12 @@ support@nanshiyo.com
 
 - アプリ化: PWA → 将来 Capacitor でストアアプリ
 - 決済: **Supabase Edge Functions** で実装予定（GitHub Pages は静的のみ）
-- 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。**`post_likes` も RLS＋anon REVOKE 済み**（`supabase/post_likes_rls.sql`：自分のいいね／自分の投稿へのいいねのみ SELECT、INSERT/DELETE は本人のみ）。その他テーブルの RLS 全点検は別途。
+- 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。
+- **コア RLS（適用必須）**: `supabase/core_rls.sql`
+  - `posts` / `comments` / `profiles` / `follows`：SELECT は公開、書き込みは `auth.uid()` 本人のみ。`announcements` は SELECT のみ（書き込みは既存 `admin_*` RPC）。
+  - `posts` トリガーで `user_id` / `likes` / `reports` のクライアント改ざんを防止。通報は `report_post`（authenticated のみ・`auth.uid()` 必須）。
+- **Storage ポリシー（適用必須）**: `supabase/storage_policies.sql`（緊急時は `supabase/photos_anon_lockdown.sql` でも可）
+  - `photos` / `avatars`：公開 READ、INSERT/UPDATE/DELETE は認証済みかつパスが `{uid}/...` または `{uid}-...`。
+  - **anon のみでの写真アップロードは不可**（クライアントも JWT 必須。`uploadPhoto` / `uploadToBucket`）。
+- **`post_likes`**: 既存どおり `supabase/post_likes_rls.sql`（自分のいいね／自分の投稿へのいいねのみ SELECT、INSERT/DELETE は本人のみ）。
+- クライアント側も二重防御: 写真は JWT＋uid パス、`updatePost`/`deletePost`/`deleteComment` に `user_id=eq.`、通報は JWT。`is_private` のフィールド隠蔽 RLS は未実施（UX 優先）。

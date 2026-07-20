@@ -1638,10 +1638,12 @@ async function autofillPrefFromPin(latlng,preferredAddr){
 }
 async function uploadPhoto(file){
   if(!SERVER) return null;
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
-  const name=`${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const token=await freshToken();
+  if(!token||!session) throw new Error("写真のアップロードにはログインが必要です");
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const name=`${session.uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
   const res=await fetch(`${SUPABASE_URL}/storage/v1/object/photos/${name}`,{method:"POST",
-    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY},body:file});
+    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+token},body:file});
   if(!res.ok) throw new Error("photo upload "+res.status);
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${name}`;
 }
@@ -1674,10 +1676,15 @@ function avatarOf(uid){return (uid&&AVATARS[uid]&&AVATARS[uid].avatar)||"";}
 function setAvatarEl(el,url){
   if(!el)return;
   const u=(url||"").trim();
-  if(u){
-    el.style.backgroundImage=`url(${u})`;
+  let safe="";
+  try{
+    const parsed=new URL(u);
+    if(parsed.protocol==="http:"||parsed.protocol==="https:")safe=parsed.href;
+  }catch(e){}
+  if(safe){
+    el.style.backgroundImage=`url("${safe.replace(/\\/g,"\\\\").replace(/"/g,'\\"')}")`;
     el.textContent="";
-    el.dataset.avatarUrl=u;
+    el.dataset.avatarUrl=safe;
     el.classList.add('viewable');
   }else{
     el.style.backgroundImage="";
@@ -1709,8 +1716,8 @@ function toPatchRow(p){
 }
 async function updatePostServer(id,post){
   const token=await freshToken();
-  if(!token) throw new Error("ログインが必要です");
-  const res=await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${id}`,{method:"PATCH",
+  if(!token||!session) throw new Error("ログインが必要です");
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(session.uid)}`,{method:"PATCH",
     headers:{...authHeadersWith(token),Prefer:"return=representation"},body:JSON.stringify(toPatchRow(post))});
   if(!res.ok)throw new Error("update "+res.status);
   return mapRow((await res.json())[0]);
@@ -1723,7 +1730,7 @@ async function deletePost(id){
     if(SERVER){
       const token=await freshToken();
       if(!token){alert("ログインの有効期限が切れました。もう一度ログインしてください。");openAuth();return;}
-      const r=await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${id}`,{method:"DELETE",headers:authHeadersWith(token)});
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(session.uid)}`,{method:"DELETE",headers:authHeadersWith(token)});
       if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"削除に失敗しました");}
     }
     POSTS=POSTS.filter(x=>x.id!==id);
@@ -1758,8 +1765,11 @@ async function removeLikeServer(id){
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"unlike failed");}
 }
 async function reportServer(id){
-  await fetch(`${SUPABASE_URL}/rest/v1/rpc/report_post`,{method:"POST",
-    headers:sbHeaders,body:JSON.stringify({pid:id})});
+  const token=await freshToken();
+  if(!token)throw new Error("noauth");
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/report_post`,{method:"POST",
+    headers:authHeadersWith(token),body:JSON.stringify({pid:id})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"report failed");}
 }
 
 /* ---------- state ---------- */
@@ -3470,8 +3480,9 @@ function socialUrl(kind,v){
 }
 async function uploadToBucket(bucket,file){
   const token=await freshToken();
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
-  const name=`${session.uid}-${Date.now()}.${ext}`;
+  if(!token||!session) throw new Error("画像のアップロードにはログインが必要です");
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const name=`${session.uid}/${Date.now()}.${ext}`;
   const res=await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${name}`,{method:"POST",
     headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+token},body:file});
   if(!res.ok)throw new Error("画像のアップロードに失敗しました");
@@ -4182,7 +4193,7 @@ async function deleteComment(cid){
     if(SERVER){
       const token=await freshToken();
       if(!token){alert("ログインの有効期限が切れました。もう一度ログインしてください。");return;}
-      const r=await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${cid}`,{method:"DELETE",headers:authHeadersWith(token)});
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${encodeURIComponent(cid)}&user_id=eq.${encodeURIComponent(session.uid)}`,{method:"DELETE",headers:authHeadersWith(token)});
       if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||"削除に失敗しました");}
     }
     cmtCache[cmtPostId]=(cmtCache[cmtPostId]||[]).filter(c=>String(c.id)!==String(cid)&&String(c.parent_id)!==String(cid));
@@ -4354,7 +4365,7 @@ function pullGacha(){
     }
     const pick=pool[Math.floor(Math.random()*pool.length)];
     const where=pick.pref?`${pick.pref}`:(pick.genre?`${pick.genre}`:CAT_LABEL[pick.cat]);
-    box.innerHTML=`<span style="font-size:.78rem;font-weight:800;color:var(--accent)">${where}</span>
+    box.innerHTML=`<span style="font-size:.78rem;font-weight:800;color:var(--accent)">${esc(where)}</span>
       <div class="g-title">${esc(pick.title)}</div>
       <div class="g-desc">▷ ${esc(pick.spot)}${pick.desc?"<br>"+esc(pick.desc):""}</div>
       ${affButtonsHTML(pick)}`;
