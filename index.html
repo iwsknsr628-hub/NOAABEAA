@@ -304,8 +304,20 @@
   .head-icon-btn{position:relative;height:34px;padding:0 12px;display:grid;place-items:center;border-radius:8px;
     font-size:.82rem;font-weight:700;cursor:pointer;color:var(--ink);border:1px solid var(--line);transition:background .15s}
   .head-icon-btn:hover{background:var(--bg2)}
-  #mpPostsGrid.grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
-  #mpPostsGrid .empty{padding:30px 10px}
+  /* プロフィール投稿：Instagram風 3列サムネ */
+  .ig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:0 -20px -22px}
+  .ig-grid .empty{grid-column:1/-1;padding:36px 16px;margin:0}
+  .ig-thumb{position:relative;aspect-ratio:1;width:100%;padding:0;border:none;background:var(--bg2);
+    overflow:hidden;cursor:pointer;display:block;font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+  .ig-thumb:active{opacity:.88}
+  .ig-thumb img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+  .ig-thumb .ig-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    padding:10px 8px;text-align:center;font-size:.68rem;font-weight:700;color:var(--ink-soft);line-height:1.35;
+    background:linear-gradient(160deg,var(--bg2),#ebe6dc)}
+  .ig-thumb .ig-multi{position:absolute;top:5px;right:5px;width:18px;height:18px;opacity:.92;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+  .ig-thumb .ig-multi svg{display:block;width:100%;height:100%}
+  .mp-section.ig-posts{padding-bottom:0;overflow:hidden}
+  .mp-section.ig-posts h3{margin-bottom:10px}
   .ig-stats{display:flex;justify-content:center;gap:26px;margin:14px 0 2px}
   .ig-stats>div{text-align:center}
   .ig-stats b{display:block;font-size:1.05rem;font-weight:900}
@@ -1076,9 +1088,9 @@
           <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
         </div>
       </div>
-      <div class="mp-section">
+      <div class="mp-section ig-posts">
         <h3 id="pvPostsTitle">投稿</h3>
-        <div class="grid" id="pvPostsGrid" style="gap:14px"></div>
+        <div class="ig-grid" id="pvPostsGrid"></div>
       </div>
     </div>
   </div>
@@ -1154,9 +1166,9 @@
       </div>
 
       <!-- あなたの投稿 -->
-      <div class="mp-section">
+      <div class="mp-section ig-posts">
         <h3>あなたの投稿</h3>
-        <div class="grid" id="mpPostsGrid" style="gap:14px"></div>
+        <div class="ig-grid" id="mpPostsGrid"></div>
       </div>
 
     </div>
@@ -2181,6 +2193,17 @@ function cardHTML(p){
       </span>
     </div>
   </div>`;
+}
+/* プロフィール用：Instagram風の正方形サムネ（タップで詳細） */
+const IG_MULTI_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="13" height="13" rx="1.5"></rect><path d="M4 16V5.5A1.5 1.5 0 0 1 5.5 4H16"></path></svg>`;
+function igThumbHTML(p){
+  const imgs=p.photos||[];
+  const cover=imgs[0]||"";
+  const multi=imgs.length>1?`<span class="ig-multi" title="複数枚">${IG_MULTI_SVG}</span>`:"";
+  const body=cover
+    ?`<img src="${esc(cover)}" alt="" loading="lazy">`
+    :`<span class="ig-ph">${esc(p.title||p.spot||CAT_LABEL[p.cat]||"投稿")}</span>`;
+  return `<button type="button" class="ig-thumb" data-id="${esc(String(p.id))}" title="${esc(p.title||"")}">${body}${multi}</button>`;
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 const SHARE_ICON_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
@@ -3858,9 +3881,11 @@ function renderMyPosts(){
   if(!session){wrap.innerHTML="";return;}
   const mine=POSTS.filter(p=>p.user_id===session.uid).sort((a,b)=>b.ts-a.ts);
   if(!mine.length){wrap.innerHTML=`<div class="empty">まだ投稿がありません。<br>最初のおすすめを投稿してみませんか？</div>`;return;}
-  wrap.innerHTML=mine.map(cardHTML).join('');
+  wrap.innerHTML=mine.map(igThumbHTML).join('');
 }
 document.getElementById('mpPostsGrid').addEventListener('click',e=>{
+  const thumb=e.target.closest('.ig-thumb');
+  if(thumb&&thumb.dataset.id){openPostView(thumb.dataset.id);return;}
   handleCardInteractions(e,()=>{renderMyPosts();render();});
 });
 async function changeMyPassword(){
@@ -3932,7 +3957,7 @@ function renderPvPosts(userId){
   const grid=document.getElementById('pvPostsGrid');
   const mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
   document.getElementById('pvPostsTitle').textContent=`投稿（${mine.length}）`;
-  grid.innerHTML=mine.length?mine.map(cardHTML).join('')
+  grid.innerHTML=mine.length?mine.map(igThumbHTML).join('')
     :`<div class="empty">まだ投稿がありません。</div>`;
 }
 async function openProfileView(userId,fallbackName,opts){
@@ -4114,8 +4139,10 @@ window.addEventListener("popstate",()=>{
     if(page&&page.classList.contains('open'))closeProfileView({fromPop:true});
   }
 });
-/* プロフィールページ内の投稿カード操作（いいね/コメント/詳細ポップアップ/著者） */
+/* プロフィール投稿グリッド：サムネタップで詳細 */
 document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
+  const thumb=e.target.closest('.ig-thumb');
+  if(thumb&&thumb.dataset.id){openPostView(thumb.dataset.id);return;}
   if(handleCardInteractions(e,renderPvPostsCurrent))return;
 });
 function renderPvPostsCurrent(){if(pvUserId)renderPvPosts(pvUserId);}
