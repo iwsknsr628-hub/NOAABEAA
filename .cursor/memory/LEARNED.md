@@ -118,4 +118,5 @@
 - クライアント: 写真 JWT アップロード、PATCH/DELETE に `user_id=eq.`、通報 JWT、`setAvatarEl` は http(s) のみ、ガチャの pref/genre は `esc()`。
 - `is_private` のフィールド隠蔽 RLS は今回やらない（フォロワー判定が複雑で UX 破壊リスク）。
 - SQL 適用はデータ削除ではないが、ポリシー誤りで投稿不能になり得る → 本番実行は説明＋明示承認後。
-- 2026-07-21 監査: `uploadPhoto` が anon キーのみだった／photos に anon INSERT 可 → 容量悪用リスク。JWT＋uid パス＋Storage ポリシーで封じ。監査テスト画像 `security-audit-test-1627237152.jpg` は SQL で削除。
+- 2026-07-21 監査: `uploadPhoto` が anon キーのみだった／photos に anon INSERT 可 → 容量悪用リスク。JWT＋uid パス＋Storage ポリシーで封じ。監査テスト画像 `security-audit-test-1627237152.jpg` は Storage UI で削除（SQL DELETE は `storage.protect_delete` で拒否される）。
+- 本番適用済み: storage policies 成功。anon POST → body 403 RLS。公開 READ は 200 のまま。
