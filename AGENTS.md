@@ -104,7 +104,7 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - ヘッダー右上の旧「＋投稿する」ボタンは廃止。ヘッダーの「ログイン/登録」(`#acctBtnTop`) は**ログアウト時のみ表示**。
   - `body{padding-bottom:74px}` でバー分の余白を確保済み。
 - **未ログインは閲覧・検索OK**：ヒーロー検索／さがす／投稿一覧・詳細・写真・プロフィール・コメント一覧の表示は誰でも可。投稿・コメント投稿・フォロー・通知・**いいね・通報**は要ログイン（`requireLogin(msg)` → `showToast` ＋ `openAuth()`）。
-- **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。URL は `?post=<id>`（再読み込み・共有用）。
+- **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。URL は `?post=<id>`（再読み込み・共有用）。閉じ方: ✕／背景タップ／**左→右スワイプ**。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。ユーザーの投稿一覧付き。z-index 200。URL は `?u=<user_id>`。
 - **共有ボタン**: 投稿カード／詳細・プロフィール／マイページ右上に共有アイコン。`navigator.share`（不可時はリンクコピー）。ディープリンク復元は `restoreDeepLinksFromUrl()`（`?post=` 優先、なければ `?u=`）。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。
