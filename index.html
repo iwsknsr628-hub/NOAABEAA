@@ -99,7 +99,7 @@
   .btn-ghost:hover{transform:translateY(-2px)}
   .btn-sm{padding:9px 18px;font-size:.88rem}
 
-  /* HERO */
+  /* HERO — classic 見た目（blob / eyebrow / 黄色マーカー）がベース。v2 は下で上書き */
   .hero{position:relative;overflow:hidden;padding:66px 0 40px;text-align:center}
   .blob{position:absolute;border-radius:50%;filter:blur(6px);opacity:.5;z-index:0}
   .b1{width:280px;height:280px;background:radial-gradient(circle,var(--accent2),transparent 70%);top:-70px;left:-40px}
@@ -112,7 +112,7 @@
   .hero h1 .hl{background:linear-gradient(transparent 62%,rgba(255,194,71,.55) 62%);padding:0 .1em}
   .hero p.lead{margin:10px auto 0;max-width:520px;color:var(--ink-soft);font-size:.95rem;line-height:1.55}
 
-  /* SEARCH BAR */
+  /* SEARCH BAR — classic は入力と虫眼鏡を分離 */
   .searchbar{position:relative;z-index:1;max-width:620px;width:100%;margin:18px auto 0;display:flex;align-items:center;gap:8px;min-width:0}
   .searchbar input{flex:1;min-width:0;border:1px solid var(--line);background:#fff;border-radius:999px;
     padding:14px 18px;font-size:1rem;font-family:inherit;box-shadow:var(--shadow-sm);outline:none;transition:border .2s}
@@ -123,6 +123,34 @@
   .searchbar .search-go svg{display:block;width:22px;height:22px}
   .searchbar .search-go:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(255,95,78,.36)}
   .searchbar .search-go:active{transform:scale(.96)}
+
+  /* HERO — v2 すっきり（blob/eyebrow 非表示、検索は一体型） */
+  html[data-theme="v2"] .blob,
+  html[data-theme="v2"] .eyebrow{display:none !important}
+  html[data-theme="v2"] .hero{
+    padding:52px 0 36px;
+    background:linear-gradient(180deg,#fff 0%,var(--paper) 72%);
+  }
+  html[data-theme="v2"] .hero h1{letter-spacing:-.01em;line-height:1.32}
+  html[data-theme="v2"] .hero h1 .hl{
+    background:linear-gradient(transparent 72%,rgba(255,95,78,.2) 72%);
+    padding:0 .06em;
+  }
+  html[data-theme="v2"] .hero p.lead{
+    margin-top:12px;max-width:420px;font-size:.9rem;line-height:1.5;letter-spacing:.01em;
+  }
+  html[data-theme="v2"] .searchbar{
+    margin-top:22px;max-width:540px;gap:0;padding:5px 5px 5px 6px;
+    background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow-sm);
+  }
+  html[data-theme="v2"] .searchbar input{
+    border:none;box-shadow:none;background:transparent;padding:12px 14px;border-radius:999px;
+  }
+  html[data-theme="v2"] .searchbar input:focus{border:none;box-shadow:none}
+  html[data-theme="v2"] .searchbar .search-go{
+    width:44px;height:44px;box-shadow:none;
+  }
+  html[data-theme="v2"] .searchbar .search-go:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(255,95,78,.28)}
 
   section{padding:44px 0}
   .sec-head{text-align:center;margin-bottom:26px}
@@ -594,6 +622,11 @@
     .searchbar input{padding:12px 14px;font-size:.9rem}
     .searchbar .search-go{width:44px;height:44px}
     .searchbar .search-go svg{width:20px;height:20px}
+    html[data-theme="v2"] .hero{padding:36px 0 28px}
+    html[data-theme="v2"] .hero p.lead{margin-top:10px;font-size:.84rem}
+    html[data-theme="v2"] .searchbar{margin-top:16px;padding:4px;gap:0}
+    html[data-theme="v2"] .searchbar input{padding:11px 12px;font-size:.9rem}
+    html[data-theme="v2"] .searchbar .search-go{width:42px;height:42px}
   }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">

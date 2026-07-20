@@ -99,6 +99,8 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。ユーザーの投稿一覧付き。z-index 200。
 - **デザイントライアル**: `html[data-theme="v2"|"classic"]`。デフォルトは新ロゴ案（v2）。設定モーダル／フッターから切替。キー `nanshiyo_theme`（端末ローカル）。
+  - **v2 ヒーロー**: すっきり構成（blob／eyebrow 非表示、薄いマーカー、検索バー一体型）。
+  - **classic ヒーロー**: 従来どおり blob／eyebrow／黄色ハイライト付き。切替で即復元。
 - **カードのアバター**：`AVATARS` キャッシュに著者の `avatar_url`/`name` をまとめて取得（`fetchAvatars()`、`fetchPosts()` の後に実行）。`avatarOf(uid)` で参照。
 - **写真ビューア（ライトボックス）** `#lightboxBg`：スワイプ操作対応。横スワイプ＝写真切替、下スワイプ/タップ＝閉じる（PCは画像クリックで閉じる、←→キーで切替）。
 - カード/ポップアップ内の操作は共通ハンドラ `handleCardInteractions(e,rerender)` に集約（著者リンク/コメント/編集/いいね/通報/カードタップ）。
