@@ -443,6 +443,7 @@
   .cmt-login{background:var(--bg2);border-radius:12px;padding:14px;text-align:center;font-size:.9rem;color:var(--ink-soft)}
   .avatar-lg{width:88px;height:88px;border-radius:50%;background:var(--bg2) center/cover no-repeat;border:2px solid #fff;
     box-shadow:var(--shadow-sm);display:grid;place-items:center;font-size:2rem;color:var(--ink-soft)}
+  .avatar-lg.viewable{cursor:zoom-in}
   .sns-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:800;font-size:.85rem;
     padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink);background:#fff;transition:.15s}
   .sns-link:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
@@ -1054,7 +1055,7 @@
   <div class="full-page-body">
     <div class="mp-wrap">
       <div class="mp-section" style="text-align:center">
-        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto"></div>
+        <div id="pvAvatar" class="avatar-lg" style="margin:0 auto" role="button" tabindex="0" title="プロフィール画像を見る" aria-label="プロフィール画像を見る"></div>
         <h2 id="pvName" style="margin-top:12px;font-size:1.15rem">プロフィール</h2>
         <div id="pvHandle" class="mp-handle-view" style="text-align:center"></div>
         <div class="ig-stats">
@@ -1129,7 +1130,7 @@
 
       <!-- 自己紹介・SNSリンク（シンプル表示、IG/TikTok風） -->
       <div class="mp-section" style="text-align:center">
-        <div id="mpAvatar" class="avatar-lg" style="margin:0 auto"></div>
+        <div id="mpAvatar" class="avatar-lg" style="margin:0 auto" role="button" tabindex="0" title="プロフィール画像を見る" aria-label="プロフィール画像を見る"></div>
         <div class="mp-name-row">
           <h2 id="mpNameView" style="font-size:1.15rem">ニックネーム</h2>
           <span class="mp-edit-pen" onclick="openProfileEditPopup()" title="プロフィールを編集" aria-label="プロフィールを編集">
@@ -1590,6 +1591,27 @@ async function fetchAvatars(extraIds){
   }catch(e){console.warn("avatars",e);}
 }
 function avatarOf(uid){return (uid&&AVATARS[uid]&&AVATARS[uid].avatar)||"";}
+function setAvatarEl(el,url){
+  if(!el)return;
+  const u=(url||"").trim();
+  if(u){
+    el.style.backgroundImage=`url(${u})`;
+    el.textContent="";
+    el.dataset.avatarUrl=u;
+    el.classList.add('viewable');
+  }else{
+    el.style.backgroundImage="";
+    el.textContent="";
+    delete el.dataset.avatarUrl;
+    el.classList.remove('viewable');
+  }
+}
+function openAvatarView(el){
+  const u=el&&(el.dataset.avatarUrl||"");
+  if(!u){showToast('プロフィール画像はまだありません');return;}
+  openLightbox([u],0);
+}
+
 async function addPostServer(post){
   const token=await freshToken();
   if(!token) throw new Error("ログインが必要です");
@@ -2277,6 +2299,15 @@ document.body.addEventListener('click',e=>{
   try{photos=JSON.parse(wrap.dataset.photos||'[]');}catch(err){}
   openLightbox(photos,parseInt(img.dataset.idx)||0);
 });
+(function(){
+  function bindAvatarTap(id){
+    const el=document.getElementById(id);if(!el)return;
+    el.addEventListener('click',()=>openAvatarView(el));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openAvatarView(el);}});
+  }
+  bindAvatarTap('mpAvatar');
+  bindAvatarTap('pvAvatar');
+})();
 
 /* ---------- 投稿詳細ポップアップ ---------- */
 function postDetailHTML(p){
@@ -3390,7 +3421,7 @@ function renderMyProfileView(){
   if(mh)mh.innerHTML=p.handle?handleViewHTML(p.handle):'<span class="handle-set-link" onclick="promptUsername()">＋ ユーザーID（@〜）を設定</span>';
   document.getElementById('mpBioView').textContent=p.bio||"自己紹介はまだ設定されていません。";
   const av=document.getElementById('mpAvatar');
-  if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}else{av.style.backgroundImage="";av.textContent="";}
+  setAvatarEl(av,p.avatar_url);
   const defs=[["Instagram","instagram"],["TikTok","tiktok"],["X","x"],["YouTube","youtube"],["サイト","website"]];
   const html=defs.map(([label,key])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`:"";}).join("");
   document.getElementById('mpLinksView').innerHTML=html||'<span style="color:var(--ink-soft);font-size:.85rem">リンクはまだありません</span>';
@@ -3718,7 +3749,7 @@ async function openProfileView(userId,fallbackName){
   document.getElementById('pvStatFollowers').textContent="—";
   document.getElementById('pvStatFollowing').textContent="—";
   document.getElementById('pvStatLikes').textContent="—";
-  const av=document.getElementById('pvAvatar');av.style.backgroundImage="";av.textContent="";
+  const av=document.getElementById('pvAvatar');setAvatarEl(av,"");
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
   const notifyBtn=document.getElementById('pvNotifyBtn');notifyBtn.style.display="none";notifyBtn.onclick=null;
   renderPvPosts(userId);
@@ -3765,7 +3796,7 @@ async function openProfileView(userId,fallbackName){
     pvShareName=p.name||fallbackName||"匿名";
     pvShareHandle=(p.handle||"").trim()||null;
     if(pvh)pvh.innerHTML=p.handle?handleViewHTML(p.handle):"";
-    if(p.avatar_url){av.style.backgroundImage=`url(${p.avatar_url})`;av.textContent="";}
+    setAvatarEl(av,p.avatar_url||"");
     try{
       const u=new URL(location.href);
       u.searchParams.set('user',String(userId));
