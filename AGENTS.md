@@ -233,9 +233,20 @@ support@nanshiyo.com
 
 **システムメール（Supabase Auth）**: 登録確認・パスワード再設定テンプレも日本語化済み。冒頭に「なんしよ運営事務局です。」、末尾に「いつもご利用いただき、ありがとうございます。／なんしよ運営事務局」を入れる方針。
 
+## アプリ化（PWA）
+
+- **現状: PWA 対応済み**（ストア未着手。将来 Capacitor）。
+- ファイル:
+  - [`manifest.webmanifest`](manifest.webmanifest) — `standalone` / theme `#FF5F4E`
+  - [`sw.js`](sw.js) — network-first。Supabase・地図・CDN API はキャッシュしない。キャッシュ名 `nanshiyo-pwa-v1`
+  - [`icons/`](icons/) — `icon-192.png` / `icon-512.png` / `apple-touch-icon.png` / `icon.svg`
+- [`index.html`](index.html) で manifest・apple-touch-icon・`serviceWorker.register('/sw.js')`
+- 使い方: Android Chrome はインストール可。iOS Safari は共有 →「ホーム画面に追加」。インストール誘導バナーは出さない。
+- 予備 URL（`iwsknsr628-hub.github.io/NOAABEAA/`）ではルート相対 `/sw.js` がリポジトリルートとずれる場合あり。本番は `https://nanshiyo.com` 基準。
+
 ## 今後の予定（参考）
 
-- アプリ化: PWA → 将来 Capacitor でストアアプリ
+- アプリ化 Step2: Capacitor で App Store / Google Play
 - 決済: **Supabase Edge Functions** で実装予定（GitHub Pages は静的のみ）
 - 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。
 - **コア RLS（適用必須）**: `supabase/core_rls.sql`

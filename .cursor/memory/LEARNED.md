@@ -120,3 +120,8 @@
 - SQL 適用はデータ削除ではないが、ポリシー誤りで投稿不能になり得る → 本番実行は説明＋明示承認後。
 - 2026-07-21 監査: `uploadPhoto` が anon キーのみだった／photos に anon INSERT 可 → 容量悪用リスク。JWT＋uid パス＋Storage ポリシーで封じ。監査テスト画像 `security-audit-test-1627237152.jpg` は Storage UI で削除（SQL DELETE は `storage.protect_delete` で拒否される）。
 - プロフィール／マイページの投稿欄は Instagram 風 3列サムネ（`igThumbHTML`）。タップで既存の投稿詳細ポップアップ。ホーム一覧のカード表示は変更なし。
+
+### 2026-07-21（PWA）
+- アプリ化は **PWA 先行**（ストア／Capacitor は後）。`manifest.webmanifest` + `sw.js`（network-first、API不キャッシュ）+ `icons/`。
+- インストール誘導バナーは出さない。iOS は「ホーム画面に追加」、Android は Chrome インストール。
+- SW キャッシュ名を変えると古いキャッシュを落とせる（`nanshiyo-pwa-v1`）。
