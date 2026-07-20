@@ -430,6 +430,8 @@
   .gacha-result .g-title{font-size:1.15rem;font-weight:900}
   .gacha-result .g-desc{color:var(--ink-soft);margin-top:6px;font-size:.92rem}
   .gacha-empty{color:var(--ink-soft);font-size:.92rem}
+  .gacha-select{border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 18px;
+    font-family:inherit;font-weight:700;color:var(--ink);cursor:pointer;outline:none;max-width:100%}
 
   /* MODAL */
   .modal-bg{position:fixed;inset:0;background:rgba(43,38,32,.5);backdrop-filter:blur(3px);z-index:100;
@@ -779,9 +781,10 @@
     <div class="gacha-card">
       <h2>なんしよガチャ</h2>
       <p class="sub">選べない時は、投稿の中からランダムで1つおすすめします。</p>
-      <div class="gacha-result" id="gResult"><p class="gacha-empty">カテゴリを選んでボタンを押すと、その中から1つ選ばれます。</p></div>
+      <div class="gacha-result" id="gResult"><p class="gacha-empty">カテゴリや県を選んでボタンを押すと、その中から1つ選ばれます。</p></div>
       <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center">
-        <select id="gachaCat" style="border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 18px;font-family:inherit;font-weight:700;color:var(--ink);cursor:pointer;outline:none"></select>
+        <select id="gachaCat" class="gacha-select"></select>
+        <select id="gachaPref" class="gacha-select" aria-label="県"></select>
         <button class="btn btn-primary" onclick="pullGacha()">ヒントを引く</button>
       </div>
     </div>
@@ -3947,9 +3950,16 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
 function pullGacha(){
   const box=document.getElementById('gResult');box.classList.remove('show');
   const cat=document.getElementById('gachaCat').value;
-  const pool=cat?POSTS.filter(p=>p.cat===cat):POSTS;
+  const pref=document.getElementById('gachaPref').value;
+  let pool=POSTS;
+  if(cat)pool=pool.filter(p=>p.cat===cat);
+  if(pref)pool=pool.filter(p=>p.pref===pref);
   setTimeout(()=>{
-    if(!pool.length){box.innerHTML='<p class="gacha-empty">このカテゴリの投稿はまだありません。別のカテゴリでどうぞ。</p>';box.classList.add('show');return;}
+    if(!pool.length){
+      const tip=pref&&cat?"このカテゴリ・県":pref?"この県":cat?"このカテゴリ":"";
+      box.innerHTML=`<p class="gacha-empty">${tip?tip+"の":""}投稿はまだありません。条件を変えてどうぞ。</p>`;
+      box.classList.add('show');return;
+    }
     const pick=pool[Math.floor(Math.random()*pool.length)];
     const where=pick.pref?`${pick.pref}`:(pick.genre?`${pick.genre}`:CAT_LABEL[pick.cat]);
     box.innerHTML=`<span style="font-size:.78rem;font-weight:800;color:var(--accent)">${where}</span>
@@ -3959,10 +3969,15 @@ function pullGacha(){
     box.classList.add('show');
   },120);
 }
-(function fillGachaCat(){
-  const s=document.getElementById('gachaCat');if(!s)return;
-  s.add(new Option("すべてのカテゴリ",""));
-  for(const k in CAT_LABEL)s.add(new Option(CAT_LABEL[k],k));
+(function fillGachaSelects(){
+  const s=document.getElementById('gachaCat');if(s){
+    s.add(new Option("すべてのカテゴリ",""));
+    for(const k in CAT_LABEL)s.add(new Option(CAT_LABEL[k],k));
+  }
+  const p=document.getElementById('gachaPref');if(p){
+    p.add(new Option("すべての県",""));
+    PREFS.forEach(name=>p.add(new Option(name,name)));
+  }
 })();
 
 /* ---------- geolocation ---------- */
