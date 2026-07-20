@@ -2340,6 +2340,11 @@ try{session=JSON.parse(localStorage.getItem("nanshiyo_session")||"null");}catch(
 function currentName(){return session?(session.name||(session.email||"").split("@")[0]):null;}
 function saveSession(s){session=s;try{localStorage.setItem("nanshiyo_session",JSON.stringify(s));}catch(e){}updateAcctUI();}
 function authHeadersWith(token){return {apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+token,"Content-Type":"application/json"};}
+/* ログイン計測（運営ダッシュボード用）。失敗してもログイン自体は続行 */
+async function trackLogin(token){
+  if(!SERVER||!token)return;
+  try{await fetch(`${SUPABASE_URL}/rest/v1/rpc/track_login`,{method:"POST",headers:authHeadersWith(token),body:"{}"});}catch(e){console.warn("track_login",e);}
+}
 async function freshToken(){
   if(!session||!session.access_token) return null;
   const now=Math.floor(Date.now()/1000);
@@ -2383,6 +2388,7 @@ function goHome(){
 }
 /* ログイン必須の操作用ガード。未ログインなら案内してログイン画面へ。 */
 function requireLogin(msg){
+  if(session&&myProfile&&myProfile.banned){showToast("このアカウントは利用停止中です");return false;}
   if(session)return true;
   showToast(msg||"この操作にはログインが必要です");
   openAuth();
@@ -2495,6 +2501,7 @@ async function submitAuth(){
           const pr=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,handle:handle||null,updated_at:new Date().toISOString()})});
           if(!pr.ok){const pe=await pr.json().catch(()=>({}));console.warn("signup profile save failed",pr.status,pe);}
         }catch(e){console.warn("signup profile save error",e);}
+        trackLogin(d.access_token);
         loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
         setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);}
       else{msg.style.color="#3a7";msg.textContent="確認メールを送りました。メール内のリンクを開くとログインできます。";authMode="login";}
@@ -2502,7 +2509,14 @@ async function submitAuth(){
       const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:pass})});
       const d=await r.json();
       if(!r.ok||!d.access_token)throw new Error(d.error_description||d.msg||"メールまたはパスワードが違います");
-      saveSession(sessionFrom(email,name,d));loadMyProfile();msg.style.color="#3a7";msg.textContent="ログインしました！";setTimeout(closeAuth,700);
+      saveSession(sessionFrom(email,name,d));
+      trackLogin(d.access_token);
+      await loadMyProfile();
+      if(myProfile&&myProfile.banned){
+        session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}
+        updateAcctUI();msg.style.color="#d33";msg.textContent="このアカウントは利用停止中です";return;
+      }
+      msg.style.color="#3a7";msg.textContent="ログインしました！";setTimeout(closeAuth,700);
       refreshNotifs();startNotifPoll();loadMyLikes().then(render);
     }
   }catch(err){msg.style.color="#d33";msg.textContent=err.message||"エラーが発生しました";}
@@ -2666,6 +2680,12 @@ async function handleAuthRedirect(){
     const email=u.email||"";
     saveSession({email,name:email.split("@")[0],access_token:at,refresh_token:rt,expires_at:Math.floor(Date.now()/1000)+(parseInt(p.get("expires_in"))||3600),uid:u.id});
     await loadMyProfile();
+    if(myProfile&&myProfile.banned){
+      session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}
+      updateAcctUI();history.replaceState(null,"",location.pathname);
+      setTimeout(()=>alert("【なんしよ運営事務局】\nこのアカウントは利用停止中です。"),300);
+      return;
+    }
     let assignedRandom=false;
     if(!myProfile||!(myProfile.handle||"").trim()){
       /* Googleなどの新規ユーザー：ランダムな表示名と@IDを自動付与（後から変更可） */
@@ -2682,6 +2702,7 @@ async function handleAuthRedirect(){
     }else{
       session.name=myProfile.name||session.name;saveSession(session);
     }
+    trackLogin(at);
     updateAcctUI();updateNotifBadge();
     history.replaceState(null,"",location.pathname);
     const done=assignedRandom

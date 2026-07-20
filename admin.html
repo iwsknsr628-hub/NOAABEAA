@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>なんしよ？ 運営管理</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f3efe8;--panel:#fff;--ink:#1f1a17;--soft:#6b635c;--line:#e4ddd4;
+  --accent:#e85d3a;--ok:#2f9e78;--warn:#c9892e;--bad:#c23b3b;
+  --shadow:0 10px 30px rgba(40,30,20,.08);--radius:16px;
+  --font:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+}
+*{box-sizing:border-box}body{margin:0;font-family:var(--font);background:linear-gradient(160deg,#f7f2ea,#efe7dc 40%,#f4efe8);color:var(--ink);min-height:100vh}
+a{color:var(--accent)}button,input,textarea,select{font:inherit}
+.gate{min-height:100vh;display:grid;place-items:center;padding:24px}
+.gate-card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:28px 24px;box-shadow:var(--shadow)}
+.gate-card h1{margin:0 0 6px;font-size:1.35rem}.gate-card p{margin:0 0 18px;color:var(--soft);font-size:.9rem;line-height:1.6}
+.field{margin-bottom:12px}label{display:block;font-size:.78rem;font-weight:700;color:var(--soft);margin-bottom:5px}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff}
+.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-ghost{background:#f6f1ea;color:var(--ink)}
+.btn-danger{background:#fde8e8;color:var(--bad)}
+.btn-sm{padding:7px 10px;font-size:.8rem;border-radius:9px}
+.msg{margin-top:10px;font-size:.86rem;min-height:1.2em}
+.app{display:none;min-height:100vh}
+.app.on{display:grid;grid-template-columns:230px 1fr}
+.side{background:#2a2420;color:#f7f1ea;padding:18px 14px;display:flex;flex-direction:column;gap:8px}
+.brand{font-weight:900;font-size:1.05rem;padding:8px 10px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}
+.brand small{display:block;font-weight:600;opacity:.65;margin-top:4px;font-size:.72rem}
+.navbtn{text-align:left;background:transparent;border:0;color:#f7f1ea;padding:11px 12px;border-radius:11px;cursor:pointer;font-weight:700}
+.navbtn:hover,.navbtn.on{background:rgba(255,255,255,.1)}
+.side .spacer{flex:1}.side .who{font-size:.75rem;opacity:.7;padding:8px 10px}
+.main{padding:22px 22px 40px;overflow:auto}
+.top{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.top h2{margin:0;font-size:1.35rem}.top .sub{color:var(--soft);font-size:.86rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.kpi .l{font-size:.78rem;color:var(--soft);font-weight:700}.kpi .n{font-size:1.7rem;font-weight:900;margin-top:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:960px){.app.on{grid-template-columns:1fr}.side{flex-direction:row;flex-wrap:wrap;align-items:center}.side .spacer{display:none}.grid2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h3{margin:0 0 12px;font-size:1rem}
+.chart-wrap{position:relative;height:260px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.toolbar input{max-width:280px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.74rem;color:var(--soft);font-weight:800}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:800}
+.badge-ok{background:#e5f7ef;color:var(--ok)}.badge-bad{background:#fde8e8;color:var(--bad)}
+.muted{color:var(--soft);font-size:.8rem}
+.panel{display:none}.panel.on{display:block}
+.empty{padding:24px;text-align:center;color:var(--soft)}
+.ann-form{display:grid;gap:10px;margin-bottom:14px}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h1>なんしよ？ 運営管理</h1>
+    <p>運営アカウントでログインしてください。一般ユーザーは入れません。</p>
+    <div class="field"><label>メール</label><input id="email" type="email" autocomplete="username"></div>
+    <div class="field"><label>パスワード</label><input id="pass" type="password" autocomplete="current-password"></div>
+    <button class="btn btn-primary" id="loginBtn" type="button">ログイン</button>
+    <div class="msg" id="gateMsg"></div>
+    <p class="muted" style="margin-top:14px">本サイト: <a href="./">nanshiyo.com</a></p>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <aside class="side">
+    <div class="brand">なんしよ運営<small>Admin Console</small></div>
+    <button class="navbtn on" data-panel="dash">概要</button>
+    <button class="navbtn" data-panel="users">登録者管理</button>
+    <button class="navbtn" data-panel="posts">投稿</button>
+    <button class="navbtn" data-panel="announce">お知らせ</button>
+    <div class="spacer"></div>
+    <div class="who" id="adminWho"></div>
+    <button class="navbtn" id="logoutBtn" type="button">ログアウト</button>
+  </aside>
+  <main class="main">
+    <section class="panel on" id="panel-dash">
+      <div class="top">
+        <div><h2>概要</h2><div class="sub">登録・ログイン・投稿の推移</div></div>
+        <button class="btn btn-ghost btn-sm" id="refreshDash" type="button">更新</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">登録者</div><div class="n" id="kpiUsers">—</div></div>
+        <div class="kpi"><div class="l">投稿</div><div class="n" id="kpiPosts">—</div></div>
+        <div class="kpi"><div class="l">コメント</div><div class="n" id="kpiComments">—</div></div>
+        <div class="kpi"><div class="l">いいね</div><div class="n" id="kpiLikes">—</div></div>
+        <div class="kpi"><div class="l">今日のログイン</div><div class="n" id="kpiLoginsToday">—</div></div>
+        <div class="kpi"><div class="l">BAN中</div><div class="n" id="kpiBanned">—</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>新規登録（直近30日）</h3><div class="chart-wrap"><canvas id="chartReg"></canvas></div></div>
+        <div class="card"><h3>ログイン数（直近30日）</h3><div class="chart-wrap"><canvas id="chartLogin"></canvas></div></div>
+        <div class="card"><h3>新規投稿（直近30日）</h3><div class="chart-wrap"><canvas id="chartPosts"></canvas></div></div>
+        <div class="card"><h3>カテゴリ別投稿</h3><div class="chart-wrap"><canvas id="chartCat"></canvas></div></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-users">
+      <div class="top">
+        <div><h2>登録者管理</h2><div class="sub">検索・BAN・最終ログイン</div></div>
+        <button class="btn btn-ghost btn-sm" id="refreshUsers" type="button">更新</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="userQ" placeholder="名前 / @ID で検索">
+          <button class="btn btn-ghost btn-sm" id="userSearchBtn" type="button">検索</button>
+          <span class="muted" id="userCount"></span>
+        </div>
+        <div style="overflow:auto"><table>
+          <thead><tr><th>名前</th><th>@ID</th><th>最終ログイン</th><th>更新</th><th>投稿</th><th>状態</th><th></th></tr></thead>
+          <tbody id="userBody"><tr><td colspan="7" class="empty">読み込み中…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-posts">
+      <div class="top">
+        <div><h2>投稿</h2><div class="sub">新しい投稿から確認・削除</div></div>
+        <button class="btn btn-ghost btn-sm" id="refreshPosts" type="button">更新</button>
+      </div>
+      <div class="card">
+        <div style="overflow:auto"><table>
+          <thead><tr><th>日時</th><th>カテゴリ</th><th>タイトル</th><th>投稿者</th><th>いいね</th><th></th></tr></thead>
+          <tbody id="postBody"><tr><td colspan="6" class="empty">読み込み中…</td></tr></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-announce">
+      <div class="top">
+        <div><h2>お知らせ</h2><div class="sub">サイト内アナウンスの配信</div></div>
+      </div>
+      <div class="card">
+        <div class="ann-form">
+          <input id="annTitle" placeholder="タイトル">
+          <textarea id="annBody" rows="4" placeholder="本文（任意）"></textarea>
+          <button class="btn btn-primary" id="annSave" type="button" style="width:auto;justify-self:start">配信する</button>
+          <div class="msg" id="annMsg"></div>
+        </div>
+        <div id="annList" class="muted">読み込み中…</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL="https://akftypucwfretxqrinej.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_qRfRyDoXFQpO2Gb_6jZ-Lg_aXcaV_Ew";
+/* 運営として入れるメール（小文字）。必要ならここに追加 */
+const ADMIN_EMAILS=["syallman28@gmail.com","iwsknsr628@gmail.com"];
+const CAT_LABEL={travel:"旅行/遊び",study:"勉強",fun:"趣味",life:"暮らし",food:"ご飯",drink:"呑み",beauty:"美容",finance:"金融"};
+const SESSION_KEY="nanshiyo_admin_session";
+
+let session=null;
+let charts={};
+const sbAnon={apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY,"Content-Type":"application/json"};
+function authH(){return {apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"};}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+function isAdminEmail(email){return ADMIN_EMAILS.includes(String(email||"").trim().toLowerCase());}
+function saveSession(s){session=s;try{localStorage.setItem(SESSION_KEY,JSON.stringify(s));}catch(e){}}
+function loadSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||"null");}catch(e){return null;}}
+function clearSession(){session=null;try{localStorage.removeItem(SESSION_KEY);}catch(e){}}
+function fmt(ts){if(!ts)return "—";const d=new Date(ts);if(isNaN(d))return "—";return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;}
+function dayKey(d){return d.toISOString().slice(0,10);}
+function lastNDays(n){const out=[];const now=new Date();for(let i=n-1;i>=0;i--){const d=new Date(now);d.setHours(12,0,0,0);d.setDate(d.getDate()-i);out.push(dayKey(d));}return out;}
+
+async function countRows(table,extra=""){
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id${extra}`,{headers:{...authH(),Prefer:"count=exact"},method:"HEAD"});
+  const cr=r.headers.get("content-range")||"";
+  const m=cr.match(/\/(\d+|\*)/);
+  return m&&m[1]!=="*"?parseInt(m[1],10):0;
+}
+async function fetchAll(path){
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:authH()});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+
+async function login(){
+  const email=document.getElementById("email").value.trim();
+  const pass=document.getElementById("pass").value;
+  const msg=document.getElementById("gateMsg");
+  const btn=document.getElementById("loginBtn");
+  if(!email||!pass){msg.style.color="var(--bad)";msg.textContent="メールとパスワードを入力してください";return;}
+  if(!isAdminEmail(email)){msg.style.color="var(--bad)";msg.textContent="このアカウントは運営管理に入れません";return;}
+  btn.disabled=true;btn.textContent="確認中…";msg.textContent="";
+  try{
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:"POST",headers:sbAnon,body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok||!d.access_token)throw new Error(d.error_description||d.msg||"ログインに失敗しました");
+    if(!isAdminEmail(d.user?.email||email))throw new Error("運営権限がありません");
+    saveSession({access_token:d.access_token,refresh_token:d.refresh_token,email:d.user?.email||email,uid:d.user?.id,exp:Date.now()+(d.expires_in||3600)*1000});
+    enterApp();
+  }catch(e){msg.style.color="var(--bad)";msg.textContent=e.message||"エラー";}
+  finally{btn.disabled=false;btn.textContent="ログイン";}
+}
+
+async function ensureToken(){
+  if(!session)return false;
+  if(session.exp && Date.now()<session.exp-60000)return true;
+  if(!session.refresh_token)return false;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:"POST",headers:sbAnon,body:JSON.stringify({refresh_token:session.refresh_token})});
+    const d=await r.json();
+    if(!r.ok||!d.access_token)return false;
+    session.access_token=d.access_token;
+    if(d.refresh_token)session.refresh_token=d.refresh_token;
+    session.exp=Date.now()+(d.expires_in||3600)*1000;
+    saveSession(session);
+    return true;
+  }catch(e){return false;}
+}
+
+function enterApp(){
+  document.getElementById("gate").style.display="none";
+  document.getElementById("app").classList.add("on");
+  document.getElementById("adminWho").textContent=session.email||"";
+  loadDash();loadUsers();loadPosts();loadAnnounce();
+}
+function logout(){
+  clearSession();
+  location.reload();
+}
+
+function showPanel(id){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id==="panel-"+id));
+  document.querySelectorAll(".navbtn[data-panel]").forEach(b=>b.classList.toggle("on",b.dataset.panel===id));
+}
+
+function upsertChart(key,cfg){
+  if(charts[key])charts[key].destroy();
+  const ctx=document.getElementById(key);
+  charts[key]=new Chart(ctx,cfg);
+}
+
+function lineCfg(labels,data,color){
+  return {
+    type:"line",
+    data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+"33",fill:true,tension:.3,pointRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+  };
+}
+
+async function loadDash(){
+  if(!(await ensureToken())){logout();return;}
+  try{
+    const days=lastNDays(30);
+    const [users,posts,comments,likes,banned] = await Promise.all([
+      countRows("profiles"),
+      countRows("posts"),
+      countRows("comments"),
+      countRows("post_likes"),
+      countRows("profiles","&banned=eq.true")
+    ]);
+    document.getElementById("kpiUsers").textContent=users;
+    document.getElementById("kpiPosts").textContent=posts;
+    document.getElementById("kpiComments").textContent=comments;
+    document.getElementById("kpiLikes").textContent=likes;
+    document.getElementById("kpiBanned").textContent=banned;
+
+    const since=new Date();since.setDate(since.getDate()-30);const sinceIso=since.toISOString();
+    const [profiles, postRows, loginRows] = await Promise.all([
+      fetchAll(`profiles?select=user_id,created_at,updated_at&or=(created_at.gte.${sinceIso},updated_at.gte.${sinceIso})&limit=5000`),
+      fetchAll(`posts?select=id,cat,created_at&created_at=gte.${sinceIso}&limit=5000`),
+      fetchAll(`login_events?select=id,created_at&created_at=gte.${sinceIso}&order=created_at.asc&limit=10000`).catch(()=>[])
+    ]);
+
+    const today=dayKey(new Date());
+    const loginsToday=(loginRows||[]).filter(x=>dayKey(new Date(x.created_at))===today).length;
+    document.getElementById("kpiLoginsToday").textContent=loginsToday;
+
+    const regMap=Object.fromEntries(days.map(d=>[d,0]));
+    profiles.forEach(p=>{
+      const t=p.created_at||p.updated_at;if(!t)return;
+      const k=dayKey(new Date(t));if(k in regMap)regMap[k]++;
+    });
+    const loginMap=Object.fromEntries(days.map(d=>[d,0]));
+    (loginRows||[]).forEach(e=>{const k=dayKey(new Date(e.created_at));if(k in loginMap)loginMap[k]++;});
+    const postMap=Object.fromEntries(days.map(d=>[d,0]));
+    const catMap={};
+    postRows.forEach(p=>{
+      const k=dayKey(new Date(p.created_at));if(k in postMap)postMap[k]++;
+      catMap[p.cat]=(catMap[p.cat]||0)+1;
+    });
+
+    const short=days.map(d=>d.slice(5));
+    upsertChart("chartReg", lineCfg(short, days.map(d=>regMap[d]), "#e85d3a"));
+    upsertChart("chartLogin", lineCfg(short, days.map(d=>loginMap[d]), "#2f9e78"));
+    upsertChart("chartPosts", lineCfg(short, days.map(d=>postMap[d]), "#5a7fc0"));
+    const catKeys=Object.keys(catMap);
+    upsertChart("chartCat", {
+      type:"doughnut",
+      data:{labels:catKeys.map(k=>CAT_LABEL[k]||k),datasets:[{data:catKeys.map(k=>catMap[k]),backgroundColor:["#ff9a63","#6ec6c0","#8a6ee0","#7bc47f","#f4795b","#7aa7dd","#ff8fb3","#59c2a0"]}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}
+    });
+  }catch(e){
+    console.warn(e);
+    alert("概要の読み込みに失敗しました。スキーマ（login_events 等）を確認してください。\n"+e.message);
+  }
+}
+
+let userCache=[];
+async function loadUsers(q=""){
+  if(!(await ensureToken())){logout();return;}
+  const body=document.getElementById("userBody");
+  body.innerHTML=`<tr><td colspan="7" class="empty">読み込み中…</td></tr>`;
+  try{
+    let path=`profiles?select=user_id,name,handle,updated_at,created_at,last_login_at,banned&order=updated_at.desc&limit=200`;
+    const v=(q||"").trim().replace(/^@/,"");
+    if(v){
+      const enc=encodeURIComponent(v);
+      path=`profiles?select=user_id,name,handle,updated_at,created_at,last_login_at,banned&or=(name.ilike.*${enc}*,handle.ilike.*${enc}*)&order=updated_at.desc&limit=200`;
+    }
+    userCache=await fetchAll(path);
+    const ids=userCache.map(u=>u.user_id).filter(Boolean);
+    const postCount={};
+    if(ids.length){
+      /* 投稿数はユーザーごとにざっくり集計（最大200人） */
+      const posts=await fetchAll(`posts?select=user_id&user_id=in.(${ids.map(encodeURIComponent).join(",")})&limit=5000`);
+      posts.forEach(p=>{postCount[p.user_id]=(postCount[p.user_id]||0)+1;});
+    }
+    document.getElementById("userCount").textContent=`${userCache.length} 件表示`;
+    if(!userCache.length){body.innerHTML=`<tr><td colspan="7" class="empty">該当なし</td></tr>`;return;}
+    body.innerHTML=userCache.map(u=>{
+      const banned=!!u.banned;
+      return `<tr>
+        <td>${esc(u.name||"—")}</td>
+        <td>@${esc(u.handle||"—")}</td>
+        <td>${esc(fmt(u.last_login_at))}</td>
+        <td>${esc(fmt(u.updated_at||u.created_at))}</td>
+        <td>${postCount[u.user_id]||0}</td>
+        <td>${banned?`<span class="badge badge-bad">BAN</span>`:`<span class="badge badge-ok">通常</span>`}</td>
+        <td class="row-actions">
+          <button class="btn btn-sm ${banned?"btn-ghost":"btn-danger"}" data-ban="${esc(u.user_id)}" data-on="${banned?0:1}">${banned?"BAN解除":"BAN"}</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }catch(e){body.innerHTML=`<tr><td colspan="7" class="empty">読み込み失敗: ${esc(e.message)}</td></tr>`;}
+}
+
+async function toggleBan(uid, on){
+  if(!(await ensureToken())){logout();return;}
+  if(!confirm(on?"このユーザーをBANしますか？（ログイン・投稿ができなくなります）":"BANを解除しますか？"))return;
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_set_banned`,{
+    method:"POST",headers:authH(),
+    body:JSON.stringify({target:uid,is_banned:!!on})
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));alert(e.message||"更新に失敗しました（admin_set_banned 関数を確認）");return;}
+  loadUsers(document.getElementById("userQ").value);
+  loadDash();
+}
+
+async function loadPosts(){
+  if(!(await ensureToken())){logout();return;}
+  const body=document.getElementById("postBody");
+  body.innerHTML=`<tr><td colspan="6" class="empty">読み込み中…</td></tr>`;
+  try{
+    const rows=await fetchAll("posts?select=id,title,cat,author,user_id,likes,created_at&order=created_at.desc&limit=80");
+    if(!rows.length){body.innerHTML=`<tr><td colspan="6" class="empty">投稿なし</td></tr>`;return;}
+    body.innerHTML=rows.map(p=>`<tr>
+      <td>${esc(fmt(p.created_at))}</td>
+      <td>${esc(CAT_LABEL[p.cat]||p.cat||"—")}</td>
+      <td>${esc(p.title||"—")}</td>
+      <td>${esc(p.author||"—")}</td>
+      <td>${p.likes||0}</td>
+      <td><button class="btn btn-sm btn-danger" data-delpost="${esc(p.id)}">削除</button></td>
+    </tr>`).join("");
+  }catch(e){body.innerHTML=`<tr><td colspan="6" class="empty">読み込み失敗: ${esc(e.message)}</td></tr>`;}
+}
+
+async function deletePost(id){
+  if(!(await ensureToken())){logout();return;}
+  if(!confirm("この投稿を削除しますか？元に戻せません。"))return;
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_post`,{method:"POST",headers:authH(),body:JSON.stringify({pid:id})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));alert(e.message||"削除に失敗しました");return;}
+  loadPosts();loadDash();
+}
+
+async function loadAnnounce(){
+  if(!(await ensureToken())){logout();return;}
+  const el=document.getElementById("annList");
+  try{
+    const rows=await fetchAll("announcements?select=id,title,body,created_at&order=created_at.desc&limit=50");
+    if(!rows.length){el.innerHTML=`<div class="empty">お知らせはまだありません</div>`;return;}
+    el.innerHTML=rows.map(a=>`<div style="border-top:1px solid var(--line);padding:12px 0">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <strong>${esc(a.title||"")}</strong>
+        <span class="muted">${esc(fmt(a.created_at))}</span>
+      </div>
+      <div class="muted" style="margin:6px 0 8px;white-space:pre-wrap">${esc(a.body||"")}</div>
+      <button class="btn btn-sm btn-danger" data-delann="${esc(a.id)}">削除</button>
+    </div>`).join("");
+  }catch(e){el.textContent="読み込み失敗: "+e.message;}
+}
+
+async function saveAnnounce(){
+  if(!(await ensureToken())){logout();return;}
+  const title=document.getElementById("annTitle").value.trim();
+  const body=document.getElementById("annBody").value.trim();
+  const msg=document.getElementById("annMsg");
+  if(!title){msg.style.color="var(--bad)";msg.textContent="タイトルを入力してください";return;}
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_upsert_announcement`,{method:"POST",headers:authH(),body:JSON.stringify({p_title:title,p_body:body||null})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));msg.style.color="var(--bad)";msg.textContent=e.message||"配信に失敗";return;}
+  msg.style.color="var(--ok)";msg.textContent="配信しました";
+  document.getElementById("annTitle").value="";document.getElementById("annBody").value="";
+  loadAnnounce();
+}
+
+async function deleteAnnounce(id){
+  if(!(await ensureToken())){logout();return;}
+  if(!confirm("このお知らせを削除しますか？"))return;
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_announcement`,{method:"POST",headers:authH(),body:JSON.stringify({aid:id})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));alert(e.message||"削除に失敗しました");return;}
+  loadAnnounce();
+}
+
+document.getElementById("loginBtn").onclick=login;
+document.getElementById("pass").addEventListener("keydown",e=>{if(e.key==="Enter")login();});
+document.getElementById("logoutBtn").onclick=logout;
+document.getElementById("refreshDash").onclick=loadDash;
+document.getElementById("refreshUsers").onclick=()=>loadUsers(document.getElementById("userQ").value);
+document.getElementById("refreshPosts").onclick=loadPosts;
+document.getElementById("userSearchBtn").onclick=()=>loadUsers(document.getElementById("userQ").value);
+document.getElementById("userQ").addEventListener("keydown",e=>{if(e.key==="Enter")loadUsers(e.target.value);});
+document.getElementById("annSave").onclick=saveAnnounce;
+document.querySelectorAll(".navbtn[data-panel]").forEach(b=>b.onclick=()=>showPanel(b.dataset.panel));
+document.getElementById("userBody").addEventListener("click",e=>{
+  const b=e.target.closest("[data-ban]");if(!b)return;
+  toggleBan(b.dataset.ban, b.dataset.on==="1");
+});
+document.getElementById("postBody").addEventListener("click",e=>{
+  const b=e.target.closest("[data-delpost]");if(!b)return;deletePost(b.dataset.delpost);
+});
+document.getElementById("annList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-delann]");if(!b)return;deleteAnnounce(b.dataset.delann);
+});
+
+(async function boot(){
+  const s=loadSession();
+  if(s&&s.access_token&&isAdminEmail(s.email)){
+    session=s;
+    if(await ensureToken()){enterApp();return;}
+  }
+  clearSession();
+})();
+</script>
+</body>
+</html>

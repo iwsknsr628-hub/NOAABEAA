@@ -19,16 +19,18 @@ git push origin main   # → GitHub Pages が自動デプロイ
 ## プロジェクト概要
 
 - サイト: **なんしよ？ — みんなのおすすめが集まる場所**
-- 実体: 単一の `index.html`（CSS/JS インライン）
+- 実体: `index.html`（一般ユーザー向け・CSS/JSインライン）＋ **`admin.html`（運営専用管理画面）**
 - バックエンド: **Supabase**（認証・DB・ストレージ）
-  - `SUPABASE_URL` / `SUPABASE_ANON_KEY`（公開キー）は `index.html` 内。公開前提のキーで問題なし。
+  - `SUPABASE_URL` / `SUPABASE_ANON_KEY`（公開キー）は各HTML内。公開前提のキーで問題なし。
   - **service_role 等の秘密キーは絶対にコード/リポジトリに入れない。**
+  - 運営の削除・BAN・お知らせ配信は **security definer の RPC**（`admin_*` / `track_login`）経由。メール allowlist で権限判定。
 
 ## リポジトリ / URL
 
 - リポジトリ: `iwsknsr628-hub/NOAABEAA`（Public）
 - ホスティング: GitHub Pages（`main` / ルート `/`）
 - 本番URL: **https://nanshiyo.com**（Cloudflare で DNS 管理。ルートの `CNAME` ファイルは削除しない）
+- 運営管理: **https://nanshiyo.com/admin.html**（`noindex`・運営メールのみログイン可）
 - 予備URL: https://iwsknsr628-hub.github.io/NOAABEAA/
 - ローカル作業フォルダ: `C:\Users\iwskn\Projects\nanshiyo`
 
@@ -143,6 +145,37 @@ git push origin main   # → GitHub Pages が自動デプロイ
   ```sql
   insert into public.announcements (title, body)
   values ('お知らせタイトル', '本文（任意）');
+  ```
+  ※ 推奨: 運営管理画面（`admin.html`）のお知らせタブから配信（`admin_upsert_announcement` RPC）。
+
+## 運営管理画面（admin.html）
+
+URL: `https://nanshiyo.com/admin.html`（検索非公開 `noindex`）。
+
+- **入場条件**: Supabase ログイン＋メールが `ADMIN_EMAILS` に含まれること（現状 `syallman28@gmail.com` / `iwsknsr628@gmail.com`。追加は `admin.html` 内定数と `is_nanshiyo_admin()` SQL の両方を更新）。
+- **機能**:
+  - 概要KPI（登録者・投稿・コメント・いいね・今日のログイン・BAN数）
+  - グラフ（直近30日の新規登録 / ログイン / 新規投稿 / カテゴリ別）
+  - 登録者管理（検索・最終ログイン・投稿数・BAN/解除）
+  - 投稿一覧からの削除
+  - お知らせの配信・削除
+- **ログイン計測**: 本サイト側 `trackLogin()` → RPC `track_login` が `profiles.last_login_at` 更新＋`login_events` へ INSERT。
+- **BAN**: `profiles.banned`。本サイトの `requireLogin()` / ログイン時に停止中なら拒否。
+- **要スキーマ / RPC**（冪等）:
+  ```sql
+  alter table public.profiles add column if not exists created_at timestamptz default now();
+  alter table public.profiles add column if not exists last_login_at timestamptz;
+  alter table public.profiles add column if not exists banned boolean default false;
+
+  create table if not exists public.login_events (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null,
+    created_at timestamptz default now()
+  );
+
+  -- 関数: is_nanshiyo_admin / track_login / admin_set_banned /
+  --        admin_delete_post / admin_upsert_announcement / admin_delete_announcement
+  -- （定義はリポジトリ履歴または Supabase SQL Editor に保存済み）
   ```
 
 ## メール（送信 / 受信 / 問い合わせ）
