@@ -533,11 +533,14 @@
   .pd-author .mini-av{width:38px;height:38px;font-size:1.1rem}
   .pd-author .nm{font-weight:800;cursor:pointer;white-space:nowrap}
   .pd-author .nm:hover{color:var(--accent)}
-  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem}
+  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem;flex-wrap:wrap}
   .pd-actions>span{cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:700}
   .pd-actions>span:hover{color:var(--accent)}
   .pd-actions>span.del-btn{color:#c0392b}
   .pd-actions>span.del-btn:hover{color:#a93226}
+  .pd-actions .share-btn,.card .share-btn{display:inline-flex;align-items:center;gap:4px}
+  .pd-actions .share-btn svg,.card .share-btn svg,.head-icon-btn.share-ic svg{display:block;width:18px;height:18px}
+  .head-icon-btn.share-ic{width:34px;padding:0}
   .pd-body .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .pd-body .maps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
   .pd-body .maps-label{font-size:.8rem;color:var(--ink-soft);font-weight:700}
@@ -1039,7 +1042,11 @@
   <div class="full-page-head">
     <button type="button" class="pin-back" onclick="closeProfileView()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">プロフィール</span>
-    <div class="full-page-head-icons"></div>
+    <div class="full-page-head-icons">
+      <span class="head-icon-btn share-ic" onclick="shareCurrentProfile()" title="共有" aria-label="共有">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+      </span>
+    </div>
   </div>
   <div class="full-page-body">
     <div class="mp-wrap">
@@ -1096,6 +1103,9 @@
     <button type="button" class="pin-back" onclick="closeMyPage()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">マイページ</span>
     <div class="full-page-head-icons">
+      <span class="head-icon-btn share-ic" onclick="shareMyProfile()" title="共有" aria-label="共有">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+      </span>
       <span class="head-icon-btn" onclick="openAnnounce()" title="お知らせ" aria-label="お知らせ">
         <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.5 21a1.8 1.8 0 0 1-3 0"></path>
@@ -2080,6 +2090,7 @@ function cardHTML(p){
     <div class="meta">
       <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}<span>by ${esc(p.author||"匿名")}</span></span>
       <span class="meta-actions">
+        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有" aria-label="共有">${SHARE_ICON_SVG}</span>
         <span class="cmt-btn" data-id="${p.id}" title="コメント">コメント</span>
         <span class="${likeCls}" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
       </span>
@@ -2087,6 +2098,54 @@ function cardHTML(p){
   </div>`;
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+const SHARE_ICON_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
+function cleanShareUrl(){
+  const u=new URL(location.href);
+  u.hash="";
+  ["post","u","h","code","state"].forEach(k=>u.searchParams.delete(k));
+  return u;
+}
+function postShareUrl(id){
+  const u=cleanShareUrl();
+  u.searchParams.set("post",String(id));
+  return u.toString();
+}
+function profileShareUrl(userId){
+  const u=cleanShareUrl();
+  u.searchParams.set("u",String(userId));
+  return u.toString();
+}
+async function shareLink(url,title,text){
+  try{
+    if(navigator.share){await navigator.share({title:title||"なんしよ？",text:text||"",url});return;}
+  }catch(e){if(e&&e.name==="AbortError")return;}
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast("リンクをコピーしました");
+  }catch(e){
+    try{prompt("このリンクをコピーしてください",url);}catch(_){showToast("共有できませんでした");}
+  }
+}
+function sharePost(id,title){
+  if(!id)return;
+  const t=(title||"").trim();
+  shareLink(postShareUrl(id),t||"なんしよ？",t?`${t} — なんしよ？`:"なんしよ？の投稿");
+}
+function shareProfile(userId,name){
+  if(!userId){showToast("共有できるプロフィールがありません");return;}
+  const n=(name||"").trim();
+  const label=n?`${n}さんのプロフィール`:"プロフィール";
+  shareLink(profileShareUrl(userId),label,`${label} — なんしよ？`);
+}
+function shareCurrentProfile(){
+  const name=(document.getElementById('pvName')||{}).textContent||"";
+  shareProfile(pvUserId,name);
+}
+function shareMyProfile(){
+  if(!session){openAuth();return;}
+  const name=(myProfile&&myProfile.name)||(document.getElementById('mpNameView')||{}).textContent||"";
+  shareProfile(session.uid,name);
+}
 
 /* ---------- lightbox (view posted photos full size) ---------- */
 let lbPhotos=[],lbIndex=0,lbAnimating=false;
@@ -2224,6 +2283,7 @@ function postDetailHTML(p){
         <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${esc(p.author||"匿名")}</span>
       </div>
       <div class="pd-actions">
+        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有" aria-label="共有">${SHARE_ICON_SVG} 共有</span>
         <span class="cmt-btn" data-id="${p.id}">コメント</span>
         <span class="like${MYLIKES.has(String(p.id))?' liked':''}" data-id="${p.id}">いいね ${p.likes||0}</span>
         ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
@@ -2253,14 +2313,36 @@ async function loadPostLikers(postId){
     }).join('');
   }catch(e){body.innerHTML=`<span class="pd-likers-empty">読み込みに失敗しました</span>`;}
 }
-function openPostView(id){
+function openPostView(id,opts){
   const p=POSTS.find(x=>x.id===id);if(!p)return;
   pvPostId=id;
   document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
   document.getElementById('postViewBg').classList.add('open');
   if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(id);
+  if(!(opts&&opts.fromUrl)){
+    try{
+      const url=new URL(location.href);
+      const same=url.searchParams.get("post")===String(id)&&!url.searchParams.has("u");
+      if(!same){
+        url.searchParams.set("post",String(id));
+        url.searchParams.delete("u");
+        history.pushState({post:String(id)},"",url.pathname+url.search);
+      }
+    }catch(e){}
+  }
 }
-function closePostView(){document.getElementById('postViewBg').classList.remove('open');pvPostId=null;}
+function closePostView(opts){
+  document.getElementById('postViewBg').classList.remove('open');pvPostId=null;
+  if(!(opts&&opts.fromPop)){
+    try{
+      const url=new URL(location.href);
+      if(url.searchParams.has("post")){
+        url.searchParams.delete("post");
+        history.pushState({post:null},"",url.pathname+(url.search||""));
+      }
+    }catch(e){}
+  }
+}
 document.getElementById('postViewBg').addEventListener('click',async e=>{
   if(e.target.id==="postViewBg"){closePostView();return;}
   const handled=await handleCardInteractions(e,()=>{
@@ -2298,6 +2380,11 @@ searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant()
 /* like / report / comment */
 /* カード共通のクリック処理。処理したら true。rerender は いいね後の再描画関数。 */
 async function handleCardInteractions(e,rerender){
+  const sh=e.target.closest('.share-btn');
+  if(sh){
+    if((sh.dataset.share||'post')==='post')sharePost(sh.dataset.id,sh.dataset.title);
+    return true;
+  }
   const au=e.target.closest('.author-link');
   if(au){openProfileView(au.dataset.uid,au.dataset.name);return true;}
   const c=e.target.closest('.cmt-btn');
@@ -3605,8 +3692,10 @@ async function openProfileView(userId,fallbackName,opts){
   if(userId&&!(opts&&opts.fromUrl)){
     try{
       const url=new URL(location.href);
-      if(url.searchParams.get("u")!==String(userId)){
+      const same=url.searchParams.get("u")===String(userId)&&!url.searchParams.has("post");
+      if(!same){
         url.searchParams.set("u",String(userId));
+        url.searchParams.delete("post");
         history.pushState({pv:String(userId)},"",url.pathname+url.search);
       }
     }catch(e){}
@@ -3730,11 +3819,29 @@ function closeProfileView(opts){
 function profileIdFromUrl(){
   try{return (new URL(location.href).searchParams.get("u")||"").trim()||null;}catch(e){return null;}
 }
-async function restoreProfileFromUrl(){
+function postIdFromUrl(){
+  try{return (new URL(location.href).searchParams.get("post")||"").trim()||null;}catch(e){return null;}
+}
+async function restoreDeepLinksFromUrl(){
+  const postId=postIdFromUrl();
+  if(postId){
+    if(!POSTS.find(x=>String(x.id)===String(postId))){
+      try{
+        const r=await fetch(`${SUPABASE_URL}/rest/v1/posts?id=eq.${encodeURIComponent(postId)}&select=*`,{headers:sbHeaders});
+        if(r.ok){const rows=await r.json();if(rows[0]){const mapped=mapRow(rows[0]);if(!POSTS.some(x=>x.id===mapped.id))POSTS.unshift(mapped);}}
+      }catch(e){}
+    }
+    openPostView(postId,{fromUrl:true});
+    return;
+  }
   const uid=profileIdFromUrl();
   if(uid)await openProfileView(uid,null,{fromUrl:true});
 }
 window.addEventListener("popstate",()=>{
+  const postId=postIdFromUrl();
+  if(postId){openPostView(postId,{fromUrl:true});return;}
+  const bg=document.getElementById('postViewBg');
+  if(bg&&bg.classList.contains('open'))closePostView({fromPop:true});
   const uid=profileIdFromUrl();
   if(uid)openProfileView(uid,null,{fromUrl:true});
   else{
@@ -4105,7 +4212,7 @@ async function init(){
   refreshNotifs();
   startNotifPoll();
   loadAnnouncements();
-  await restoreProfileFromUrl();
+  await restoreDeepLinksFromUrl();
 }
 init();
 
