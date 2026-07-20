@@ -164,9 +164,10 @@ URL: `https://nanshiyo.com/admin.html`（検索非公開 `noindex`）。
   - `login_events` も同様に RLS 有効・ポリシー無し・直接 read/write 不可。書き込みは `track_login()`（security definer）のみ。
   - 本人の BAN 判定は `get_my_profile()` RPC（認証済み・本人のみ）。運営一覧・集計は `admin_list_profiles` / `admin_dashboard_bundle`。
   - `is_nanshiyo_admin()` は **JWT の `email`（`auth.jwt()->>'email'`）** をサーバー側で照合。クライアント改ざんではなりすまし不可。各 `admin_*` は冒頭で必ずチェック。
-- **ログイン計測**: 本サイト側 `trackLogin()` → RPC `track_login` が `profiles_admin.last_login_at` 更新＋`login_events` へ INSERT。
+- **ログイン計測**: 本サイト側 `trackLogin()` → RPC `track_login` が `profiles_admin.last_login_at` 更新＋`login_events` へ INSERT。過去分は `login_events` の `max(created_at)` を `profiles_admin.last_login_at` に反映済み（`supabase/admin_rpc.sql` 内の backfill）。
 - **BAN**: `profiles_admin.banned`。本サイトの `requireLogin()` / ログイン時に停止中なら拒否。
 - **SQL の正**: リポジトリ `supabase/admin_rpc.sql`（再実行可能な冪等マイグレーション）。Supabase SQL Editor で適用済み。
+- **関連リンク集**: `links/README.md`
 ## メール（送信 / 受信 / 問い合わせ）
 
 - **ドメイン**: `nanshiyo.com`（Cloudflare で DNS 管理）。

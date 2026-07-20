@@ -72,6 +72,18 @@ alter table public.profiles drop column if exists banned;
 alter table public.profiles drop column if exists last_login_at;
 alter table public.profiles drop column if exists created_at;
 
+-- 過去の login_events から last_login_at を反映（既にあれば新しい方を残す）
+insert into public.profiles_admin (user_id, last_login_at)
+select e.user_id, max(e.created_at)
+from public.login_events e
+where e.user_id is not null
+group by e.user_id
+on conflict (user_id) do update set
+  last_login_at = greatest(
+    coalesce(public.profiles_admin.last_login_at, '-infinity'::timestamptz),
+    excluded.last_login_at
+  );
+
 -- profiles_admin: 直接アクセス禁止
 alter table public.profiles_admin enable row level security;
 revoke all on table public.profiles_admin from anon, authenticated;
