@@ -1938,7 +1938,10 @@ function rakutenAff(url){
   const e=encodeURIComponent(url);
   return "https://hb.afl.rakuten.co.jp/hgc/"+RAKUTEN_AFFILIATE_ID+"/?pc="+e+"&m="+e;
 }
-function rakutenTravel(kw){return rakutenAff("https://kw.travel.rakuten.co.jp/keyword/Search.do?f_query="+encodeURIComponent(kw));}
+/* 楽天トラベルキーワード検索。charset=utf-8 必須（無いと Shift_JIS 解釈で文字化け・0件になる） */
+function rakutenTravel(kw){
+  return rakutenAff("https://kw.travel.rakuten.co.jp/keyword/Search.do?charset=utf-8&f_query="+encodeURIComponent(kw));
+}
 function rakutenIchiba(kw){return rakutenAff("https://search.rakuten.co.jp/search/mall/"+encodeURIComponent(kw)+"/");}
 function amazonSearch(kw){
   let u="https://www.amazon.co.jp/s?k="+encodeURIComponent(kw);
