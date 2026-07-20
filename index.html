@@ -1299,7 +1299,8 @@
       <div class="settings-panel" id="settingsPanel-account">
         <div class="mp-section">
           <h3>パスワード変更</h3>
-          <div class="field"><label>新しいパスワード</label><input type="password" id="mpNewPass" placeholder="6文字以上"></div>
+          <div class="field"><label>現在のパスワード</label><input type="password" id="mpCurPass" placeholder="いま使っているパスワード" autocomplete="current-password"></div>
+          <div class="field"><label>新しいパスワード</label><input type="password" id="mpNewPass" placeholder="6文字以上" autocomplete="new-password"></div>
           <button type="button" class="btn btn-ghost" style="width:100%" onclick="changeMyPassword()">パスワードを変更</button>
           <p id="mpPassMsg" style="font-size:.82rem;text-align:center;margin-top:8px;min-height:1.2em"></p>
         </div>
@@ -3403,6 +3404,7 @@ function closeSettingsDrawer(){
 }
 const SETTINGS_TITLES={info:"アカウント情報",account:"アカウント設定",privacy:"プライバシー",display:"表示設定"};
 function prepareSettingsFields(){
+  document.getElementById('mpCurPass').value="";
   document.getElementById('mpNewPass').value="";document.getElementById('mpPassMsg').textContent="";
   document.getElementById('mpNewEmail').value="";document.getElementById('mpEmailMsg').textContent="";
   document.getElementById('mpPrivateToggle').checked=!!(myProfile&&myProfile.is_private);
@@ -3513,17 +3515,27 @@ document.getElementById('mpPostsGrid').addEventListener('click',e=>{
   handleCardInteractions(e,()=>{renderMyPosts();render();});
 });
 async function changeMyPassword(){
+  const cur=document.getElementById('mpCurPass').value;
   const pass=document.getElementById('mpNewPass').value;
   const msg=document.getElementById('mpPassMsg');
-  if(!pass||pass.length<6){msg.style.color="#d33";msg.textContent="6文字以上で入力してください";return;}
-  const token=await freshToken();
-  if(!token){msg.style.color="#d33";msg.textContent="ログインの有効期限が切れました";return;}
-  msg.style.color="";msg.textContent="変更中…";
+  if(!cur){msg.style.color="#d33";msg.textContent="現在のパスワードを入力してください";return;}
+  if(!pass||pass.length<6){msg.style.color="#d33";msg.textContent="新しいパスワードは6文字以上で入力してください";return;}
+  if(pass===cur){msg.style.color="#d33";msg.textContent="新しいパスワードは現在と別のものにしてください";return;}
+  const email=(session&&session.email)||"";
+  if(!email){msg.style.color="#d33";msg.textContent="メールアドレスが取得できませんでした";return;}
+  msg.style.color="";msg.textContent="確認中…";
   try{
-    const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(token),body:JSON.stringify({password:pass})});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.msg||d.error_description||"変更に失敗しました");
+    /* 現在のパスワードを再認証してから変更 */
+    const vr=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:cur})});
+    const vd=await vr.json();
+    if(!vr.ok||!vd.access_token)throw new Error("現在のパスワードが違います");
+    saveSession(sessionFrom(email,session.name||email.split("@")[0],vd));
+    msg.textContent="変更中…";
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(vd.access_token),body:JSON.stringify({password:pass})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"変更に失敗しました");
     msg.style.color="#3a7";msg.textContent="パスワードを変更しました！";
+    document.getElementById('mpCurPass').value="";
     document.getElementById('mpNewPass').value="";
   }catch(err){msg.style.color="#d33";msg.textContent=err.message||"変更に失敗しました";}
 }
