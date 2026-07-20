@@ -3575,7 +3575,7 @@ function renderPvPosts(userId){
   grid.innerHTML=mine.length?mine.map(cardHTML).join('')
     :`<div class="empty">まだ投稿がありません。</div>`;
 }
-async function openProfileView(userId,fallbackName){
+async function openProfileView(userId,fallbackName,opts){
   closePostView();closeMyPage();closeSearchPage();closeNotifs();
   pvUserId=userId||null;
   const page=document.getElementById('pvPage');
@@ -3593,6 +3593,16 @@ async function openProfileView(userId,fallbackName){
   renderPvPosts(userId);
   page.classList.add('open');
   const body=page.querySelector('.full-page-body');if(body)body.scrollTop=0;
+  /* 再読み込みで戻れるよう URL に ?u= を残す（OAuth の hash とは独立） */
+  if(userId&&!(opts&&opts.fromUrl)){
+    try{
+      const url=new URL(location.href);
+      if(url.searchParams.get("u")!==String(userId)){
+        url.searchParams.set("u",String(userId));
+        history.pushState({pv:String(userId)},"",url.pathname+url.search);
+      }
+    }catch(e){}
+  }
   if(!SERVER||!userId){document.getElementById('pvBio').textContent="このユーザーのプロフィールはまだありません。";return;}
 
   const st=statsForUser(userId);
@@ -3696,7 +3706,34 @@ async function togglePvNotify(userId){
   }catch(e){alert("処理に失敗しました");}
   finally{notifyBtn.disabled=false;}
 }
-function closeProfileView(){document.getElementById('pvPage').classList.remove('open');}
+function closeProfileView(opts){
+  document.getElementById('pvPage').classList.remove('open');
+  pvUserId=null;
+  if(!(opts&&opts.fromPop)){
+    try{
+      const url=new URL(location.href);
+      if(url.searchParams.has("u")){
+        url.searchParams.delete("u");
+        history.pushState({pv:null},"",url.pathname+(url.search||""));
+      }
+    }catch(e){}
+  }
+}
+function profileIdFromUrl(){
+  try{return (new URL(location.href).searchParams.get("u")||"").trim()||null;}catch(e){return null;}
+}
+async function restoreProfileFromUrl(){
+  const uid=profileIdFromUrl();
+  if(uid)await openProfileView(uid,null,{fromUrl:true});
+}
+window.addEventListener("popstate",()=>{
+  const uid=profileIdFromUrl();
+  if(uid)openProfileView(uid,null,{fromUrl:true});
+  else{
+    const page=document.getElementById('pvPage');
+    if(page&&page.classList.contains('open'))closeProfileView({fromPop:true});
+  }
+});
 /* プロフィールページ内の投稿カード操作（いいね/コメント/詳細ポップアップ/著者） */
 document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
   if(handleCardInteractions(e,renderPvPostsCurrent))return;
@@ -4060,6 +4097,7 @@ async function init(){
   refreshNotifs();
   startNotifPoll();
   loadAnnouncements();
+  await restoreProfileFromUrl();
 }
 init();
 
