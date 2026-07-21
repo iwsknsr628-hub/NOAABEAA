@@ -130,3 +130,4 @@
 - 登録モーダルの必須表示は「必須」ではなく `*`。メールも必須＋形式チェック。
 - 確認メール: signup に `email_redirect_to`、未確認はログインせず案内。再送は `/auth/v1/resend`。pending の名前/@ID は確認リンク／初回ログインで profiles へ。
 - Confirm email は Supabase 側 ON。SMTP は Resend（support@）。届かないときは Resend ログ／迷惑メールを先に見る。
+- メール確認を別端末で開くと localStorage の pending が無い → `user_metadata.handle/name` をフォールバック（Google は handle 無しなのでランダム付与のまま）。

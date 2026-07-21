@@ -3462,15 +3462,25 @@ async function handleAuthRedirect(){
     let pending=null;
     try{pending=JSON.parse(localStorage.getItem("nanshiyo_pending_signup")||"null");}catch(e){pending=null;}
     const pendingOk=pending&&pending.email===email&&Date.now()-(pending.at||0)<7*86400000;
-    if(pendingOk&&(pending.name||pending.handle)){
-      /* メール確認リンク経由：登録時に入力した名前/@ID を反映 */
-      const handle=pending.handle||(myProfile&&myProfile.handle)||randomHandle();
-      const name=pending.name||(myProfile&&myProfile.name)||("ユーザー"+handle.replace(/^user_/,"").slice(0,8));
+    const meta=(u&&u.user_metadata)||{};
+    const metaName=(typeof meta.name==="string"&&meta.name.trim())?meta.name.trim():"";
+    const metaHandle=normHandle(meta.handle||"");
+    const metaHandleOk=metaHandle&&validHandle(metaHandle);
+    /* 優先: 同一端末の pending → 別端末向けに signup 時の user_metadata.handle → 既存 profile → ランダム
+       ※ Google 等は metadata.name だけで handle が無いので、handle がある場合のみメール登録とみなす */
+    const fromPending=!!(pendingOk&&(pending.name||pending.handle));
+    const fromMeta=metaHandleOk;
+    const chosenHandle=(fromPending&&pending.handle)||(fromMeta?metaHandle:"")||(myProfile&&myProfile.handle)||"";
+    const chosenName=(fromPending&&pending.name)||(fromMeta&&metaName?metaName:"")||(myProfile&&myProfile.name)||"";
+    if((fromPending||fromMeta)&&(chosenName||chosenHandle)){
+      /* メール確認リンク経由：登録時の名前/@ID（localStorage または user_metadata）を反映 */
+      const handle=chosenHandle||randomHandle();
+      const name=chosenName||("ユーザー"+handle.replace(/^user_/,"").slice(0,8));
       try{
         const pr=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(at),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({user_id:u.id,name,handle,updated_at:new Date().toISOString()})});
         if(pr.ok){myProfile=(await pr.json())[0]||myProfile;}
       }catch(e){}
-      try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(at),body:JSON.stringify({data:{name}})});}catch(e){}
+      try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(at),body:JSON.stringify({data:{name,handle}})});}catch(e){}
       session.name=name;saveSession(session);
       try{localStorage.removeItem("nanshiyo_pending_signup");}catch(e){}
       setTimeout(()=>showToast("ご登録ありがとうございます！メール確認が完了しました"),400);
