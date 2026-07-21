@@ -189,7 +189,9 @@ URL: `https://nanshiyo.com/admin.html`（検索非公開 `noindex`）。
 - **受信**: Cloudflare Email Routing で `support@nanshiyo.com` → `syallman28@gmail.com` へ転送。
 - **送信（システムメール）**: **Resend + Supabase Custom SMTP**。登録確認メール等は `support@nanshiyo.com` から送信。
   - Resend で `nanshiyo.com` をドメイン認証済み（DKIM/SPF/DMARC/MX を Cloudflare に設定済み）。
-  - SMTP: `smtp.resend.com` / 587(TLS) / user `resend` / パスワード=Resend APIキー。**APIキーはリポジトリに置かない**（Supabase/Gmail設定側に保存）。
+  - SMTP: `smtp.resend.com` / ポート `465` または `587` / user `resend` / パスワード=Resend APIキー。**APIキーはリポジトリに置かない**（Supabase/Gmail設定側に保存）。
+  - Auth「Confirm email」ON。登録 API は `email_redirect_to=https://nanshiyo.com/` を付与。未確認ではログインせず確認メール案内＋再送ボタン（`/auth/v1/resend`）。
+  - 届かないときは迷惑メール・Resend ダッシュボードの送信ログ・SMTP パスワード有効期限を確認。
 - **問い合わせ返信**: Gmail(`syallman28`) の「他のアドレスから送信（Send mail as）」で `support@nanshiyo.com` を追加・確認済み。差出人名「なんしよ運営事務局」。「受信したアドレスから返信」ON なので、`support@` 宛の転送メールに返信すると差出人が自動で `support@nanshiyo.com` になる。
 - **サイト内の問い合わせフォーム**: フッター（`#contact`）に設置。`sendContact()` が `mailto:support@nanshiyo.com` を件名・本文付きで起動。
 

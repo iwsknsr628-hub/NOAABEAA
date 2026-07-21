@@ -413,7 +413,7 @@
     background:none;border:none;line-height:1}
   .field{margin-bottom:16px}
   .field label{display:block;font-weight:700;font-size:.9rem;margin-bottom:7px}
-  .field label .req{color:var(--accent);font-size:.8rem}
+  .field label .req{color:var(--accent);font-size:1rem;font-weight:800;margin-left:2px;vertical-align:middle}
   .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;
     padding:12px 14px;font-size:.95rem;font-family:inherit;outline:none;transition:border .2s;background:#fff}
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
@@ -973,26 +973,27 @@
     <h2 id="authTitle">アカウント登録</h2>
     <p class="msub" id="authSub">検索・閲覧は登録なしでOK。投稿やいいねをするときに登録してください。</p>
     <div class="field">
-      <label>ニックネーム（ユーザー名） <span class="req">必須</span></label>
-      <input type="text" id="authName" maxlength="40" placeholder="表示名（例: たびすき）">
+      <label>ニックネーム（ユーザー名） <span class="req" aria-label="必須">*</span></label>
+      <input type="text" id="authName" maxlength="40" placeholder="表示名（例: たびすき）" autocomplete="nickname">
     </div>
     <div class="field" id="authHandleField">
-      <label>ユーザーID（@ハンドル） <span class="req">必須</span></label>
+      <label>ユーザーID（@ハンドル） <span class="req" aria-label="必須">*</span></label>
       <div class="handle-input"><span>@</span><input type="text" id="authHandle" maxlength="20" placeholder="taro_123（英小文字・数字・_）" autocomplete="off"></div>
       <p style="font-size:.74rem;color:var(--ink-soft);margin-top:6px">最初はランダムなIDが入っています。変えたい方は書き換えてください（英小文字・数字・_ の3〜20文字）。</p>
     </div>
     <div class="field">
-      <label>メールアドレス</label>
-      <input type="email" id="authEmail" placeholder="you@example.com">
+      <label>メールアドレス <span class="req" aria-label="必須">*</span></label>
+      <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" required>
     </div>
     <div class="field">
-      <label>パスワード</label>
+      <label>パスワード <span class="req" aria-label="必須">*</span></label>
       <div style="position:relative">
-        <input type="password" id="authPass" placeholder="6文字以上" style="padding-right:60px">
+        <input type="password" id="authPass" placeholder="6文字以上" style="padding-right:60px" autocomplete="new-password" required>
         <button type="button" id="passToggle" onclick="togglePass()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:.82rem;font-weight:800;color:var(--accent)">表示</button>
       </div>
     </div>
     <button class="btn btn-primary" style="width:100%" id="authSubmit" onclick="submitAuth()">登録する</button>
+    <button type="button" class="btn btn-ghost" style="width:100%;margin-top:8px;display:none" id="authResendBtn" onclick="resendSignupEmail()">確認メールを再送</button>
     <div class="oauth-sep"><span>または</span></div>
     <button type="button" class="btn-oauth" onclick="oauthLogin('google')">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -3089,21 +3090,45 @@ async function saveUsername(){
     showToast("ユーザー名を設定しました");
   }catch(e){msg.style.color="#d33";msg.textContent="保存に失敗しました";}
 }
-function openAuth(){authMode="signup";applyAuthMode();document.getElementById('authMsg').textContent="";document.getElementById('authBg').classList.add('open');}
+function openAuth(){authMode="signup";applyAuthMode();document.getElementById('authMsg').textContent="";const rb=document.getElementById('authResendBtn');if(rb)rb.style.display="none";document.getElementById('authBg').classList.add('open');}
 function closeAuth(){document.getElementById('authBg').classList.remove('open');}
 document.getElementById('authBg').addEventListener('click',e=>{if(e.target.id==="authBg")closeAuth();});
 document.getElementById('unameBg').addEventListener('click',e=>{if(e.target.id==="unameBg")closeUsernamePrompt();});
-function toggleAuthMode(){authMode=authMode==="signup"?"login":"signup";applyAuthMode();}
+function toggleAuthMode(){authMode=authMode==="signup"?"login":"signup";applyAuthMode();const rb=document.getElementById('authResendBtn');if(rb)rb.style.display="none";document.getElementById('authMsg').textContent="";}
 function applyAuthMode(){
   const s=authMode==="signup";
   document.getElementById('authTitle').textContent=s?"アカウント登録":"ログイン";
-  document.getElementById('authSub').textContent=s?"検索・閲覧は登録なしでOK。投稿やいいねをするときに登録してください。":"登録済みのメールとパスワードでログイン。";
+  document.getElementById('authSub').textContent=s?"検索・閲覧は登録なしでOK。投稿やいいねをするときに登録してください。登録後に確認メールが届きます。":"登録済みのメールとパスワードでログイン。";
   document.getElementById('authSubmit').textContent=s?"登録する":"ログイン";
   document.getElementById('authSwitch').textContent=s?"すでにアカウントをお持ちの方はこちら":"新規登録はこちら";
   document.getElementById('authName').parentElement.style.display=s?"":"none";
   const hf=document.getElementById('authHandleField');if(hf)hf.style.display=s?"":"none";
   const hi=document.getElementById('authHandle');
   if(hi&&s&&!hi.value.trim())hi.value=randomHandle();
+  const pe=document.getElementById('authPass');
+  if(pe)pe.autocomplete=s?"new-password":"current-password";
+}
+function authRedirectTo(){
+  try{
+    const o=location.origin||"";
+    if(/nanshiyo\.com$/i.test(new URL(o).hostname)||o==="https://nanshiyo.com")return "https://nanshiyo.com/";
+  }catch(e){}
+  return "https://nanshiyo.com/";
+}
+function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim());}
+async function resendSignupEmail(){
+  const email=document.getElementById('authEmail').value.trim();
+  const msg=document.getElementById('authMsg');
+  const btn=document.getElementById('authResendBtn');
+  if(!validEmail(email)){msg.style.color="#d33";msg.textContent="再送するメールアドレスを入力してください";return;}
+  if(btn){btn.disabled=true;btn.textContent="再送中…";}
+  try{
+    const r=await fetch(`${SUPABASE_URL}/auth/v1/resend`,{method:"POST",headers:sbHeaders,body:JSON.stringify({type:"signup",email,email_redirect_to:authRedirectTo()})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"再送に失敗しました");
+    msg.style.color="#3a7";msg.textContent="確認メールを再送しました。迷惑メールフォルダもご確認ください。";
+  }catch(err){msg.style.color="#d33";msg.textContent=err.message||"再送に失敗しました";}
+  finally{if(btn){btn.disabled=false;btn.textContent="確認メールを再送";}}
 }
 async function submitAuth(){
   const email=document.getElementById('authEmail').value.trim();
@@ -3111,8 +3136,12 @@ async function submitAuth(){
   const name=document.getElementById('authName').value.trim();
   const handle=normHandle((document.getElementById('authHandle')||{}).value);
   const msg=document.getElementById('authMsg');
+  const resendBtn=document.getElementById('authResendBtn');
+  if(resendBtn)resendBtn.style.display="none";
   if(authMode==="signup"&&name.length<2){msg.style.color="#d33";msg.textContent="ニックネーム（ユーザー名）を2文字以上で入力してください";return;}
-  if(!email||!pass){msg.style.color="#d33";msg.textContent="メールとパスワードを入力してください";return;}
+  if(!email){msg.style.color="#d33";msg.textContent="メールアドレスは必須です";return;}
+  if(!validEmail(email)){msg.style.color="#d33";msg.textContent="正しいメールアドレスを入力してください";return;}
+  if(!pass){msg.style.color="#d33";msg.textContent="パスワードを入力してください";return;}
   if(pass.length<6){msg.style.color="#d33";msg.textContent="パスワードは6文字以上にしてください";return;}
   if(!SERVER){msg.style.color="#d33";msg.textContent="サーバー未設定のため利用できません";return;}
   if(authMode==="signup"&&await nameTaken(name)){msg.style.color="#d33";msg.textContent="そのユーザー名は既に使われています。別の名前にしてください";return;}
@@ -3124,18 +3153,29 @@ async function submitAuth(){
   const btn=document.getElementById('authSubmit');btn.disabled=true;const orig=btn.textContent;btn.textContent="処理中…";
   try{
     if(authMode==="signup"){
-      const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:pass,data:{name}})});
+      const redirectTo=authRedirectTo();
+      const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:pass,data:{name,handle},email_redirect_to:redirectTo})});
       const d=await r.json();
       if(!r.ok)throw new Error(d.msg||d.error_description||d.error||"登録に失敗しました");
-      if(d.access_token){saveSession(sessionFrom(email,name,d));
+      const confirmed=!!(d.user&&(d.user.email_confirmed_at||d.user.confirmed_at));
+      /* 確認メール必須: 未確認ならセッションがあってもログインせず、メール確認を促す */
+      if(d.access_token&&confirmed){
+        saveSession(sessionFrom(email,name,d));
         try{
           const pr=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(d.access_token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({user_id:session.uid,name,handle:handle||null,updated_at:new Date().toISOString()})});
           if(!pr.ok){const pe=await pr.json().catch(()=>({}));console.warn("signup profile save failed",pr.status,pe);}
         }catch(e){console.warn("signup profile save error",e);}
         trackLogin(d.access_token);
         loadMyProfile();startNotifPoll();msg.style.color="#3a7";msg.textContent="登録＆ログイン完了！";
-        setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);}
-      else{msg.style.color="#3a7";msg.textContent="確認メールを送りました。メール内のリンクを開くとログインできます。";authMode="login";}
+        setTimeout(()=>{closeAuth();alert("【なんしよ運営事務局】\nご登録ありがとうございます！\nそのままログインしました。\n\nあなたの「なんしよ？」が、どこかの誰かのヒントになりますように。");},600);
+      }else{
+        /* プロフィールは確認後ログイン時に作成。確認メール再送ボタンを表示 */
+        try{localStorage.setItem("nanshiyo_pending_signup",JSON.stringify({email,name,handle,at:Date.now()}));}catch(e){}
+        msg.style.color="#3a7";
+        msg.textContent="確認メールを送りました。メール内のリンクを開くと登録完了です。届かない場合は迷惑メールフォルダをご確認のうえ、「確認メールを再送」を押してください。";
+        if(resendBtn)resendBtn.style.display="";
+        authMode="login";applyAuthMode();
+      }
     }else{
       const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:"POST",headers:sbHeaders,body:JSON.stringify({email,password:pass})});
       const d=await r.json();
@@ -3147,6 +3187,20 @@ async function submitAuth(){
         session=null;try{localStorage.removeItem("nanshiyo_session");}catch(e){}
         updateAcctUI();msg.style.color="#d33";msg.textContent="このアカウントは利用停止中です";return;
       }
+      /* 確認後初回ログインで pending の名前/@ID を保存 */
+      try{
+        const pending=JSON.parse(localStorage.getItem("nanshiyo_pending_signup")||"null");
+        if(pending&&pending.email===email&&(pending.name||pending.handle)){
+          const token=d.access_token;
+          const row={user_id:session.uid,updated_at:new Date().toISOString()};
+          if(pending.name)row.name=pending.name;
+          if(pending.handle)row.handle=pending.handle;
+          await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(token),Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(row)});
+          if(pending.name){session.name=pending.name;saveSession(session);}
+          localStorage.removeItem("nanshiyo_pending_signup");
+          await loadMyProfile();
+        }
+      }catch(e){console.warn("pending signup profile",e);}
       msg.style.color="#3a7";msg.textContent="ログインしました！";setTimeout(closeAuth,700);
       refreshNotifs();startNotifPoll();loadMyLikes().then(render);
     }
@@ -3405,9 +3459,24 @@ async function handleAuthRedirect(){
       return;
     }
     let assignedRandom=false;
-    if(!myProfile||!(myProfile.handle||"").trim()){
+    let pending=null;
+    try{pending=JSON.parse(localStorage.getItem("nanshiyo_pending_signup")||"null");}catch(e){pending=null;}
+    const pendingOk=pending&&pending.email===email&&Date.now()-(pending.at||0)<7*86400000;
+    if(pendingOk&&(pending.name||pending.handle)){
+      /* メール確認リンク経由：登録時に入力した名前/@ID を反映 */
+      const handle=pending.handle||(myProfile&&myProfile.handle)||randomHandle();
+      const name=pending.name||(myProfile&&myProfile.name)||("ユーザー"+handle.replace(/^user_/,"").slice(0,8));
+      try{
+        const pr=await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=user_id`,{method:"POST",headers:{...authHeadersWith(at),Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify({user_id:u.id,name,handle,updated_at:new Date().toISOString()})});
+        if(pr.ok){myProfile=(await pr.json())[0]||myProfile;}
+      }catch(e){}
+      try{await fetch(`${SUPABASE_URL}/auth/v1/user`,{method:"PUT",headers:authHeadersWith(at),body:JSON.stringify({data:{name}})});}catch(e){}
+      session.name=name;saveSession(session);
+      try{localStorage.removeItem("nanshiyo_pending_signup");}catch(e){}
+      setTimeout(()=>showToast("ご登録ありがとうございます！メール確認が完了しました"),400);
+    }else if(!myProfile||!(myProfile.handle||"").trim()){
       /* Googleなどの新規ユーザー：ランダムな表示名と@IDを自動付与（後から変更可） */
-      const base=randomHandle();                 // user_xxxxxxxx
+      const base=randomHandle();
       const handle=(myProfile&&myProfile.handle)||base;
       const name=(myProfile&&myProfile.name)||("ユーザー"+base.slice(5));
       try{
@@ -3423,7 +3492,6 @@ async function handleAuthRedirect(){
     trackLogin(at);
     updateAcctUI();updateNotifBadge();
     history.replaceState(null,"",location.pathname);
-    /* 毎回の「おかえりなさい」アラートは出さない。初回の仮名付与時だけ一度案内 */
     if(assignedRandom){
       setTimeout(()=>showToast("仮のユーザー名を設定しました。マイページから変更できます"),400);
     }

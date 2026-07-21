@@ -125,3 +125,8 @@
 - アプリ化は **PWA 先行**（ストア／Capacitor は後）。`manifest.webmanifest` + `sw.js`（network-first、API不キャッシュ）+ `icons/`。
 - インストール誘導バナーは出さない。iOS は「ホーム画面に追加」、Android は Chrome インストール。
 - SW キャッシュ名を変えると古いキャッシュを落とせる（`nanshiyo-pwa-v1`）。
+
+### 2026-07-21（登録フォーム・確認メール）
+- 登録モーダルの必須表示は「必須」ではなく `*`。メールも必須＋形式チェック。
+- 確認メール: signup に `email_redirect_to`、未確認はログインせず案内。再送は `/auth/v1/resend`。pending の名前/@ID は確認リンク／初回ログインで profiles へ。
+- Confirm email は Supabase 側 ON。SMTP は Resend（support@）。届かないときは Resend ログ／迷惑メールを先に見る。
