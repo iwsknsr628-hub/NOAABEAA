@@ -222,8 +222,13 @@
     box-shadow:var(--shadow);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none;white-space:nowrap}
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
-  .tags-preview{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-  .tags-preview span{background:var(--bg2);color:var(--accent);font-weight:800;font-size:.8rem;padding:4px 11px;border-radius:999px}
+  .tags-preview{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:0}
+  .tags-preview:empty{display:none}
+  .tags-preview .tag-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg2);color:var(--accent);
+    font-weight:800;font-size:.8rem;padding:4px 6px 4px 11px;border-radius:999px;border:1px solid #f0e6dc}
+  .tags-preview .tag-chip button{border:none;background:transparent;color:var(--ink-soft);font-size:.95rem;line-height:1;
+    cursor:pointer;padding:2px 6px;border-radius:999px;font-family:inherit}
+  .tags-preview .tag-chip button:hover{color:var(--accent);background:#fff}
   .card .addr{font-size:.82rem;color:var(--ink-soft);margin-top:-2px}
   .photo-preview{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
   .photo-preview img{width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
@@ -691,7 +696,7 @@
     <p class="lead">みんなの投稿から、次の一歩が見つかる。</p>
     <div class="searchbar">
       <input id="search" type="search" enterkeyhint="search" autocomplete="off"
-        placeholder="例: 近場のおいしいごはん">
+        placeholder="例: 近場のごはん / #無料（タグは1つずつ）">
       <button type="button" class="search-go" onclick="runAssistant()" title="検索" aria-label="検索">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.2" y2="16.2"></line>
@@ -932,15 +937,17 @@
         <span id="photoExistingMsg" style="font-size:.78rem;color:var(--ink-soft);display:block"></span>
       </div>
       <div class="field">
-        <label>タグ（カンマ区切り・任意）</label>
-        <div style="display:flex;gap:8px">
-          <input type="text" name="tags" id="tagsInput" maxlength="120" placeholder="例: ひとり, 無料, 映え" style="flex:1">
+        <label>タグ（任意）</label>
+        <div class="tags-preview" id="tagsPreview"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="tagsInput" maxlength="40" placeholder="#無料 と入力 → Enter / スペースで確定" style="flex:1" autocomplete="off" inputmode="text">
+          <input type="hidden" name="tags" id="tagsHidden" value="">
           <button type="button" id="aiTagBtn" onclick="suggestTags()"
             style="white-space:nowrap;border:1px solid #e6ddf7;background:#f3f0ff;color:#8a6ee0;font-family:inherit;
             font-weight:800;font-size:.85rem;padding:0 14px;border-radius:12px;cursor:pointer">AIで提案</button>
         </div>
+        <span style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:4px"># から始めて1つずつ追加（最大8個）。確定したタグをタップで削除できます。</span>
         <span id="tagMsg" style="font-size:.78rem;color:#8a6ee0"></span>
-        <div class="tags-preview" id="tagsPreview"></div>
       </div>
       <div class="field">
         <label>アフィリエイトリンク（任意）</label>
@@ -1866,8 +1873,17 @@ function runAssistant(){
   const q=document.getElementById('search').value.trim();
   const assistant=document.getElementById('assistant');
   if(!q){clearAssistant();return;}
-  const onlyTag=q.match(/^#([^\s#]+)$/);
-  if(onlyTag){searchByTag(onlyTag[1]);return;}
+  /* タグ検索は1つだけ。複数 # があっても先頭の1タグで絞る */
+  const hashTags=[...q.matchAll(/#([^\s#]+)/g)].map(m=>normalizeTag(m[1])).filter(Boolean);
+  if(hashTags.length){
+    if(hashTags.length>1){
+      const search=document.getElementById('search');
+      if(search)search.value="#"+hashTags[0];
+      showToast("タグ検索は1つずつです（#"+hashTags[0]+"）");
+    }
+    searchByTag(hashTags[0]);
+    return;
+  }
   curQuery=q;
   const ql=q.toLowerCase();
   const hit=SIGNALS.filter(s=>s.keys.some(k=>ql.includes(k.toLowerCase())));
@@ -1922,6 +1938,53 @@ function clearAssistant(){
   render();
 }
 function normalizeTag(t){return String(t||"").replace(/^#+/,"").trim();}
+const TAG_MAX=8;
+let composeTags=[]; /* 投稿フォームに確定済みのタグ（#なし） */
+function syncTagsHidden(){
+  const h=document.getElementById('tagsHidden');
+  if(h)h.value=composeTags.join(',');
+}
+function setComposeTags(list){
+  composeTags=[...new Set((list||[]).map(normalizeTag).filter(Boolean))].slice(0,TAG_MAX);
+  syncTagsHidden();
+  renderTagsPreview();
+}
+function addComposeTag(raw){
+  const t=normalizeTag(raw);if(!t)return false;
+  if(composeTags.some(x=>x.toLowerCase()===t.toLowerCase()))return false;
+  if(composeTags.length>=TAG_MAX){
+    const msg=document.getElementById('tagMsg');
+    if(msg)msg.textContent="タグは最大"+TAG_MAX+"個までです";
+    return false;
+  }
+  composeTags.push(t);
+  syncTagsHidden();
+  renderTagsPreview();
+  return true;
+}
+function removeComposeTag(i){
+  if(i<0||i>=composeTags.length)return;
+  composeTags.splice(i,1);
+  syncTagsHidden();
+  renderTagsPreview();
+}
+function commitTagsFromInput(){
+  const inp=document.getElementById('tagsInput');if(!inp)return;
+  let v=inp.value;
+  const parts=[];
+  if(/#/.test(v)){
+    v.split(/#+/).forEach(p=>{
+      const chunk=p.split(/[\s,、]+/)[0];
+      const t=normalizeTag(chunk);
+      if(t)parts.push(t);
+    });
+  }else{
+    const t=normalizeTag(v.replace(/[\s,、]+/g," ").trim().split(" ")[0]);
+    if(t)parts.push(t);
+  }
+  parts.forEach(addComposeTag);
+  inp.value="";
+}
 function tagChipsHTML(tags,limit){
   const list=Array.isArray(tags)?tags:[];
   const slice=limit!=null?list.slice(0,limit):list;
@@ -1957,7 +2020,7 @@ function searchByTag(tag){
   const found=scores.size;
   document.getElementById('assistantSay').innerHTML=`タグ <b>#${esc(t)}</b> の投稿を集めました。`;
   document.getElementById('assistantPicks').innerHTML=found
-    ?`<b>${found}</b> 件見つかりました。別のタグやキーワードでも探せます。`
+    ?`<b>${found}</b> 件見つかりました。別のタグは1つずつタップして探せます。`
     :`このタグの投稿はまだありません。`;
   document.getElementById('assistant').classList.add('show');
   render();
@@ -2891,11 +2954,43 @@ const TAG_RULES=[
 ];
 function renderTagsPreview(){
   const wrap=document.getElementById('tagsPreview');if(!wrap)return;
-  const val=document.getElementById('tagsInput').value;
-  const list=val.split(',').map(t=>t.trim().replace(/^#+/,'')).filter(Boolean);
-  wrap.innerHTML=list.map(t=>`<span>#${esc(t)}</span>`).join('');
+  wrap.innerHTML=composeTags.map((t,i)=>
+    `<span class="tag-chip">#${esc(t)}<button type="button" data-tag-i="${i}" aria-label="#${esc(t)} を削除">×</button></span>`
+  ).join('');
 }
-document.getElementById('tagsInput').addEventListener('input',renderTagsPreview);
+(function bindTagCompose(){
+  const inp=document.getElementById('tagsInput');
+  const wrap=document.getElementById('tagsPreview');
+  if(!inp)return;
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '||e.key==='Tab'||e.key===','){
+      if(inp.value.trim()&&inp.value.trim()!=='#'){e.preventDefault();commitTagsFromInput();}
+    }else if(e.key==='Backspace'&&(!inp.value||inp.value==='#')&&composeTags.length){
+      e.preventDefault();
+      removeComposeTag(composeTags.length-1);
+      inp.value='#';
+    }
+  });
+  inp.addEventListener('input',()=>{
+    if(/[\s,、]/.test(inp.value)||(/#.+#/.test(inp.value))){
+      commitTagsFromInput();
+      if(!inp.value)inp.value='#';
+    }
+  });
+  inp.addEventListener('focus',()=>{
+    if(!inp.value)inp.value='#';
+  });
+  inp.addEventListener('blur',()=>{
+    if(inp.value.trim()&&inp.value.trim()!=='#')commitTagsFromInput();
+    else inp.value='';
+  });
+  if(wrap)wrap.addEventListener('click',e=>{
+    const btn=e.target.closest('button[data-tag-i]');
+    if(!btn)return;
+    e.preventDefault();
+    removeComposeTag(+btn.getAttribute('data-tag-i'));
+  });
+})();
 function suggestTags(){
   const f=document.getElementById('postForm');
   const text=[f.title.value,f.spot.value,f.desc.value].join(" ").toLowerCase();
@@ -2903,11 +2998,9 @@ function suggestTags(){
   if(!text.trim()){msg.textContent="先にタイトルやコメントを入力してください";renderTagsPreview();return;}
   const found=[];
   TAG_RULES.forEach(r=>{if(r.k.some(k=>text.includes(k.toLowerCase()))&&!found.includes(r.tag))found.push(r.tag);});
-  const existing=f.tags.value.split(',').map(t=>t.trim()).filter(Boolean);
-  const merged=[...new Set([...existing,...found])].slice(0,8);
-  f.tags.value=merged.join(', ');
-  msg.textContent=found.length?`${found.length}個のタグを自動で提案しました（自由に編集OK）`:"うまく提案できませんでした。手入力してください";
-  renderTagsPreview();
+  const merged=[...new Set([...composeTags,...found])].slice(0,TAG_MAX);
+  setComposeTags(merged);
+  msg.textContent=found.length?`${found.length}個のタグを自動で提案しました（×で削除・#で追加OK）`:"うまく提案できませんでした。#から手入力してください";
 }
 /* auto-run the tag suggestion as the user types, so tags fill in without needing to click the button */
 let tagAutoTimer=null;
@@ -2925,7 +3018,8 @@ function scheduleAutoTags(){
 });
 function resetPhoto(){pendingPhotos=[];const p=document.getElementById('photoPreview');p.classList.add('hidden');p.innerHTML="";
   document.getElementById('photoMsg').textContent="";document.getElementById('tagMsg').textContent="";document.getElementById('photoInput').value="";
-  const tp=document.getElementById('tagsPreview');if(tp)tp.innerHTML="";clearTimeout(tagAutoTimer);}
+  const tip=document.getElementById('tagsInput');if(tip)tip.value="";
+  setComposeTags([]);clearTimeout(tagAutoTimer);}
 
 let editingPostId=null;
 function openModal(){
@@ -2951,9 +3045,9 @@ function openEditModal(post){
   f.title.value=post.title||"";
   f.desc.value=post.desc||"";
   f.author.value=post.author||currentName()||"";
-  f.tags.value=(post.tags||[]).join(', ');
+  setComposeTags(post.tags||[]);
+  const tip=document.getElementById('tagsInput');if(tip)tip.value="";
   if(f.aff_url)f.aff_url.value=post.aff_url||"";
-  renderTagsPreview();
   if(LOCATION_CATS.includes(post.cat)){
     if(post.pref)f.pref.value=post.pref;
     f.address.value=post.address||"";
@@ -4402,7 +4496,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
   const post={
     cat,title:f.title.value.trim(),spot:f.spot.value.trim(),desc:f.desc.value.trim(),
     author:f.author.value.trim(),likes:0,user_id:session?session.uid:null,
-    tags:f.tags.value.split(',').map(t=>t.trim().replace(/^#+/,'')).filter(Boolean)
+    tags:(composeTags.length?composeTags.slice():(f.tags.value||"").split(',').map(t=>normalizeTag(t)).filter(Boolean)).slice(0,TAG_MAX)
   };
   if(!post.author){alert("投稿者名（ユーザー名）を入力してください。");return;}
   const affRaw=(f.aff_url&&f.aff_url.value||"").trim();
