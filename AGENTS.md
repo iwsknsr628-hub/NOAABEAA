@@ -128,9 +128,9 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - **Googleログインの新規ユーザー**は、表示名＝`ユーザーxxxxxxxx`／@ID＝`user_xxxxxxxx` を**自動付与**（`handleAuthRedirect()` 内）。後からプロフィール編集で変更可。
   - プロフィールの表示名の下に `@ID` を表示。横のコピーボタン（`handleViewHTML()`/`copyHandle()`）でコピー可。
   - @ID 未設定の既存ユーザーには通知タブでナッジ＋赤バッジ＋起動時プロンプト（`needsHandle()` / `maybePromptUsername()`）。
-- **ユーザー名・@IDの変更は10日に1回まで**（`USERNAME_COOLDOWN_DAYS=10` / `usernameCooldownLeft()`）。
-  - 名前 or @ID を変更した時刻を `profiles.username_changed_at` に記録し、10日未満なら保存を拒否。自己紹介/アイコン/SNSリンクは制限なし。
-  - 初回設定・登録時の自動付与はカウントしない（ユーザー自身の最初の変更から起算）。
+- **@ユーザーID（ハンドル）の変更は10日に1回まで**（`USERNAME_COOLDOWN_DAYS=10` / `usernameCooldownLeft()`）。**表示名はいつでも変更可**。
+  - @ID を変更した時刻だけを `profiles.username_changed_at` に記録し、10日未満なら @ID 変更を拒否。表示名・自己紹介/アイコン/SNSリンクは制限なし。
+  - 初回設定・登録時の自動付与はカウントしない（ユーザー自身の最初の @ID 変更から起算）。
 - **要スキーマ**（Supabase → SQL Editor、いずれも安全な冪等 SQL）:
   ```sql
   alter table public.profiles add column if not exists handle text;
