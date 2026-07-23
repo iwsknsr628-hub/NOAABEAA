@@ -1702,13 +1702,20 @@ async function uploadPhoto(file){
   if(!res.ok) throw new Error("photo upload "+res.status);
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${name}`;
 }
-function seedLocal(){POSTS=SEED.map((p,i)=>({id:"seed"+i,ts:Date.now()-i*3600000,...p}));}
+/* ログイン済みユーザーの投稿のみ（デモ／シード／user_id なしは出さない） */
+function isHumanPost(p){
+  if(!p||!p.user_id)return false;
+  if(String(p.id||"").startsWith("seed"))return false;
+  return true;
+}
+function humanPosts(){return POSTS.filter(isHumanPost);}
+function seedLocal(){POSTS=[];} /* オフライン時もデモ投稿は出さない */
 
 async function fetchPosts(){
   if(!SERVER){seedLocal();return;}
   const res=await fetch(`${SUPABASE_URL}/rest/v1/posts?select=*&order=created_at.desc`,{headers:sbHeaders});
   if(!res.ok)throw new Error("load "+res.status);
-  POSTS=(await res.json()).map(mapRow);
+  POSTS=(await res.json()).map(mapRow).filter(isHumanPost);
   await fetchAvatars();
   await loadMyLikes();
 }
@@ -1910,10 +1917,10 @@ function runAssistant(){
   let pref=detectPrefInText(q);
   if(!pref && wantNear && detectedPref) pref=detectedPref;
 
-  // score every post
+  // score every human post（デモ／シードは除外）
   const scores=new Map();
   const words=q.replace(/[、。,.\s]+/g," ").split(" ").filter(w=>w.length>=2);
-  POSTS.forEach(p=>{
+  humanPosts().forEach(p=>{
     let sc=0;
     if(cats.size && cats.has(p.cat)) sc+=4;
     if(genre && p.genre===genre) sc+=4;
@@ -3943,12 +3950,12 @@ function postMatches(p,q){
     .filter(Boolean).join(' ').toLowerCase();
   return hay.includes(raw.toLowerCase());
 }
-/* いいね・新しさ・写真ありを混ぜたおすすめ順 */
+/* いいね・新しさ・写真ありを混ぜたおすすめ順（人間の投稿のみ） */
 function recommendedPosts(excludeIds,limit){
   const lim=limit||12;
   const ex=new Set((excludeIds||[]).map(String));
   const now=Date.now();
-  return [...POSTS]
+  return humanPosts()
     .filter(p=>!ex.has(String(p.id)))
     .map(p=>{
       const ageDays=Math.max(0,(now-(p.ts||0))/864e5);
@@ -3994,7 +4001,7 @@ async function renderSearchResults(){
   const q=(document.getElementById('searchPageInput').value||'').trim();
   let hitIds=[];
   if(q){
-    const list=POSTS.filter(p=>postMatches(p,q));
+    const list=humanPosts().filter(p=>postMatches(p,q));
     hitIds=list.map(p=>p.id);
     if(resultSec)resultSec.style.display="";
     if(title){
