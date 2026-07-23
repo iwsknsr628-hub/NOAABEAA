@@ -1145,14 +1145,18 @@
   <div class="full-page-body">
     <div class="mp-wrap">
       <div class="search-page-bar">
-        <input id="searchPageInput" type="text" placeholder="キーワード / @ユーザーID / 名前で検索" autocomplete="off">
+        <input id="searchPageInput" type="text" placeholder="キーワード / #タグ / @ユーザーID / 名前で検索" autocomplete="off">
       </div>
       <div id="searchUserSec" style="display:none">
         <h3 class="search-sec">アカウント</h3>
         <div class="acct-list" id="searchUserList"></div>
       </div>
-      <h3 id="searchSecTitle" class="search-sec">アクセスの多い投稿</h3>
-      <div class="grid" id="searchGrid" style="gap:14px"></div>
+      <div id="searchResultSec" style="display:none">
+        <h3 id="searchSecTitle" class="search-sec">検索結果</h3>
+        <div class="grid" id="searchGrid" style="gap:14px"></div>
+      </div>
+      <h3 id="searchRecTitle" class="search-sec">おすすめ</h3>
+      <div class="grid" id="searchRecGrid" style="gap:14px"></div>
     </div>
   </div>
 </div>
@@ -2009,37 +2013,14 @@ function tagChipsHTML(tags,limit){
 function searchByTag(tag){
   const t=normalizeTag(tag);if(!t)return;
   try{closePostView();}catch(e){}
-  try{closeSearchPage();}catch(e){}
   try{closeMyPage();}catch(e){}
   try{closeProfileView();}catch(e){}
   try{closeNotifs();}catch(e){}
   try{closeComments();}catch(e){}
-  const search=document.getElementById('search');
-  if(search)search.value="#"+t;
-  const tl=t.toLowerCase();
-  const scores=new Map();
-  POSTS.forEach(p=>{
-    if((p.tags||[]).some(x=>normalizeTag(x).toLowerCase()===tl))scores.set(p.id,10);
-  });
-  ASSIST={scores,mode:"tag",tag:t};
-  curQuery="#"+t;
-  curCat="all";curPref="";curGenre="";
-  filterTouched=true;
-  setChip("all");
-  prefFilter.classList.add("hidden");
-  genreFilter.classList.add("hidden");
-  prefFilter.value="";genreFilter.value="";
-  saveFilters();
-  const found=scores.size;
-  document.getElementById('assistantSay').innerHTML=`タグ <b>#${esc(t)}</b> の投稿を集めました。`;
-  document.getElementById('assistantPicks').innerHTML=found
-    ?`<b>${found}</b> 件見つかりました。別のタグは1つずつタップして探せます。`
-    :`このタグの投稿はまだありません。`;
-  document.getElementById('assistant').classList.add('show');
-  render();
-  const board=document.getElementById('board');
-  if(board)board.scrollIntoView({behavior:'smooth',block:'start'});
-  else window.scrollTo({top:0,behavior:'smooth'});
+  try{closeModal();}catch(e){}
+  const inp=document.getElementById('searchPageInput');
+  if(inp)inp.value="#"+t;
+  openSearchPage({nofocus:true});
 }
 
 /* ---------- populate selects ---------- */
@@ -3938,25 +3919,52 @@ function closeMyPage(){
   document.body.style.overflow="";
 }
 
-/* ---------- 検索ページ（検索＋人気の投稿） ---------- */
-function openSearchPage(){
+/* ---------- 検索ページ（タグ／キーワード／アカウント＋常時おすすめ） ---------- */
+function openSearchPage(opts){
   try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();}catch(e){}
   renderSearchResults();
   document.getElementById('searchPage').classList.add('open');
   document.body.style.overflow="hidden";
-  setTimeout(()=>{try{document.getElementById('searchPageInput').focus();}catch(e){}},120);
+  if(!(opts&&opts.nofocus)){
+    setTimeout(()=>{try{document.getElementById('searchPageInput').focus();}catch(e){}},120);
+  }
 }
 function closeSearchPage(){document.getElementById('searchPage').classList.remove('open');document.body.style.overflow="";}
 function postMatches(p,q){
+  const raw=(q||"").trim();
+  if(!raw)return false;
+  /* #タグ は完全一致（1タグずつ） */
+  const hashTags=[...raw.matchAll(/#([^\s#]+)/g)].map(m=>normalizeTag(m[1])).filter(Boolean);
+  if(hashTags.length && /^#[^\s#]+$/.test(raw.replace(/\s+/g,""))){
+    const tl=hashTags[0].toLowerCase();
+    return (p.tags||[]).some(x=>normalizeTag(x).toLowerCase()===tl);
+  }
   const hay=[p.title,p.spot,p.desc,p.author,p.pref,p.genre,(p.tags||[]).join(' '),CAT_LABEL[p.cat]]
     .filter(Boolean).join(' ').toLowerCase();
-  return hay.includes(q);
+  return hay.includes(raw.toLowerCase());
+}
+/* いいね・新しさ・写真ありを混ぜたおすすめ順 */
+function recommendedPosts(excludeIds,limit){
+  const lim=limit||12;
+  const ex=new Set((excludeIds||[]).map(String));
+  const now=Date.now();
+  return [...POSTS]
+    .filter(p=>!ex.has(String(p.id)))
+    .map(p=>{
+      const ageDays=Math.max(0,(now-(p.ts||0))/864e5);
+      const recency=Math.max(0,30-ageDays)/30;
+      const score=(p.likes||0)*3+recency*10+((p.photos&&p.photos.length)?2:0);
+      return {p,score};
+    })
+    .sort((a,b)=>b.score-a.score||((b.p.ts||0)-(a.p.ts||0)))
+    .slice(0,lim)
+    .map(x=>x.p);
 }
 async function searchAccounts(q){
   if(!SERVER)return [];
   const byHandle=q.startsWith('@');
   const term=byHandle?q.replace(/^@+/,'').toLowerCase():q.toLowerCase();
-  if(!term)return [];
+  if(!term||term.startsWith('#'))return [];
   const v=encodeURIComponent(term);
   const sel="select=user_id,name,handle,avatar_url,bio&limit=20";
   const url=byHandle
@@ -3975,36 +3983,54 @@ function accountRowHTML(u){
 }
 let searchSeq=0,searchDeb=null;
 async function renderSearchResults(){
-  const grid=document.getElementById('searchGrid');if(!grid)return;
+  const grid=document.getElementById('searchGrid');
+  const recGrid=document.getElementById('searchRecGrid');
+  const resultSec=document.getElementById('searchResultSec');
   const title=document.getElementById('searchSecTitle');
+  const recTitle=document.getElementById('searchRecTitle');
   const userSec=document.getElementById('searchUserSec');
   const userList=document.getElementById('searchUserList');
+  if(!recGrid)return;
   const q=(document.getElementById('searchPageInput').value||'').trim();
+  let hitIds=[];
   if(q){
-    const ql=q.toLowerCase();
-    const list=POSTS.filter(p=>postMatches(p,ql));
-    if(title)title.textContent=`「${q}」の投稿（${list.length}）`;
-    grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
-    if(userSec)userSec.style.display="";
-    if(userList)userList.innerHTML='<div class="acct-empty">検索中…</div>';
-    const seq=++searchSeq;
-    const users=await searchAccounts(q);
-    if(seq!==searchSeq)return;
-    if(userList)userList.innerHTML=users.length?users.map(accountRowHTML).join(''):'<div class="acct-empty">該当するアカウントはありません。</div>';
+    const list=POSTS.filter(p=>postMatches(p,q));
+    hitIds=list.map(p=>p.id);
+    if(resultSec)resultSec.style.display="";
+    if(title){
+      const tagOnly=/^#[^\s#]+$/.test(q.replace(/\s+/g,""));
+      title.textContent=tagOnly?`タグ ${q} の投稿（${list.length}）`:`「${q}」の投稿（${list.length}）`;
+    }
+    if(grid)grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
+    const wantAcct=!q.startsWith('#');
+    if(userSec)userSec.style.display=wantAcct?"":"none";
+    if(wantAcct){
+      if(userList)userList.innerHTML='<div class="acct-empty">検索中…</div>';
+      const seq=++searchSeq;
+      const users=await searchAccounts(q);
+      if(seq!==searchSeq)return;
+      if(userList)userList.innerHTML=users.length?users.map(accountRowHTML).join(''):'<div class="acct-empty">該当するアカウントはありません。</div>';
+    }else{
+      ++searchSeq;
+      if(userList)userList.innerHTML="";
+    }
   }else{
     ++searchSeq;
+    if(resultSec)resultSec.style.display="none";
+    if(grid)grid.innerHTML="";
     if(userSec)userSec.style.display="none";
     if(userList)userList.innerHTML="";
-    const list=[...POSTS].sort((a,b)=>(b.likes||0)-(a.likes||0)).slice(0,20);
-    if(title)title.textContent="アクセスの多い投稿";
-    grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
   }
+  const recs=recommendedPosts(hitIds,12);
+  if(recTitle)recTitle.textContent=q?"ほかのおすすめ":"おすすめ";
+  recGrid.innerHTML=recs.length?recs.map(cardHTML).join(''):'<div class="empty">まだおすすめできる投稿がありません。</div>';
 }
 (function(){
   const inp=document.getElementById('searchPageInput');
   if(inp)inp.addEventListener('input',()=>{clearTimeout(searchDeb);searchDeb=setTimeout(renderSearchResults,220);});
 })();
 document.getElementById('searchGrid').addEventListener('click',e=>{handleCardInteractions(e,renderSearchResults);});
+document.getElementById('searchRecGrid').addEventListener('click',e=>{handleCardInteractions(e,renderSearchResults);});
 document.getElementById('searchUserList').addEventListener('click',e=>{
   const row=e.target.closest('.acct-row');
   if(row)openProfileView(row.dataset.uid,row.dataset.name);
