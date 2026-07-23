@@ -164,6 +164,17 @@
 
   /* GRID */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+  /* 同一店舗の投稿だけ横スクロール（それ以外のカードは通常グリッド） */
+  .place-rail{grid-column:1/-1;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .place-rail-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:0 2px}
+  .place-rail-label{font-size:.72rem;font-weight:800;color:var(--accent);background:#fff5f0;
+    border:1px solid #f3d6bf;border-radius:999px;padding:3px 10px;letter-spacing:.02em}
+  .place-rail-head b{font-size:.95rem;font-weight:900;color:var(--ink)}
+  .place-rail-count{font-size:.78rem;color:var(--ink-soft);font-weight:700}
+  .place-rail-scroll{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .place-rail-scroll .card{flex:0 0 min(280px,78vw);scroll-snap-align:start;max-width:min(280px,78vw)}
+  .place-rail-scroll .card:hover{transform:translateY(-3px)}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;
     box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:6px;
     position:relative;overflow:hidden}
@@ -608,6 +619,8 @@
   /* mobile: 2 columns, compact */
   @media(max-width:640px){
     .grid{grid-template-columns:1fr 1fr;gap:11px}
+    .place-rail-scroll{gap:10px;padding-bottom:8px}
+    .place-rail-scroll .card{flex-basis:min(260px,82vw);max-width:min(260px,82vw)}
     .card{padding:12px 11px;border-radius:15px;gap:7px}
     .card::before{height:4px}
     .card h3{font-size:.95rem;line-height:1.35}
@@ -2055,6 +2068,67 @@ function matches(p){
   return true;
 }
 function orderVal(p){ return p.loc && userLoc ? distKm(userLoc,p.loc) : Infinity; }
+/* 同一店舗判定用の正規化（全角半角・空白・郵便番号・階数などを揃える） */
+function normPlaceText(s){
+  return String(s||"")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s　]/g,"")
+    .replace(/[ー−–—―ｰ]/g,"ー")
+    .replace(/[、。,.・･]/g,"")
+    .replace(/〒?\d{3}-?\d{4}/g,"");
+}
+/* 場所系カテゴリのみ。住所一致 / 座標が近い / 店名＋県（または近傍）で同一店舗とみなす */
+function samePlace(a,b){
+  if(!a||!b||a.id===b.id)return false;
+  if(!LOCATION_CATS.includes(a.cat)||!LOCATION_CATS.includes(b.cat))return false;
+  const aa=normPlaceText(a.address), bb=normPlaceText(b.address);
+  if(aa&&bb&&aa.length>=6&&(aa===bb||(aa.length>=10&&bb.length>=10&&(aa.includes(bb)||bb.includes(aa)))))return true;
+  if(a.loc&&b.loc&&distKm(a.loc,b.loc)<=0.08)return true; /* 約80m以内 */
+  const sa=normPlaceText(a.spot), sb=normPlaceText(b.spot);
+  if(sa&&sb&&sa.length>=2&&sa===sb){
+    if(a.pref&&b.pref&&a.pref===b.pref)return true;
+    if(a.loc&&b.loc&&distKm(a.loc,b.loc)<=0.5)return true; /* 同名・約500m以内 */
+  }
+  return false;
+}
+/* フィード順を保ったまま同一店舗をまとめる。2件以上だけグループ化、単独はそのまま */
+function clusterPlaceFeed(list){
+  const n=list.length;
+  const parent=Array.from({length:n},(_,i)=>i);
+  function find(i){return parent[i]===i?i:(parent[i]=find(parent[i]));}
+  function uni(i,j){i=find(i);j=find(j);if(i!==j)parent[j]=i;}
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(samePlace(list[i],list[j]))uni(i,j);
+    }
+  }
+  const buckets=new Map();
+  const order=[];
+  list.forEach((p,i)=>{
+    const r=find(i);
+    if(!buckets.has(r)){buckets.set(r,[]);order.push(r);}
+    buckets.get(r).push(p);
+  });
+  return order.map(r=>{
+    const posts=buckets.get(r);
+    if(posts.length>=2)return {type:"place",posts};
+    return {type:"single",post:posts[0]};
+  });
+}
+function placeRailHTML(posts){
+  const spot=(posts.find(p=>p.spot&&p.spot.trim())||posts[0]).spot||"同じ場所";
+  const pref=(posts.find(p=>p.pref)||{}).pref||"";
+  return `<div class="place-rail">
+    <div class="place-rail-head">
+      <span class="place-rail-label">同じ場所</span>
+      <b>${esc(spot)}</b>
+      ${pref?`<span class="place-rail-count">${esc(pref)}</span>`:""}
+      <span class="place-rail-count">${posts.length}件</span>
+    </div>
+    <div class="place-rail-scroll">${posts.map(cardHTML).join("")}</div>
+  </div>`;
+}
 function render(){
   const keepY=window.scrollY;
   let list=POSTS.filter(matches);
@@ -2074,10 +2148,12 @@ function render(){
     if(Math.abs(window.scrollY-keepY)>1)window.scrollTo(0,keepY);
     return;
   }
+  const units=clusterPlaceFeed(list);
   const html=[];
   let slotIdx=0;
-  list.forEach((p,i)=>{
-    html.push(cardHTML(p));
+  units.forEach((u,i)=>{
+    if(u.type==="place")html.push(placeRailHTML(u.posts));
+    else html.push(cardHTML(u.post));
     if((i+1)%6===0){const ad=slotHTMLForIndex(slotIdx);if(ad){html.push(ad);slotIdx++;}}
   });
   grid.innerHTML=html.join('');
