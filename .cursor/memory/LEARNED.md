@@ -105,6 +105,7 @@
 ## 追記ログ（新しい判断は下に足す）
 
 ### 2026-07-23
+- ストア申請準備: `privacy.html` 公開URL、Capacitor Android（`com.nanshiyo.app`）、`npm run cap:android`。Play Console 登録はユーザー作業。iOS は Mac 後回し。
 - ログイン済みユーザー投稿以外はサイト全体で非表示（`fetchPosts` で `user_id` 必須）。デモ SEED もオフライン時に出さない。DBの `user_id is null` 物理削除は**将来候補**（今はしない。やるときは select 確認→明示承認→delete）。
 - 検索・おすすめは人間の投稿のみ（`user_id` あり）。デモ／シードは除外。
 - タグタップ → 検索ページ（さがす）へ遷移。検索ページには常時「おすすめ」欄（`searchRecGrid`）。ホーム ASSIST でのタグ絞り込みは廃止。

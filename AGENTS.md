@@ -241,20 +241,47 @@ support@nanshiyo.com
 
 **システムメール（Supabase Auth）**: 登録確認・パスワード再設定テンプレも日本語化済み。冒頭に「なんしよ運営事務局です。」、末尾に「いつもご利用いただき、ありがとうございます。／なんしよ運営事務局」を入れる方針。
 
-## アプリ化（PWA）
+## アプリ化（PWA → ストア）
 
-- **現状: PWA 対応済み**（ストア未着手。将来 Capacitor）。
+### 現状
+- **PWA 対応済み**（ホーム画面追加）。インストール誘導バナーは出さない。
+- **Capacitor Android 骨格あり**（ストア申請の準備段階）。iOS は Mac + Apple Developer が必要なため後回し可。
 - ファイル:
-  - [`manifest.webmanifest`](manifest.webmanifest) — `standalone` / theme `#FF5F4E`
-  - [`sw.js`](sw.js) — network-first。Supabase・地図・CDN API はキャッシュしない。キャッシュ名 `nanshiyo-pwa-v1`
-  - [`icons/`](icons/) — `icon-192.png` / `icon-512.png` / `apple-touch-icon.png` / `icon.svg`
-- [`index.html`](index.html) で manifest・apple-touch-icon・`serviceWorker.register('/sw.js')`
-- 使い方: Android Chrome はインストール可。iOS Safari は共有 →「ホーム画面に追加」。インストール誘導バナーは出さない。
-- 予備 URL（`iwsknsr628-hub.github.io/NOAABEAA/`）ではルート相対 `/sw.js` がリポジトリルートとずれる場合あり。本番は `https://nanshiyo.com` 基準。
+  - PWA: `manifest.webmanifest` / `sw.js` / `icons/`
+  - ストア用公開ポリシー: **https://nanshiyo.com/privacy.html**（`privacy.html`）
+  - Capacitor: `package.json` / `capacitor.config.json`（appId `com.nanshiyo.app`）/ `scripts/sync-www.mjs` / `android/`
+  - `www/` はビルド成果物（gitignore）。`npm run sync:www` で静的ファイルをコピー。
+
+### ローカルで Android を開く（開発）
+```bash
+# 証明書エラーが出る環境では: $env:NODE_OPTIONS="--use-system-ca"
+npm install
+npm run cap:android   # sync + Android Studio を開く
+```
+前提: [Android Studio](https://developer.android.com/studio) と JDK。実機またはエミュレータで Run。
+
+### Google Play 申請（あなたがやること）
+1. **Google Play Console** に登録（初回約 $25 / 一度きり）: https://play.google.com/console  
+2. アプリを新規作成（名前「なんしよ？」、デフォルト言語 日本語）
+3. **プライバシーポリシー URL**: `https://nanshiyo.com/privacy.html`
+4. ストア掲載情報（短い説明・詳しい説明・スクリーンショット・アイコン 512）
+5. Android Studio で **Build → Generate Signed Bundle / APK → Android App Bundle (.aab)**  
+   - 署名キー（keystore）は**リポジトリに置かない**（ローカル保管＋バックアップ）
+6. Play Console へ aab をアップロード → コンテンツのレーティング → 公開（内部テスト → 本番）
+7. 審査・反映は数時間〜数日かかることがある
+
+### App Store（iOS・将来）
+- Apple Developer Program（年額約 $99）と **Mac** が必要
+- `npx cap add ios` → Xcode で Archive → App Store Connect
+- 同じプライバシーポリシー URL を使用
+
+### 方針メモ
+- アプリは `www/` に同梱した Web を開き、データは本番 Supabase（＝サイトと同じ）。サイト更新後は `npm run cap:sync` してストア用ビルドを作り直す。
+- 単純な「サイトを WebView で包んだだけ」は審査で弾かれやすい。実機で通知・共有・スプラッシュ等のネイティブ感を足していくのが望ましい（今後）。
 
 ## 今後の予定（参考）
 
-- アプリ化 Step2: Capacitor で App Store / Google Play
+- アプリ: Play 申請完了 → 必要なら iOS / プッシュ通知
 - 決済: **Supabase Edge Functions** で実装予定（GitHub Pages は静的のみ）
 - 運営系の機密: `profiles_admin` / `login_events` は RLS＋REVOKE 済み（`supabase/admin_rpc.sql`）。
 - **コア RLS（適用必須）**: `supabase/core_rls.sql`

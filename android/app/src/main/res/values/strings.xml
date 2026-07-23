@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">なんしよ？</string>
+    <string name="title_activity_main">なんしよ？</string>
+    <string name="package_name">com.nanshiyo.app</string>
+    <string name="custom_url_scheme">com.nanshiyo.app</string>
+</resources>

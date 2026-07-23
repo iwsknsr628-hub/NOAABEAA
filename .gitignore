@@ -1,3 +1,12 @@
 ﻿.DS_Store
 node_modules/
 .env
+www/
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+android/local.properties
+*.keystore
+*.jks
+google-services.json
