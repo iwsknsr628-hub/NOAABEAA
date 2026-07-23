@@ -33,7 +33,8 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - 運営管理: **https://nanshiyo.com/admin.html**（`noindex`・運営メールのみログイン可）
 - 予備URL: https://iwsknsr628-hub.github.io/NOAABEAA/
 - ローカル作業フォルダ: `C:\Users\iwskn\Projects\nanshiyo`
-- **SEO（最低限）**: `robots.txt`（`/admin.html` 除外）・`sitemap.xml`（当面トップのみ）・`index.html` に canonical / OGP / twitter:card。og:image は `https://nanshiyo.com/icons/icon-512.png`。Google Search Console は DNS 所有権確認（別途）。
+- **SEO（最低限）**: `robots.txt`（`/admin.html` 除外）・`sitemap.xml`（当面トップのみ）・`index.html` に canonical / OGP / twitter:card。og:image は `https://nanshiyo.com/icons/icon-512.png`。
+- **Google Search Console**: ドメインプロパティ `nanshiyo.com` の所有権確認済み（DNS TXT `google-site-verification=…`）。サイトマップ `https://nanshiyo.com/sitemap.xml` 送信済み（成功・検出ページ1）。掲載反映は数日〜数週間かかることがある。確認: Googleで `site:nanshiyo.com`。
 
 ## 作業ルール
 
