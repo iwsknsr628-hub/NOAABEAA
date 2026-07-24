@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>NOAABEAR 名刺デザイン</title>
+<style>
+  @page {
+    size: 91mm 55mm;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+    -webkit-print-color-adjust: exact;
+  }
+  .card {
+    width: 91mm;
+    height: 55mm;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  /* 表面スタイル */
+  .front {
+    background-color: #0B0F19;
+    color: #FFFFFF;
+    padding: 6mm 7mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .front-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-img {
+    height: 22px;
+  }
+  .company-name {
+    font-size: 16pt;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    background: linear-gradient(135deg, #00E5FF, #2979FF, #7C4DFF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .front-info {
+    text-align: right;
+  }
+  .title {
+    font-size: 7pt;
+    color: #00E5FF;
+    letter-spacing: 1px;
+    margin-bottom: 1mm;
+  }
+  .name {
+    font-size: 13pt;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 3mm;
+  }
+  .details {
+    font-size: 6.5pt;
+    line-height: 1.5;
+    color: #CBD5E1;
+  }
+
+  /* 裏面スタイル */
+  .back {
+    background-color: #FFFFFF;
+    color: #1E293B;
+    padding: 6mm 7mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .back-left {
+    width: 58%;
+  }
+  .app-title {
+    font-size: 8pt;
+    font-weight: bold;
+    color: #0F172A;
+    border-left: 3px solid #FF5722;
+    padding-left: 5px;
+    margin-bottom: 2mm;
+    line-height: 1.3;
+  }
+  .app-desc {
+    font-size: 5.8pt;
+    line-height: 1.5;
+    color: #475569;
+  }
+  .app-desc li {
+    margin-bottom: 1.5mm;
+    list-style: none;
+    position: relative;
+    padding-left: 8px;
+  }
+  .app-desc li::before {
+    content: "•";
+    color: #FF5722;
+    position: absolute;
+    left: 0;
+  }
+  .back-right {
+    width: 38%;
+    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .qr-img {
+    width: 100%;
+    max-width: 32mm;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+  <!-- 表面 -->
+  <div class="card front">
+    <div class="front-header">
+      <!-- ※画像パスを適宜指定してください -->
+      <span class="company-name">NOAABEAR</span>
+    </div>
+    <div class="front-info">
+      <div class="title">代表</div>
+      <div class="name">岩佐 健志朗</div>
+      <div class="details">
+        TEL: 070-4731-0208<br>
+        MAIL: iwsknsr628@gmail.com<br>
+        〒301-0854 茨城県龍ケ崎市小通幸谷町439-5 リヴェール202
+      </div>
+    </div>
+  </div>
+
+  <!-- 裏面 -->
+  <div class="card back">
+    <div class="back-left">
+      <div class="app-title">「今日、何する？何食べる？」<br>を解決するスポット検索アプリ</div>
+      <ul class="app-desc" style="padding-left: 0; margin: 0;">
+        <li>日常・旅行・出張先の「何しよう」「何食べよう」を即解決</li>
+        <li>近場でおすすめの美容サロンや癒やしスポットもカンタン検索</li>
+      </ul>
+    </div>
+    <div class="back-right">
+      <!-- QRコード: https://nanshiyo.com へのリンク -->
+      <img src="qr_code.png" class="qr-img" alt="QR Code">
+    </div>
+  </div>
+
+</body>
+</html>
