@@ -475,19 +475,43 @@
   .pv-filters .chip{flex:0 0 auto;border:1px solid #E0E0E0;background:#fff;color:#111;padding:8px 14px;
     border-radius:999px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
   .pv-filters .chip.active{background:#111;color:#fff;border-color:#111}
-  #pvPostsSec{margin-left:-16px;margin-right:-16px}
-  .pv-grid2{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:0}
-  .pv-grid2 .empty{grid-column:1/-1;padding:36px 16px;margin:0;color:#666;text-align:center;font-size:.88rem;font-weight:700}
-  .pv-card{position:relative;border:none;padding:0;font-family:inherit;text-align:left;color:inherit;
-    background:transparent;border-radius:0;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .pv-card-media{position:relative;aspect-ratio:1;border-radius:0;overflow:hidden;background:#F0F0F0}
-  .pv-card img{width:100%;height:100%;object-fit:cover;display:block}
+  #pvPostsSec{margin-left:0;margin-right:0;padding:0 16px}
+  .pv-grid2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0}
+  .pv-grid2 .empty{grid-column:1/-1;padding:36px 8px;margin:0;color:#666;text-align:center;font-size:.88rem;font-weight:700}
+  .pv-card{position:relative;border:none;padding:0;font-family:inherit;text-align:left;color:#fff;
+    background:transparent;border-radius:12px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;
+    display:block;width:100%}
+  .pv-card:active{opacity:.92}
+  .pv-card-media{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:#1a1a1a}
+  .pv-card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
   .pv-card .pv-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-    padding:8px;text-align:center;font-size:.62rem;font-weight:700;color:#666;line-height:1.35;background:#F0F0F0}
-  .pv-card-multi{position:absolute;top:6px;right:6px;z-index:2;width:18px;height:18px;color:#fff;
-    filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
-  .pv-card-multi svg{width:18px;height:18px;display:block}
-  .pv-more{display:flex;width:calc(100% - 32px);align-items:center;justify-content:center;gap:6px;margin:12px 16px 0;
+    padding:10px 8px;text-align:center;font-size:.62rem;font-weight:700;color:#ccc;line-height:1.35;
+    background:linear-gradient(160deg,#2a2a2a,#1a1a1a)}
+  .pv-card-media::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,.28) 0%,transparent 28%,transparent 48%,rgba(0,0,0,.55) 100%)}
+  .pv-card-cat{position:absolute;top:7px;left:7px;z-index:2;max-width:calc(100% - 36px);
+    background:rgba(20,20,20,.48);color:#fff;font-size:.58rem;font-weight:800;letter-spacing:.02em;
+    padding:3px 8px;border-radius:999px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  .pv-card-save{position:absolute;top:6px;right:6px;z-index:3;width:28px;height:28px;border:none;padding:0;
+    background:transparent;color:#fff;cursor:pointer;display:grid;place-items:center;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.45));-webkit-tap-highlight-color:transparent}
+  .pv-card-save svg{width:16px;height:16px;display:block}
+  .pv-card-save.saved{color:#FF6A00}
+  .pv-card-foot{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:flex-end;
+    justify-content:space-between;gap:6px;padding:10px 8px 8px;pointer-events:none}
+  .pv-card-meta{min-width:0;flex:1}
+  .pv-card-title{font-size:.68rem;font-weight:900;line-height:1.25;color:#fff;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+    text-shadow:0 1px 3px rgba(0,0,0,.45)}
+  .pv-card-loc{display:flex;align-items:center;gap:3px;margin-top:3px;font-size:.52rem;font-weight:700;
+    color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-shadow:0 1px 2px rgba(0,0,0,.4)}
+  .pv-card-loc svg{width:9px;height:9px;flex:0 0 auto;opacity:.95}
+  .pv-card-likes{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;font-size:.58rem;font-weight:800;
+    color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);padding-bottom:1px}
+  .pv-card-likes svg{width:11px;height:11px;display:block}
+  .pv-more{display:flex;width:100%;align-items:center;justify-content:center;gap:6px;margin:12px 0 0;
     border:1px solid #E0E0E0;background:#fff;color:#111;font-family:inherit;font-weight:800;font-size:.86rem;
     padding:12px;border-radius:12px;cursor:pointer}
   .pv-more[hidden]{display:none!important}
@@ -2609,6 +2633,7 @@ function render(){
   countEl.innerHTML=`<b>${list.length}</b> 件のおすすめ${mode?` ・ ${mode}`:""}`;
   if(!list.length){
     grid.innerHTML=`<div class="empty">該当する投稿がまだありません。<br>あなたが最初のおすすめを投稿してみませんか？</div>`;
+    renderNewRail();
     if(Math.abs(window.scrollY-keepY)>1)window.scrollTo(0,keepY);
     return;
   }
@@ -2692,7 +2717,7 @@ function mapLinks(p){
   const google="https://www.google.com/maps/search/?api=1&query="+gq;
   return {google, yahoo, apple, googleDir, yahooDir, appleDir};
 }
-function mapPref(){try{return localStorage.getItem('nanshiyo_map_pref')||'google';}catch(e){return 'google';}
+function mapPref(){try{return localStorage.getItem('nanshiyo_map_pref')||'google';}catch(e){return 'google';}}
 function preferredMapView(p){
   const ml=mapLinks(p);const pref=mapPref();
   return ml[pref]||ml.google;
@@ -5106,7 +5131,7 @@ function clipText(s,n){
   return t.length>n?t.slice(0,n)+"…":t;
 }
 function pvCardCatLabel(p){
-  const map={travel:"おでかけ",fun:"おでかけ",food:"グルメ",drink:"カフェ",beauty:"美容",study:"勉強",life:"まったり",finance:"お金"};
+  const map={travel:"遊び",fun:"遊び",food:"グルメ",drink:"カフェ",beauty:"美容",study:"勉強",life:"まったり",finance:"お金"};
   return map[p.cat]||(CAT_LABEL[p.cat]||"投稿");
 }
 function pvCardLocLabel(p){
@@ -5117,18 +5142,33 @@ function pvCardLocLabel(p){
   if(p.pref)return String(p.pref).replace(/(都|道|府|県)$/,"");
   return "";
 }
+const PV_SAVE_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.2l-6.5-3.4L5.5 20.2V5A1.5 1.5 0 0 1 7 3.5z"/></svg>`;
+const PV_SAVE_ON_SVG=`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 3.5h10A1.5 1.5 0 0 1 18.5 5v15.2l-6.5-3.4L5.5 20.2V5A1.5 1.5 0 0 1 7 3.5z"/></svg>`;
+const PV_PIN_SVG=`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>`;
+const PV_HEART_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"/></svg>`;
 function pvCardHTML(p){
   const photos=p.photos||[];
   const cover=photos[0]||"";
   const title=p.title||p.spot||"";
   const body=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
     :`<span class="pv-ph">${esc(clipText(title,16)||CAT_LABEL[p.cat]||"投稿")}</span>`;
-  const multi=photos.length>1
-    ?`<span class="pv-card-multi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h12a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V6zm4-2h12a2 2 0 0 1 2 2v10h-2V6a2 2 0 0 0-2-2H8V4z"/></svg></span>`
-    :"";
-  return `<button type="button" class="pv-card ig-thumb" data-id="${esc(String(p.id))}" title="${esc(title)}">
-    <div class="pv-card-media">${body}${multi}</div>
-  </button>`;
+  const saved=MYSAVES.has(String(p.id));
+  const loc=pvCardLocLabel(p);
+  const likes=Number(p.likes||0).toLocaleString("ja-JP");
+  return `<div class="pv-card ig-thumb" data-id="${esc(String(p.id))}" title="${esc(title)}" role="button" tabindex="0">
+    <div class="pv-card-media">
+      ${body}
+      <span class="pv-card-cat">${esc(pvCardCatLabel(p))}</span>
+      <button type="button" class="pv-card-save save${saved?" saved":""}" data-id="${esc(String(p.id))}" title="保存" aria-label="保存">${saved?PV_SAVE_ON_SVG:PV_SAVE_SVG}</button>
+      <div class="pv-card-foot">
+        <div class="pv-card-meta">
+          <div class="pv-card-title">${esc(clipText(title,28))}</div>
+          ${loc?`<div class="pv-card-loc">${PV_PIN_SVG}<span>${esc(loc)}</span></div>`:""}
+        </div>
+        <span class="pv-card-likes">${PV_HEART_SVG}${likes}</span>
+      </div>
+    </div>
+  </div>`;
 }
 function renderPvPosts(userId){
   const grid=document.getElementById('pvPostsGrid');
@@ -5370,11 +5410,11 @@ window.addEventListener("popstate",()=>{
     if(page&&page.classList.contains('open'))closeProfileView({fromPop:true});
   }
 });
-/* プロフィール投稿グリッド：サムネタップで詳細 */
+/* プロフィール投稿グリッド：保存は先に処理、それ以外はサムネタップで詳細 */
 document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
+  if(await handleCardInteractions(e,renderPvPostsCurrent))return;
   const thumb=e.target.closest('.ig-thumb');
   if(thumb&&thumb.dataset.id){openPostView(thumb.dataset.id);return;}
-  if(handleCardInteractions(e,renderPvPostsCurrent))return;
 });
 function renderPvPostsCurrent(){if(pvUserId)renderPvPosts(pvUserId);}
 
