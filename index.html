@@ -712,57 +712,87 @@
   .notif-tx{min-width:0;flex:1}
   .notif-tx .t{font-size:.9rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
   .notif-tx .w{font-size:.74rem;color:var(--ink-soft);margin-top:2px}
-  #postViewBg .modal{max-width:560px;padding:0;overflow:hidden;touch-action:pan-y;will-change:transform}
-  .pd-scroll{max-height:90vh;overflow-y:auto;padding:0 0 22px;overscroll-behavior:contain}
-  /* 投稿詳細画像: Instagram風 — 全体が見える contain、高さは画面の約半分まで（4:5上限） */
+  #postViewBg .modal{max-width:480px;width:min(480px,100%);max-height:96vh;padding:0;overflow:hidden;
+    touch-action:pan-y;will-change:transform;display:flex;flex-direction:column;border-radius:20px;background:#fff}
+  #postViewBg .close{display:none}
+  .pd-scroll{flex:1;min-height:0;overflow-y:auto;padding:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .pd-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.85));backdrop-filter:blur(8px)}
+  .pd-back,.pd-ico{width:36px;height:36px;border:none;border-radius:50%;background:rgba(255,255,255,.92);
+    box-shadow:0 1px 4px rgba(0,0,0,.08);display:grid;place-items:center;cursor:pointer;color:#111;padding:0}
+  .pd-back{font-size:1.15rem;font-weight:700}
+  .pd-top-right{display:flex;gap:8px}
+  .pd-ico svg{width:18px;height:18px;display:block}
   .pd-gallery{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;background:#111;position:relative}
   .pd-gallery::-webkit-scrollbar{display:none}
-  .pd-gallery img{flex:0 0 100%;width:100%;height:min(56vh,420px);max-height:min(56vh,420px);
-    object-fit:contain;object-position:center;display:block;cursor:zoom-in;scroll-snap-align:start;background:#111}
+  .pd-gallery img{flex:0 0 100%;width:100%;height:min(48vh,360px);max-height:min(48vh,360px);
+    object-fit:cover;object-position:center;display:block;cursor:zoom-in;scroll-snap-align:start;background:#1a1a1a}
   .pd-gallery.g1{overflow:hidden}
-  .pd-dots{display:flex;justify-content:center;gap:5px;padding:8px 0 0;margin:0}
-  .pd-dots[hidden]{display:none!important}
-  .pd-dot{width:6px;height:6px;border-radius:50%;background:#D0D0D0;border:none;padding:0;cursor:pointer}
-  .pd-dot.on{background:#111}
-  .pd-body{padding:16px 20px 0}
-  #postViewBg .close{z-index:2;background:rgba(255,255,255,.9);border-radius:50%;width:34px;height:34px}
-  #postViewBg.pd-swiping .close{pointer-events:none}
-  .pd-body h2{font-size:1.35rem;font-weight:900;margin:8px 0 2px;line-height:1.3}
-  .pd-body .spot{color:var(--accent);font-weight:800;font-size:.95rem;margin-bottom:6px}
-  .pd-body .addr{font-size:.86rem;color:var(--ink-soft);margin-bottom:10px}
-  .pd-desc{font-size:.98rem;line-height:1.85;white-space:pre-wrap;margin:12px 0}
-  .pd-author{display:flex;align-items:center;gap:10px;margin:16px 0 4px;padding:12px 0;border-top:1px solid var(--line)}
-  .pd-author .mini-av{width:38px;height:38px;font-size:1.1rem}
-  .pd-author .nm{font-weight:800;cursor:pointer;white-space:nowrap}
+  .pd-page{position:absolute;top:12px;right:12px;z-index:2;background:rgba(17,17,17,.55);color:#fff;
+    font-size:.72rem;font-weight:800;padding:4px 10px;border-radius:999px;pointer-events:none}
+  .pd-dots{display:none}
+  .pd-body{padding:16px 18px 12px}
+  .pd-body h2{font-size:1.28rem;font-weight:900;margin:0 0 12px;line-height:1.35;color:#111}
+  .pd-author{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:0;border:none}
+  .pd-author .mini-av{width:40px;height:40px;font-size:1.1rem;flex:0 0 40px}
+  .pd-author-tx{flex:1;min-width:0}
+  .pd-author .nm{font-weight:800;cursor:pointer;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pd-author .nm:hover{color:var(--accent)}
-  .pd-actions{display:flex;gap:18px;align-items:center;margin-top:6px;font-size:.95rem;flex-wrap:wrap}
-  .pd-actions>span{cursor:pointer;user-select:none;color:var(--ink-soft);font-weight:700}
-  .pd-actions>span:hover{color:var(--accent)}
-  .pd-actions>span.del-btn{color:#c0392b}
-  .pd-actions>span.del-btn:hover{color:#a93226}
-  .pd-actions .share-btn,.card .share-btn{display:inline-flex;align-items:center;gap:4px}
-  .pd-actions .share-btn svg,.card .share-btn svg,.head-icon-btn.share-ic svg{display:block;width:18px;height:18px}
-  .head-icon-btn.share-ic{width:34px;padding:0}
-  .pd-body .card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .pd-body .maps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
-  .pd-body .maps-label{font-size:.8rem;color:var(--ink-soft);font-weight:700}
-  .pd-body .maps-btn{font-size:.82rem;font-weight:800;text-decoration:none;padding:6px 13px;border-radius:999px;
-    border:1px solid var(--line);transition:transform .15s,box-shadow .2s}
-  .pd-body .maps-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
-  .pd-body .maps-btn.g{color:#1a73e8;background:#eaf1fe;border-color:#d3e3fd}
-  .pd-body .maps-btn.y{color:#e8322f;background:#fdeceb;border-color:#f8d3d1}
-  .pd-body .maps-btn.a{color:#444;background:#f1f1f3;border-color:#e2e2e6}
-  .pd-likers{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .pd-author .sub{font-size:.75rem;color:#888;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pd-follow{flex:0 0 auto;border:1.5px solid #111;background:#fff;color:#111;border-radius:999px;
+    font-family:inherit;font-weight:800;font-size:.78rem;padding:7px 14px;cursor:pointer}
+  .pd-follow.on{background:#111;color:#fff}
+  .pd-desc{font-size:.95rem;line-height:1.75;white-space:pre-wrap;margin:0 0 14px;color:#333}
+  .pd-info{display:flex;flex-direction:column;gap:10px;margin:0 0 14px}
+  .pd-info-row{display:flex;align-items:center;gap:10px;font-size:.9rem;font-weight:700;color:#333;line-height:1.4}
+  .pd-info-ic{flex:0 0 28px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+  .pd-info-ic svg{width:15px;height:15px;display:block}
+  .pd-info-ic.loc{color:#F071A5;background:rgba(240,113,165,.12)}
+  .pd-info-ic.hours{color:#FF8A3D;background:rgba(255,138,61,.12)}
+  .pd-info-ic.budget{color:#C48A3A;background:rgba(196,138,58,.12)}
+  .pd-map-wrap{position:relative;border-radius:14px;overflow:hidden;height:160px;margin:0 0 14px;background:#E8EEF5;border:1px solid #E5E5E5}
+  .pd-map{width:100%;height:100%}
+  .pd-map-open{position:absolute;right:10px;bottom:10px;z-index:400;display:inline-flex;align-items:center;gap:5px;
+    background:#fff;border:1px solid #E5E5E5;border-radius:999px;padding:7px 12px;font-size:.78rem;font-weight:800;
+    color:#111;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .pd-map-open svg{width:14px;height:14px}
+  .pd-foot{flex:0 0 auto;display:grid;grid-template-columns:1fr 1.15fr;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+    border-top:1px solid #EEE;background:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.04)}
+  .pd-foot-save{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    min-height:56px;border-radius:14px;border:1.5px solid #E0E0E0;background:#fff;cursor:pointer;
+    font-family:inherit;color:#111;padding:8px}
+  .pd-foot-save .t{display:inline-flex;align-items:center;gap:5px;font-weight:800;font-size:.9rem}
+  .pd-foot-save .t svg{width:16px;height:16px;color:#E0245E}
+  .pd-foot-save .n{font-size:.72rem;font-weight:700;color:#FF6A00}
+  .pd-foot-save.saved{border-color:#FFB4C4;background:#FFF5F7}
+  .pd-foot-save.saved .t{color:#E0245E}
+  .pd-foot-want{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    min-height:56px;border-radius:14px;border:none;background:#FF6A00;color:#fff;text-decoration:none;
+    font-family:inherit;padding:8px;box-shadow:0 6px 16px rgba(255,106,0,.28)}
+  .pd-foot-want .t{display:inline-flex;align-items:center;gap:5px;font-weight:900;font-size:.95rem}
+  .pd-foot-want .s{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;opacity:.92}
+  .pd-foot-want svg{width:16px;height:16px;display:block}
+  .pd-more-menu{position:absolute;right:12px;top:52px;z-index:6;background:#fff;border:1px solid #E8E8E8;
+    border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:160px;padding:6px;display:none}
+  .pd-more-menu.open{display:block}
+  .pd-more-menu button{display:block;width:100%;text-align:left;border:none;background:#fff;font-family:inherit;
+    font-weight:700;font-size:.9rem;padding:11px 12px;border-radius:8px;cursor:pointer;color:#111}
+  .pd-more-menu button:hover{background:#F7F7F7}
+  .pd-more-menu button.danger{color:#c0392b}
+  .pd-actions{display:none}
+  .pd-likers{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
   .pd-likers-h{font-size:.78rem;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
   .pd-likers-b{display:flex;flex-wrap:wrap;gap:8px}
   .pd-liker{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;
     border-radius:999px;padding:4px 10px 4px 4px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink)}
   .pd-liker:hover{border-color:var(--accent);background:var(--bg2)}
   .pd-likers-empty{font-size:.82rem;color:var(--ink-soft)}
-  .pd-body .aff-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px}
-  .pd-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .pd-body .aff-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .pd-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .pd-body .tags .tag-link{font-size:.75rem}
+  .pd-body .card-top{display:none}
+  .pd-go-row,.pd-meta,.pd-body .maps-row,.pd-body .spot,.pd-body .addr{display:none!important}
 
   /* mobile: 1カラムフィード、余白をさらに詰める */
   @media(max-width:640px){
@@ -1134,6 +1164,20 @@
           padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--ink)">地図でピンを打つ</button>
         <span id="pinMsg" style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:6px"></span>
       </div>
+      <div class="field" id="placeMetaField">
+        <label>営業時間（任意）</label>
+        <input type="text" name="hours" id="hoursInput" maxlength="200" placeholder="例: 11:00–22:00（月曜定休）／場所を選ぶと自動で入ることがあります">
+        <label style="margin-top:12px">だいたいの予算（任意）</label>
+        <input type="text" name="budget" id="budgetInput" maxlength="40" list="budgetSuggest" placeholder="例: ¥1,000〜¥2,000 / ランチ ¥1,500">
+        <datalist id="budgetSuggest">
+          <option value="〜¥1,000"></option>
+          <option value="¥1,000〜¥2,000"></option>
+          <option value="¥2,000〜¥3,000"></option>
+          <option value="¥3,000〜¥5,000"></option>
+          <option value="¥5,000〜"></option>
+        </datalist>
+        <span style="font-size:.78rem;color:var(--ink-soft);display:block;margin-top:6px">地図で店を選ぶと、取れる範囲で営業時間・予算目安を自動入力します（あとから編集OK）。</span>
+      </div>
       <div class="field hidden" id="genreField">
         <label>ジャンル <span class="req">必須</span></label>
         <select name="genre" id="genreInput"></select>
@@ -1299,9 +1343,9 @@
 
 <!-- POST DETAIL POPUP -->
 <div class="modal-bg" id="postViewBg">
-  <div class="modal">
-    <button class="close" onclick="closePostView()">&times;</button>
+  <div class="modal" id="postViewModal">
     <div class="pd-scroll" id="pdScroll"></div>
+    <div id="pdFootSlot"></div>
   </div>
 </div>
 
@@ -1757,6 +1801,8 @@ function mapRow(r){
     genre:r.genre||undefined,title:r.title,spot:r.spot,desc:r.descr,author:r.author||"匿名",
     likes:r.likes||0,reports:r.reports||0,saves:r.saves||0,tags:normalizeTagsList(r.tags),address:r.address||undefined,user_id:r.user_id||undefined,
     aff_url:r.aff_url||undefined,
+    hours:r.hours||undefined,
+    budget:r.budget||undefined,
     photos:(r.photos&&r.photos.length)?r.photos:(r.photo?[r.photo]:[]),
     loc:(r.lat!=null&&r.lng!=null)?[r.lat,r.lng]:undefined};
 }
@@ -1766,6 +1812,8 @@ function toRow(p){
     photos:p.photos||[],photo:(p.photos&&p.photos[0])||null,
     lat:p.loc?p.loc[0]:null,lng:p.loc?p.loc[1]:null};
   if(p.aff_url)row.aff_url=p.aff_url; // 列が無い環境でも通常投稿が壊れないよう、値があるときだけ送る
+  if(p.hours)row.hours=p.hours;
+  if(p.budget)row.budget=p.budget;
   return row;
 }
 async function geocode(q){
@@ -1803,13 +1851,81 @@ async function fromGoogle(q){
   if(!lib||!lib.Place)return [];
   try{
     const {places}=await lib.Place.searchByText({
-      textQuery:q,fields:["displayName","formattedAddress","location"],
+      textQuery:q,
+      fields:["displayName","formattedAddress","location","id","regularOpeningHours","priceLevel"],
       language:"ja",region:"JP",maxResultCount:10});
     return (places||[]).map(p=>({
       lat:p.location.lat(),lng:p.location.lng(),
       name:(p.displayName||"").toString(),
-      addr:(p.formattedAddress||"").replace(/^日本、?/,"").replace(/、?日本$/,"").trim()}));
-  }catch(e){console.warn("google places",e);return [];}
+      addr:(p.formattedAddress||"").replace(/^日本、?/,"").replace(/、?日本$/,"").trim(),
+      placeId:p.id||undefined,
+      hours:formatPlaceHours(p.regularOpeningHours),
+      budget:formatPlaceBudget(p.priceLevel)
+    }));
+  }catch(e){
+    /* 一部フィールドが使えない環境向けフォールバック */
+    try{
+      const {places}=await lib.Place.searchByText({
+        textQuery:q,fields:["displayName","formattedAddress","location","id"],
+        language:"ja",region:"JP",maxResultCount:10});
+      return (places||[]).map(p=>({
+        lat:p.location.lat(),lng:p.location.lng(),
+        name:(p.displayName||"").toString(),
+        addr:(p.formattedAddress||"").replace(/^日本、?/,"").replace(/、?日本$/,"").trim(),
+        placeId:p.id||undefined
+      }));
+    }catch(e2){console.warn("google places",e2);return [];}
+  }
+}
+function formatPlaceHours(roh){
+  if(!roh)return "";
+  try{
+    const days=roh.weekdayDescriptions||roh.weekday_text||[];
+    if(Array.isArray(days)&&days.length){
+      const today=days.find(x=>/今日|本日/.test(String(x)))||days[new Date().getDay()===0?6:new Date().getDay()-1]||days[0];
+      return String(today||"").replace(/^曜日?\s*[：:]\s*/,"").trim()||days.slice(0,2).join(" / ");
+    }
+    if(roh.periods&&roh.periods.length){
+      const p0=roh.periods[0];
+      const o=p0.open,c=p0.close;
+      if(o&&c){
+        const fmt=t=>`${String(t.hour??t.hours??0).padStart(2,"0")}:${String(t.minute??t.minutes??0).padStart(2,"0")}`;
+        return `${fmt(o)}–${fmt(c)}`;
+      }
+    }
+  }catch(e){}
+  return "";
+}
+function formatPlaceBudget(level){
+  if(level==null||level==="")return "";
+  const s=String(level);
+  const map={
+    PRICE_LEVEL_FREE:"無料",
+    PRICE_LEVEL_INEXPENSIVE:"〜¥1,000",
+    PRICE_LEVEL_MODERATE:"¥1,000〜¥3,000",
+    PRICE_LEVEL_EXPENSIVE:"¥3,000〜¥5,000",
+    PRICE_LEVEL_VERY_EXPENSIVE:"¥5,000〜",
+    "0":"無料","1":"〜¥1,000","2":"¥1,000〜¥3,000","3":"¥3,000〜¥5,000","4":"¥5,000〜"
+  };
+  if(map[s])return map[s];
+  const n=Number(level);
+  if(!isNaN(n)&&map[String(n)])return map[String(n)];
+  return "";
+}
+async function enrichGooglePlace(placeId){
+  if(!placeId)return null;
+  try{
+    const lib=await loadGooglePlaces();
+    if(!lib||!lib.Place)return null;
+    const place=new lib.Place({id:placeId});
+    await place.fetchFields({fields:["regularOpeningHours","priceLevel","displayName","formattedAddress"]});
+    return {
+      hours:formatPlaceHours(place.regularOpeningHours),
+      budget:formatPlaceBudget(place.priceLevel),
+      name:(place.displayName||"").toString(),
+      addr:(place.formattedAddress||"").replace(/^日本、?/,"").replace(/、?日本$/,"").trim()
+    };
+  }catch(e){console.warn("place enrich",e);return null;}
 }
 
 // 表記ゆれ吸収のための検索バリエーション（スペース有無など）
@@ -2090,6 +2206,8 @@ function toPatchRow(p){
   const row={cat:p.cat,pref:p.pref||null,genre:p.genre||null,title:p.title,spot:p.spot,
     descr:p.desc||"",author:p.author||"匿名",tags:p.tags||[],address:p.address||null};
   if('aff_url' in p)row.aff_url=p.aff_url||null; // 値あり/明示クリア時のみ送る
+  if('hours' in p)row.hours=p.hours||null;
+  if('budget' in p)row.budget=p.budget||null;
   if(p.loc){row.lat=p.loc[0];row.lng=p.loc[1];}
   if(p.photos){row.photos=p.photos;row.photo=p.photos[0]||null;}
   return row;
@@ -2555,19 +2673,84 @@ function mapLinks(p){
   const addr=p.address&&p.address.trim();
   const fallback=`${p.spot||""} ${p.pref||""}`.trim();
   const gq=encodeURIComponent(addr||(p.loc?`${p.loc[0]},${p.loc[1]}`:fallback));
-  let yahoo,apple;
+  let yahoo,apple,googleDir,yahooDir,appleDir;
   /* Yahoo公式URL仕様: 座標は /place?lat=&lon=、キーワード検索は /search?q=（旧 p= は無効） */
   if(p.loc){
     yahoo=`https://map.yahoo.co.jp/place?lat=${p.loc[0]}&lon=${p.loc[1]}&zoom=17`;
     apple=`https://maps.apple.com/?ll=${p.loc[0]},${p.loc[1]}&q=${encodeURIComponent(p.spot||addr||"ここ")}`;
+    googleDir=`https://www.google.com/maps/dir/?api=1&destination=${p.loc[0]},${p.loc[1]}`;
+    yahooDir=`https://map.yahoo.co.jp/route/walk?latto=${p.loc[0]}&lonto=${p.loc[1]}`;
+    appleDir=`https://maps.apple.com/?daddr=${p.loc[0]},${p.loc[1]}&dirflg=w`;
   }else{
     const t=encodeURIComponent(addr||fallback);
     yahoo=`https://map.yahoo.co.jp/search?q=${t}`;
     apple=`https://maps.apple.com/?q=${t}`;
+    googleDir=`https://www.google.com/maps/dir/?api=1&destination=${gq}`;
+    yahooDir=yahoo;
+    appleDir=`https://maps.apple.com/?daddr=${t}`;
   }
-  return {google:"https://www.google.com/maps/search/?api=1&query="+gq, yahoo, apple};
+  const google="https://www.google.com/maps/search/?api=1&query="+gq;
+  return {google, yahoo, apple, googleDir, yahooDir, appleDir};
 }
-function mapPref(){try{return localStorage.getItem('nanshiyo_map_pref')||'google';}catch(e){return 'google';}}
+function mapPref(){try{return localStorage.getItem('nanshiyo_map_pref')||'google';}catch(e){return 'google';}
+function preferredMapView(p){
+  const ml=mapLinks(p);const pref=mapPref();
+  return ml[pref]||ml.google;
+}
+function preferredMapWant(p){
+  const ml=mapLinks(p);const pref=mapPref();
+  if(pref==="yahoo")return ml.yahooDir||ml.yahoo;
+  if(pref==="apple")return ml.appleDir||ml.apple;
+  return ml.googleDir||ml.google;
+}
+const MAP_PIN_SVG=`<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>`;
+const PD_IC={
+  loc:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.2"></circle></svg>`,
+  hours:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>`,
+  budget:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M17 8c0-2-2-3.5-5-3.5S7 6 7 8s2 3 5 3.5 5 1.5 5 3.5-2 3.5-5 3.5"></path></svg>`,
+  heart:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg>`,
+  spark:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 6.2L20 10l-6.4 1.8L12 18l-1.6-6.2L4 10l6.4-1.8L12 2z"/></svg>`,
+  share:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`,
+  more:`<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
+  compass:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.2 7.8 14 14 7.8 16.2 10 10 16.2 7.8"/></svg>`
+};
+function placeInfoHTML(p){
+  const rows=[];
+  const locTxt=(p.address||p.spot||"").trim();
+  if(locTxt)rows.push(`<div class="pd-info-row"><span class="pd-info-ic loc" aria-hidden="true">${PD_IC.loc}</span><span>${esc(locTxt)}</span></div>`);
+  if(p.hours)rows.push(`<div class="pd-info-row"><span class="pd-info-ic hours" aria-hidden="true">${PD_IC.hours}</span><span>${esc(p.hours)}</span></div>`);
+  if(p.budget)rows.push(`<div class="pd-info-row"><span class="pd-info-ic budget" aria-hidden="true">${PD_IC.budget}</span><span>予算：${esc(p.budget)}</span></div>`);
+  return rows.length?`<div class="pd-info">${rows.join("")}</div>`:"";
+}
+function placeMapHTML(p){
+  if(!(LOCATION_CATS.includes(p.cat)&&(p.loc||p.address||p.spot)))return "";
+  const href=preferredMapView(p);
+  if(p.loc){
+    return `<div class="pd-map-wrap"><div class="pd-map" id="pdMap"></div>
+      <a class="pd-map-open" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${PD_IC.compass} 地図で開く</a></div>`;
+  }
+  return `<div class="pd-map-wrap" style="display:grid;place-items:center">
+    <a class="pd-map-open" style="position:static" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${PD_IC.compass} 地図で開く</a></div>`;
+}
+function placeFootHTML(p){
+  const saved=MYSAVES.has(String(p.id));
+  const saves=Number(p.saves||0).toLocaleString("ja-JP");
+  const hasPlace=LOCATION_CATS.includes(p.cat)&&(p.loc||p.address||p.spot);
+  const want=hasPlace?preferredMapWant(p):"";
+  return `<div class="pd-foot">
+    <button type="button" class="pd-foot-save save${saved?' saved':''}" data-id="${esc(String(p.id))}">
+      <span class="t">${PD_IC.heart} ${saved?"保存済":"保存する"}</span>
+      <span class="n">${saves}</span>
+    </button>
+    ${hasPlace?`<a class="pd-foot-want" href="${esc(want)}" target="_blank" rel="noopener noreferrer">
+      <span class="t">${PD_IC.spark} 行きたい！</span>
+      <span class="s">${MAP_PIN_SVG} マップで見る</span>
+    </a>`:`<button type="button" class="pd-foot-want" style="opacity:.55" disabled>
+      <span class="t">${PD_IC.spark} 行きたい！</span>
+      <span class="s">場所情報なし</span>
+    </button>`}
+  </div>`;
+}
 
 /* ---------- 収益化：アフィリエイト＆広告 ----------
    各IDは審査通過後にここへ貼るだけで有効化（空でも通常リンク/枠非表示で安全に動作）。 */
@@ -3029,72 +3212,120 @@ document.body.addEventListener('click',e=>{
 
 /* ---------- 投稿詳細ポップアップ ---------- */
 function postDetailHTML(p){
-  const sub=(p.pref?`<span class="badge sub">${p.pref}</span>`:(p.genre?`<span class="badge sub">${p.genre}</span>`:""));
   const tags=tagChipsHTML(p.tags);
-  const ml=mapLinks(p);
-  const btns={
-    google:`<a class="maps-btn g" href="${ml.google}" target="_blank" rel="noopener noreferrer">Google</a>`,
-    yahoo:`<a class="maps-btn y" href="${ml.yahoo}" target="_blank" rel="noopener noreferrer">Yahoo!</a>`,
-    apple:`<a class="maps-btn a" href="${ml.apple}" target="_blank" rel="noopener noreferrer">Apple</a>`
-  };
-  const pref=mapPref();
-  const order=[pref,...['google','yahoo','apple'].filter(k=>k!==pref)];
-  const showMaps=LOCATION_CATS.includes(p.cat)&&(p.loc||p.address||p.spot);
-  const maps=showMaps?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
   const imgs=(p.photos||[]).slice(0,8);
+  const pageBadge=imgs.length?`<span class="pd-page" id="pdPageBadge">1/${imgs.length}</span>`:"";
   const gallery=imgs.length
-    ?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`
-      +(imgs.length>1?`<div class="pd-dots" role="tablist" aria-label="写真">${imgs.map((_,i)=>`<button type="button" class="pd-dot${i===0?' on':''}" data-pd-dot="${i}" aria-label="写真 ${i+1}"></button>`).join('')}</div>`:"")
-    :"";
-  const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
+    ?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${pageBadge}${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`
+    :`<div class="pd-gallery g1" style="height:120px;background:linear-gradient(160deg,#f0eeea,#e5e1d8)"></div>`;
   const av=avatarOf(p.user_id);
   const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
-  const canEdit=session&&p.user_id&&session.uid===p.user_id;
-  const isOwner=canEdit;
-  const likersBox=isOwner
+  const authorName=p.author||"匿名";
+  const avMeta=AVATARS[p.user_id]||{};
+  const subLine=[p.spot,p.pref].filter(Boolean).join(" · ")||CAT_LABEL[p.cat]||"";
+  const isSelf=session&&p.user_id&&session.uid===p.user_id;
+  const showFollow=session&&p.user_id&&!isSelf;
+  const followBtn=showFollow
+    ?`<button type="button" class="pd-follow" id="pdFollowBtn" data-uid="${esc(p.user_id)}">フォロー</button>`
+    :"";
+  const moreItems=[];
+  moreItems.push(`<button type="button" class="cmt-btn" data-id="${p.id}">コメント</button>`);
+  if(isSelf){
+    moreItems.push(`<button type="button" class="edit-btn" data-id="${p.id}">編集</button>`);
+    moreItems.push(`<button type="button" class="del-btn danger" data-id="${p.id}">削除</button>`);
+  }else{
+    moreItems.push(`<button type="button" class="report" data-id="${p.id}">通報</button>`);
+  }
+  const likersBox=isSelf
     ?`<div class="pd-likers" id="pdLikers"><div class="pd-likers-h">いいねした人（自分の投稿のみ表示）</div><div class="pd-likers-b" id="pdLikersBody"><span class="pd-likers-empty">読み込み中…</span></div></div>`
     :"";
-  return `${gallery}
+  return `<div class="pd-topbar">
+      <button type="button" class="pd-back" onclick="closePostView()" aria-label="戻る">‹</button>
+      <div class="pd-top-right">
+        <button type="button" class="pd-ico share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有" aria-label="共有">${PD_IC.share}</button>
+        <button type="button" class="pd-ico" id="pdMoreBtn" title="メニュー" aria-label="メニュー">${PD_IC.more}</button>
+      </div>
+      <div class="pd-more-menu" id="pdMoreMenu">${moreItems.join("")}</div>
+    </div>
+    ${gallery}
     <div class="pd-body">
-      <div class="card-top"><span class="badge cat" data-cat="${p.cat}">${CAT_LABEL[p.cat]}</span>${sub}</div>
       <h2>${esc(p.title)}</h2>
-      <div class="spot">▷ ${esc(p.spot)}</div>
-      ${addr}
+      <div class="pd-author">
+        <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(authorName)}">${avHTML}</span>
+        <div class="pd-author-tx">
+          <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(authorName)}">${esc(authorName)}</span>
+          ${subLine?`<div class="sub">${esc(subLine)}</div>`:""}
+        </div>
+        ${followBtn}
+      </div>
       ${p.desc?`<div class="pd-desc">${esc(p.desc)}</div>`:""}
-      ${maps}
+      ${placeInfoHTML(p)}
+      ${placeMapHTML(p)}
       ${affButtonsHTML(p)}
       <div class="tags">${tags}</div>
-      <div class="pd-author">
-        <span class="author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${avHTML}</span>
-        <span class="nm author-link" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${esc(p.author||"匿名")}</span>
-      </div>
-      <div class="pd-actions">
-        <span class="share-btn" data-share="post" data-id="${esc(String(p.id))}" data-title="${esc(p.title||'')}" title="共有" aria-label="共有">${SHARE_ICON_SVG} 共有</span>
-        <span class="cmt-btn" data-id="${p.id}">コメント</span>
-        <span class="like${MYLIKES.has(String(p.id))?' liked':''}" data-id="${p.id}">いいね ${p.likes||0}</span>
-        ${canEdit?`<span class="edit-btn" data-id="${p.id}">編集</span>`:""}
-        ${canEdit?`<span class="del-btn" data-id="${p.id}">削除</span>`:""}
-        ${canEdit?"":`<span class="report" data-id="${p.id}">通報</span>`}
-      </div>
       ${likersBox}
     </div>`;
 }
+function refreshPostDetail(p){
+  if(!p)return;
+  document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
+  const foot=document.getElementById('pdFootSlot');
+  if(foot)foot.innerHTML=placeFootHTML(p);
+  bindPdGallery();
+  bindPdMoreMenu();
+  mountPdMap(p);
+  bindPdFollow(p);
+  if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(p.id);
+}
 let pvPostId=null;
+let pdMapObj=null;
 function syncPdGalleryDots(){
   const root=document.getElementById('pdScroll');
   if(!root)return;
   const gal=root.querySelector('.pd-gallery');
-  const dots=root.querySelectorAll('.pd-dot');
-  if(!gal||!dots.length)return;
+  const badge=document.getElementById('pdPageBadge');
+  if(!gal)return;
   const w=gal.clientWidth||1;
-  const i=Math.max(0,Math.min(dots.length-1,Math.round(gal.scrollLeft/w)));
-  dots.forEach((d,di)=>d.classList.toggle('on',di===i));
+  const n=gal.querySelectorAll('img').length||1;
+  const i=Math.max(0,Math.min(n-1,Math.round(gal.scrollLeft/w)));
+  if(badge)badge.textContent=`${i+1}/${n}`;
 }
 function bindPdGallery(){
   const gal=document.querySelector('#pdScroll .pd-gallery');
   if(!gal||gal.dataset.bound==="1")return;
   gal.dataset.bound="1";
   gal.addEventListener('scroll',()=>{requestAnimationFrame(syncPdGalleryDots)},{passive:true});
+}
+function mountPdMap(p){
+  try{if(pdMapObj){pdMapObj.remove();pdMapObj=null;}}catch(e){}
+  const el=document.getElementById('pdMap');
+  if(!el||!p||!p.loc||typeof L==="undefined")return;
+  pdMapObj=L.map(el,{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,tap:false}).setView(p.loc,15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(pdMapObj);
+  L.marker(p.loc).addTo(pdMapObj);
+  setTimeout(()=>{try{pdMapObj.invalidateSize();}catch(e){}},80);
+}
+async function bindPdFollow(p){
+  const btn=document.getElementById('pdFollowBtn');
+  if(!btn||!p.user_id)return;
+  const row=await getFollowRow(p.user_id);
+  const on=!!row;
+  btn.textContent=on?"フォロー中":"フォロー";
+  btn.classList.toggle('on',on);
+  btn.onclick=async()=>{
+    await togglePvFollow(p.user_id);
+    const again=await getFollowRow(p.user_id);
+    const now=!!again;
+    btn.textContent=now?"フォロー中":"フォロー";
+    btn.classList.toggle('on',now);
+  };
+}
+function bindPdMoreMenu(){
+  const btn=document.getElementById('pdMoreBtn');
+  const menu=document.getElementById('pdMoreMenu');
+  if(!btn||!menu)return;
+  btn.onclick=e=>{e.stopPropagation();menu.classList.toggle('open');};
+  menu.onclick=()=>{menu.classList.remove('open');};
 }
 async function loadPostLikers(postId){
   const body=document.getElementById('pdLikersBody');if(!body||!SERVER)return;
@@ -3118,14 +3349,12 @@ async function loadPostLikers(postId){
 function openPostView(id,opts){
   const p=POSTS.find(x=>x.id===id);if(!p)return;
   pvPostId=id;
-  document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
-  bindPdGallery();
+  refreshPostDetail(p);
   const bg=document.getElementById('postViewBg');
   const modal=bg.querySelector('.modal');
   if(modal){modal.style.transition='';modal.style.transform='';modal.style.opacity='';}
   bg.classList.remove('pd-swiping');
   bg.classList.add('open');
-  if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(id);
   if(!(opts&&opts.fromUrl)){
     try{
       const url=new URL(location.href);
@@ -3139,6 +3368,9 @@ function openPostView(id,opts){
   }
 }
 function closePostView(opts){
+  try{if(pdMapObj){pdMapObj.remove();pdMapObj=null;}}catch(e){}
+  const foot=document.getElementById('pdFootSlot');if(foot)foot.innerHTML="";
+  const scroll=document.getElementById('pdScroll');if(scroll)scroll.innerHTML="";
   const bg=document.getElementById('postViewBg');
   const modal=bg&&bg.querySelector('.modal');
   if(modal){modal.style.transition='';modal.style.transform='';modal.style.opacity='';}
@@ -3207,23 +3439,14 @@ function closePostView(opts){
 })();
 document.getElementById('postViewBg').addEventListener('click',async e=>{
   if(e.target.id==="postViewBg"){closePostView();return;}
-  const dot=e.target.closest('[data-pd-dot]');
-  if(dot){
-    const gal=document.querySelector('#pdScroll .pd-gallery');
-    if(gal){
-      const i=+dot.dataset.pdDot||0;
-      gal.scrollTo({left:i*(gal.clientWidth||0),behavior:'smooth'});
-    }
-    return;
+  const moreMenu=document.getElementById('pdMoreMenu');
+  if(moreMenu&&moreMenu.classList.contains('open')&&!e.target.closest('#pdMoreMenu')&&!e.target.closest('#pdMoreBtn')){
+    moreMenu.classList.remove('open');
   }
   const handled=await handleCardInteractions(e,()=>{
     if(pvPostId){
       const p=POSTS.find(x=>x.id===pvPostId);
-      if(p){
-        document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
-        bindPdGallery();
-        if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(p.id);
-      }
+      if(p)refreshPostDetail(p);
     }
     render();
   });
@@ -3286,13 +3509,15 @@ async function handleCardInteractions(e,rerender){
     if(saveBusy.has(key))return true;
     saveBusy.add(key);
     const wasSaved=MYSAVES.has(key);
-    if(wasSaved)MYSAVES.delete(key);else MYSAVES.add(key);
+    if(wasSaved){MYSAVES.delete(key);p.saves=Math.max((p.saves||0)-1,0);}
+    else{MYSAVES.add(key);p.saves=(p.saves||0)+1;}
     if(rerender)rerender();else render();
     try{renderSavedPage();}catch(err){}
     if(SERVER){
       try{ if(wasSaved)await removeSaveServer(p.id); else await addSaveServer(p.id); }
       catch(err){ console.warn(err);
-        if(wasSaved)MYSAVES.add(key);else MYSAVES.delete(key);
+        if(wasSaved){MYSAVES.add(key);p.saves=(p.saves||0)+1;}
+        else{MYSAVES.delete(key);p.saves=Math.max((p.saves||0)-1,0);}
         if(rerender)rerender();else render();
         try{renderSavedPage();}catch(e2){}
         showToast("保存の更新に失敗しました");
@@ -3410,7 +3635,7 @@ function clearPinResults(){
   const box=document.getElementById('pinResults');
   if(box){box.classList.remove('show');box.innerHTML="";}
 }
-function applyPinResult(item){
+async function applyPinResult(item){
   clearPinResults();
   const hint=document.getElementById('pinPageHint');
   const c=[item.lat,item.lng];
@@ -3418,6 +3643,27 @@ function applyPinResult(item){
     setTimeout(()=>pinMapObj.invalidateSize(),120);}
   if(hint)hint.textContent="選択しました。ここでよければ右上「この場所に決定」";
   autofillPrefFromPin(c,item.addr||"");
+  /* 店名/住所/営業時間/予算をフォームへ（空欄のときだけ自動入力） */
+  const spot=document.getElementById('spotInput');
+  const addr=document.getElementById('addressInput');
+  const hours=document.getElementById('hoursInput');
+  const budget=document.getElementById('budgetInput');
+  if(spot&&!spot.value.trim()&&item.name)spot.value=item.name;
+  if(addr&&item.addr)addr.value=item.addr;
+  let hoursVal=item.hours||"",budgetVal=item.budget||"";
+  if(item.placeId&&(!hoursVal||!budgetVal)){
+    if(hint)hint.textContent="店舗情報を取得中…";
+    const enriched=await enrichGooglePlace(item.placeId);
+    if(enriched){
+      hoursVal=hoursVal||enriched.hours||"";
+      budgetVal=budgetVal||enriched.budget||"";
+      if(spot&&!spot.value.trim()&&enriched.name)spot.value=enriched.name;
+      if(addr&&enriched.addr)addr.value=enriched.addr;
+    }
+    if(hint)hint.textContent="選択しました。ここでよければ右上「この場所に決定」";
+  }
+  if(hours&&!hours.value.trim()&&hoursVal)hours.value=hoursVal;
+  if(budget&&!budget.value.trim()&&budgetVal)budget.value=budgetVal;
 }
 function renderPinResults(list){
   const box=document.getElementById('pinResults');
@@ -3566,6 +3812,8 @@ function openModal(){
   editingPostId=null;
   resetPhoto();resetPin();
   const affEl=document.getElementById('affInput');if(affEl)affEl.value="";
+  const hoursEl=document.getElementById('hoursInput');if(hoursEl)hoursEl.value="";
+  const budgetEl=document.getElementById('budgetInput');if(budgetEl)budgetEl.value="";
   const a=document.querySelector('#postForm [name=author]');if(a)a.value=currentName();
   document.querySelector('#modalBg h2').textContent="おすすめを投稿";
   document.querySelector('#postForm button[type="submit"]').textContent="この内容で投稿する";
@@ -3589,6 +3837,8 @@ function openEditModal(post){
   if(LOCATION_CATS.includes(post.cat)){
     if(post.pref)f.pref.value=post.pref;
     f.address.value=post.address||"";
+    if(f.hours)f.hours.value=post.hours||"";
+    if(f.budget)f.budget.value=post.budget||"";
   }
   if(post.cat==="study"&&post.genre)f.genre.value=post.genre;
   if(post.loc){
@@ -5282,6 +5532,8 @@ function syncLocationFields(cat){
   prefField.classList.toggle('hidden',!loc);
   document.getElementById('addressField').classList.toggle('hidden',!loc);
   document.getElementById('pinField').classList.toggle('hidden',!loc);
+  const meta=document.getElementById('placeMetaField');
+  if(meta)meta.classList.toggle('hidden',!loc);
   genreField.classList.toggle('hidden',cat!=="study");
   spotLabel.innerHTML = (SPOT_LABEL[cat]||"おすすめの内容")+' <span class="req">必須</span>';
   spotInput.placeholder = SPOT_PH[cat]||"例: おすすめの内容";
@@ -5329,6 +5581,12 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
     post.pref=(f.pref.value||"").trim()||null;
     post.address=(f.address.value||"").trim()||null;
     if(PREF_REQUIRED_CATS.includes(cat)&&!post.pref){alert("県を選んでください。");return;}
+    const hours=(f.hours&&f.hours.value||"").trim();
+    const budget=(f.budget&&f.budget.value||"").trim();
+    if(hours)post.hours=hours;
+    else if(editingPostId)post.hours=null;
+    if(budget)post.budget=budget;
+    else if(editingPostId)post.budget=null;
   }
   if(cat==="study")post.genre=f.genre.value;
   if(!post.title||!post.spot){alert("スポット名とタイトルは必須です。");return;}

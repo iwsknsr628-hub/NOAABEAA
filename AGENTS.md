@@ -81,6 +81,17 @@ git push origin main   # → GitHub Pages が自動デプロイ
   ```
 - 列が無い間も**通常投稿・編集は壊れない**設計（`toRow`/`toPatchRow` は値があるとき/明示クリア時のみ `aff_url` を送る）。列追加後にアフィリンク付き投稿が保存可能になる。
 
+### 営業時間・予算（`posts.hours` / `posts.budget`）
+
+場所系カテゴリの投稿フォームに任意入力。Google Places で店を選ぶと取れる範囲で自動入力（`formatPlaceHours` / `formatPlaceBudget` / `enrichGooglePlace`）。投稿詳細の情報行に表示。
+
+- **要スキーマ**（Supabase → SQL Editor）:
+  ```sql
+  alter table posts add column if not exists hours text;
+  alter table posts add column if not exists budget text;
+  ```
+- 列が無い間も通常投稿は壊れない（`toRow` は値があるときだけ、`toPatchRow` は明示クリア時のみ送る）。
+
 - 今後の候補: A8.net/もしも/バリューコマース（個別リンク）、金融系（楽天カード/証券=高単価）。
 
 ## Google Maps / Places
@@ -103,8 +114,10 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - ヘッダー右上の旧「＋投稿する」ボタンは廃止。ヘッダーの「ログイン/登録」(`#acctBtnTop`) は**ログアウト時のみ表示**。
   - `body{padding-bottom:74px}` でバー分の余白を確保済み。
 - **未ログインは閲覧・検索OK**：ヒーロー検索／さがす／投稿一覧・詳細・写真・プロフィール・コメント一覧の表示は誰でも可。投稿・コメント投稿・フォロー・通知・**いいね・通報**は要ログイン（`requireLogin(msg)` → `showToast` ＋ `openAuth()`）。
-- **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。URL は `?post=<id>`（再読み込み・共有用）。閉じ方: ✕／背景タップ／**左→右スワイプ**。
-  - 画像は Instagram 風: `object-fit:contain`・高さ上限 `min(56vh,420px)`・複数は横スワイプ＋ドット（`bindPdGallery()`）。切り抜きで見切さない。
+- **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`refreshPostDetail()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。URL は `?post=<id>`（再読み込み・共有用）。閉じ方: 戻る／背景タップ／**左→右スワイプ**。
+  - **レイアウト（参考UI準拠）**: 上バー（戻る・共有・⋯）／ヒーロー画像（`object-fit:cover`・`1/N` バッジ・横スワイプ）／タイトル／著者＋フォロー／本文／店舗情報行（場所・営業時間・予算）／ミニ地図＋「地図で開く」／下部固定フッター（**保存する** | オレンジ **行きたい！**＋**マップで見る**）。
+  - 地図ミニプレビューは Leaflet（`mountPdMap()`）。フッターは `#pdFootSlot`（スクロール外）。
+  - 営業時間・予算: `posts.hours` / `posts.budget`（投稿フォーム `#placeMetaField`。Places 選択時に自動入力可）。列が無い間も通常投稿は壊れない（値があるときだけ送信）。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。z-index 200。URL は `?u=<user_id>`。
   - **タブ「プロフィール」**も同じ `#pvPage` を開く（`openMyPage()` → `openProfileView(session.uid)`）。旧 `#myPage` は残すがメイン導線ではない。自分のときは「編集」＋⋯（設定/お知らせ/リンクコピー）。
   - 構成: 80pxアイコン・名前・@ID・**ベル通知→フォロー**の順・実績4枠（アイコン色分け＋ラベル横並び＋数字/単位）・自己紹介全文＋信頼バッジ・フィルター・**Instagram風3列グリッド**（正方形・余白2px・複数写真マーク）・もっと見る（9件ずつ）。**位置情報行なし。下部CTAなし。**
