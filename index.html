@@ -152,12 +152,10 @@
   .mood-rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px}
   .mood-rail-label{font-size:.8rem;font-weight:800;color:var(--ink)}
   .mood-rail-all{font-size:.72rem;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
-  .mood-scroll{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-    margin:0 -16px;padding:0 16px 4px}
-  .mood-scroll::-webkit-scrollbar{display:none}
-  .mood-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;
-    font-weight:700;font-size:.76rem;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
-  .mood-chip .neon-ic svg{width:14px;height:14px}
+  .mood-scroll{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0 0 2px}
+  .mood-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;
+    font-weight:700;font-size:.68rem;padding:5px 8px;border-radius:999px;cursor:pointer;white-space:nowrap;line-height:1.2}
+  .mood-chip .neon-ic svg{width:11px;height:11px}
   .mood-chip.active .neon-ic{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff)}
   .mood-chip:active,.mood-chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
   .trust-strip{margin:12px 0 0;padding:11px 14px;border-radius:12px;background:#F3E9DC;text-align:left}
@@ -221,7 +219,7 @@
   .result-count b{color:var(--accent)}
 
   /* GRID → 縦フィード */
-  .grid{display:flex;flex-direction:column;gap:18px}
+  .grid{display:flex;flex-direction:column;gap:12px}
   /* 同一店舗の投稿だけ横スクロール（それ以外のカードは通常フィード） */
   .place-rail{display:flex;flex-direction:column;gap:10px;min-width:0}
   .place-rail-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:0 2px}
@@ -232,10 +230,10 @@
   .place-rail-scroll{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;
     scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .place-rail-scroll .card{flex:0 0 min(300px,82vw);scroll-snap-align:start;max-width:min(300px,82vw)}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:0;
-    box-shadow:var(--shadow-sm);transition:box-shadow .2s;display:flex;flex-direction:column;gap:0;
+  .card{background:var(--card);border:1.5px solid #111;border-radius:12px;padding:0;
+    box-shadow:none;transition:box-shadow .2s;display:flex;flex-direction:column;gap:0;
     position:relative;overflow:hidden}
-  .card:hover{box-shadow:var(--shadow)}
+  .card:hover{box-shadow:var(--shadow-sm)}
   .card-media{position:relative}
   .card-media-overlay{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 10px;
     background:linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,0));display:flex;align-items:center;pointer-events:none}
@@ -243,10 +241,10 @@
     color:#fff;font-weight:700;font-size:.82rem;cursor:pointer}
   .card-media-overlay .mini-av{border:1.5px solid rgba(255,255,255,.85)}
   .card-gallery{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--bg2)}
-  .card-gallery img{width:100%;height:min(58vw,300px);object-fit:cover;display:block;cursor:pointer;transition:opacity .15s}
+  .card-gallery img{width:100%;height:min(48vw,240px);object-fit:cover;display:block;cursor:pointer;transition:opacity .15s}
   .card-gallery img:hover{opacity:.92}
   .card-gallery.g1{grid-template-columns:1fr}
-  .card-gallery.g1 img{height:min(72vw,380px)}
+  .card-gallery.g1 img{height:min(56vw,280px)}
   .card-gallery.g3 img:first-child{grid-column:1 / 3}
   .card-gallery.g5 img:first-child,.card-gallery.g7 img:first-child{grid-column:1 / 3}
   .pd-gallery.g2,.pd-gallery.g3,.pd-gallery.g4,.pd-gallery.g5,.pd-gallery.g6,.pd-gallery.g7,.pd-gallery.g8{grid-template-columns:1fr 1fr}
@@ -309,8 +307,8 @@
   .badge.cat[data-cat="food"]{background:#e85a3a}
   .badge.cat[data-cat="drink"]{background:#5a7fc0}
   .badge.sub{background:#fff;color:var(--ink-soft);border:1px solid var(--line)}
-  .card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
-  .card h3{font-size:1.05rem;font-weight:900;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;
+  .card-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px}
+  .card h3{font-size:.95rem;font-weight:900;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;
     -webkit-box-orient:vertical;line-clamp:2;overflow:hidden}
   .card .spot{font-size:.84rem;font-weight:700;color:var(--ink)}
   .card .one-liner{color:var(--ink-soft);font-size:.86rem;line-height:1.45;margin:0;
@@ -737,12 +735,13 @@
     .wrap{padding:0 14px}
     .place-rail-scroll{gap:10px;padding-bottom:8px}
     .place-rail-scroll .card{flex-basis:min(260px,82vw);max-width:min(260px,82vw)}
-    .card-body{padding:10px 12px 12px;gap:7px}
+    .card-body{padding:8px 10px 10px;gap:5px}
+    .card-gallery img{height:min(42vw,200px)}
+    .card-gallery.g1 img{height:min(52vw,240px)}
     .card h3{font-size:.98rem;line-height:1.35}
     .card .spot{font-size:.8rem}
     .card .one-liner{font-size:.8rem;line-height:1.55}
     .card .addr{font-size:.74rem}
-    .card-gallery.g1 img{height:min(78vw,320px)}
     .card .tags .tag-link{font-size:.66rem;padding:2px 8px}
     .badge{font-size:.64rem;padding:3px 8px}
     .badge.sub{font-size:.64rem}
@@ -880,7 +879,6 @@
     <div class="trust-strip">
       <div class="trust-strip-text">
         <p><span class="neon-ic" style="color:#4dff9e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 13 10 18 19 7"></polyline></svg></span>実際に行った人の投稿だけ</p>
-        <p><span class="neon-ic" style="color:#ff6b6b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><line x1="6.5" y1="17.5" x2="17.5" y2="6.5"></line></svg></span>PR・広告なし</p>
         <p><span class="neon-ic" style="color:#4d9fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-2h6l2 2h3v11H4z"></path><circle cx="12" cy="13.5" r="3.3"></circle></svg></span>最新のリアルな情報</p>
       </div>
     </div>
@@ -906,7 +904,6 @@
         <h2>みんなのおすすめ</h2>
         <span class="new-sort-link">新着順 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
       </div>
-      <p>画像を見て、見る・保存・地図で次へ。</p>
     </div>
 
     <div class="new-rail" id="newRail"></div>
