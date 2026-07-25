@@ -93,7 +93,8 @@
   .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
   .btn-sm{padding:9px 18px;font-size:.88rem}
   .btn-block{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;min-height:52px;font-size:1.05rem}
-  .hero-cta{display:flex;flex-direction:row;gap:10px;margin:14px auto 0;max-width:400px}
+  .hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px auto 0;max-width:400px}
+  .hero-cta .cta-mood{grid-column:1 / -1}
   .cta-card{flex:1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;
     gap:3px;padding:11px 12px;border-radius:12px}
   .neon-ic{display:inline-flex;flex:0 0 auto;filter:drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px currentColor)}
@@ -133,8 +134,8 @@
   .post-cta-arrow{flex:0 0 auto;display:flex}
   .hero-fv{display:flex;align-items:center;gap:10px;text-align:left}
   .hero-fv .hero-fv-text{flex:1;min-width:0}
-  .hero-fv .hero-illust{flex:0 0 auto;width:70px;height:81px}
-  .hero-fv .hero-illust svg{width:100%;height:100%;display:block}
+  .hero-fv .hero-illust{flex:0 0 auto;width:118px;height:auto;max-height:96px}
+  .hero-fv .hero-illust img{width:100%;height:100%;max-height:96px;object-fit:contain;display:block}
 
   /* HERO FV */
   .hero{position:relative;overflow:hidden;padding:18px 0 6px;text-align:center;background:#fff}
@@ -844,28 +845,7 @@
         <p class="hero-empathy">今すぐ行けるおすすめを見つけよう</p>
       </div>
       <div class="hero-illust" aria-hidden="true">
-        <svg viewBox="0 0 100 116" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="56" cy="34" r="30" fill="var(--bg2)"/>
-          <ellipse cx="44" cy="20" rx="30" ry="19" fill="#fff" stroke="var(--line)" stroke-width="1.5"/>
-          <circle cx="20" cy="36" r="4" fill="#fff" stroke="var(--line)" stroke-width="1.5"/>
-          <circle cx="13" cy="43" r="2.4" fill="#fff" stroke="var(--line)" stroke-width="1.5"/>
-          <g transform="translate(19,13)">
-            <path d="M1 4h9v4a4 4 0 0 1-4 4H5a4 4 0 0 1-4-4V4z" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round"/>
-            <path d="M10 5h1.6a1.8 1.8 0 0 1 0 3.6H10" fill="none" stroke="var(--ink)" stroke-width="1.3"/>
-          </g>
-          <g transform="translate(38,6)">
-            <path d="M4 13L8 2l4 11" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
-            <path d="M6 13l2-5.5 2 5.5" fill="none" stroke="var(--accent)" stroke-width="1.1" stroke-linejoin="round"/>
-          </g>
-          <g transform="translate(56,13)">
-            <rect x="0" y="0" width="11" height="9" rx="1.2" fill="none" stroke="var(--ink)" stroke-width="1.3"/>
-            <line x1="5.5" y1="0" x2="5.5" y2="9" stroke="var(--ink)" stroke-width="1.1"/>
-          </g>
-          <circle cx="56" cy="56" r="13" fill="var(--accent2)"/>
-          <path d="M35 116c0-16 9-27 21-27s21 11 21 27" fill="var(--accent)"/>
-          <rect x="44" y="76" width="14" height="20" rx="3.5" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
-          <circle cx="51" cy="92" r="1.5" fill="var(--ink)"/>
-        </svg>
+        <img src="assets/mood-search.png" alt="" width="236" height="192" decoding="async">
       </div>
     </div>
     <div class="hero-cta">
@@ -876,7 +856,14 @@
         </span>
         <span class="cta-sub">近くのおすすめを見る</span>
       </button>
-      <button type="button" class="btn btn-ghost cta-card" onclick="focusMoodRail()">
+      <button type="button" class="btn btn-ghost cta-card" onclick="searchNationwide()">
+        <span class="cta-row">
+          <span class="neon-ic" style="color:#4d9fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18"></path><path d="M12 3a14 14 0 0 0 0 18"></path></svg></span>
+          <span class="cta-main">全国で探す</span>
+        </span>
+        <span class="cta-sub">日本全国のおすすめ</span>
+      </button>
+      <button type="button" class="btn btn-ghost cta-card cta-mood" onclick="focusMoodRail()">
         <span class="cta-row">
           <span class="neon-ic" style="color:#ff5fd3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.2 6.2L20 11l-5.8 1.8L12 19l-2.2-6.2L4 11l5.8-1.8z"></path></svg></span>
           <span class="cta-main">気分で探す</span>
@@ -3641,6 +3628,13 @@ function searchNearNow(){
   requestLoc({mode:"nearby"});
   const b=document.getElementById('board');
   if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function searchNationwide(){
+  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();}catch(e){}
+  showAll();
+  const b=document.getElementById('board');
+  if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
+  showToast("全国のおすすめを表示中");
 }
 function focusMoodRail(){
   const el=document.getElementById('moodRail');
