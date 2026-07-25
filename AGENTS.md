@@ -7,6 +7,8 @@
 
 - **Netlify は使用禁止。** 旧URL `incandescent-pika-e1c426.netlify.app` はクレジット切れで停止済み。Netlify への drag&drop / CLI / 連携は**行わない**。
 - **公開は GitHub Pages のみ。** `main` に push すると自動デプロイ（反映1〜3分）。
+- ルートに **`.nojekyll`** あり（Jekyll 処理を無効化。静的 HTML をそのまま公開）。
+- 連続 push するとビルドがキュー滞留・失敗することがある。連続変更時は間を空けるか、GitHub → Actions の `pages build and deployment` 成功を確認してから次へ。
 
 ## デプロイ手順（唯一の正しい方法）
 
