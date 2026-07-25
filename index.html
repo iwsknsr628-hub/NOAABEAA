@@ -323,9 +323,11 @@
     background:#fff;color:var(--ink);font-weight:800;font-size:.76rem;padding:10px 4px;border-radius:12px;
     cursor:pointer;user-select:none;transition:transform .1s,color .15s,border-color .15s,background .15s}
   .card-acts>span:active{transform:scale(.94)}
+  .card-acts>span svg{width:15px;height:15px;display:block;flex:0 0 auto}
   .card-acts .view-btn{border-color:var(--ink)}
   .card-acts .like.liked{color:#e0245e;border-color:#f6c9d4;background:#fff5f7}
   .card-acts .like:active{transform:scale(1.05)}
+  .card-acts .cmt-btn{color:var(--ink)}
   .card-acts .save.saved{color:var(--accent);border-color:#FFD7B8;background:#FFF4EB}
   .card-acts .save:active{transform:scale(1.05)}
   .card-acts .maps-open{color:var(--ink)}
@@ -853,7 +855,12 @@
   .pd-foot-want .t{display:inline-flex;align-items:center;gap:5px;font-weight:900;font-size:.95rem}
   .pd-foot-want .s{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:700;opacity:.92}
   .pd-foot-want svg{width:16px;height:16px;display:block}
-  .pd-actions{display:none}
+  .pd-actions{display:flex;align-items:center;gap:18px;padding:4px 18px 14px;border-top:1px solid var(--line);margin-top:4px}
+  .pd-actions>span{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:.92rem;color:var(--ink);
+    cursor:pointer;user-select:none;padding:8px 2px}
+  .pd-actions>span svg{width:22px;height:22px;display:block}
+  .pd-actions>span.like.liked{color:#e0245e}
+  .pd-actions>span:active{transform:scale(1.06)}
   .pd-likers{margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
   .pd-likers-h{font-size:.78rem;font-weight:800;color:var(--ink-soft);margin-bottom:8px}
   .pd-likers-b{display:flex;flex-wrap:wrap;gap:8px}
@@ -2834,6 +2841,8 @@ const PD_IC={
   hours:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>`,
   budget:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M17 8c0-2-2-3.5-5-3.5S7 6 7 8s2 3 5 3.5 5 1.5 5 3.5-2 3.5-5 3.5"></path></svg>`,
   heart:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg>`,
+  heartOutline:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg>`,
+  comment:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 1 1 18 0z"></path></svg>`,
   spark:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.6 6.2L20 10l-6.4 1.8L12 18l-1.6-6.2L4 10l6.4-1.8L12 2z"/></svg>`,
   share:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`,
   more:`<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>`,
@@ -3022,6 +3031,7 @@ function cardHTML(p){
   const authorFallback=imgs.length?"":`<span class="author-link inline" data-uid="${p.user_id||''}" data-name="${esc(p.author||'匿名')}">${authorInner}</span>`;
   const liked=MYLIKES.has(String(p.id));
   const likeCls=liked?"like liked":"like";
+  const likeIc=liked?PD_IC.heart:PD_IC.heartOutline;
   const saved=MYSAVES.has(String(p.id));
   const saveCls=saved?"save saved":"save";
   const saveLabel=saved?"保存済":"保存";
@@ -3037,8 +3047,8 @@ function cardHTML(p){
       ${blurb?`<p class="one-liner">${esc(blurb)}</p>`:""}
       ${tags?`<div class="tags">${tags}</div>`:""}
       <div class="card-acts">
-        <span class="view-btn" data-id="${p.id}" title="見る">見る</span>
-        <span class="${likeCls}" data-id="${p.id}" title="いいね">いいね ${p.likes||0}</span>
+        <span class="${likeCls}" data-id="${p.id}" title="いいね">${likeIc}<span>${p.likes||0}</span></span>
+        <span class="cmt-btn" data-id="${p.id}" title="コメント">${PD_IC.comment}<span>コメント</span></span>
         <span class="${saveCls}" data-id="${p.id}" title="保存">${saveLabel}</span>
         <span class="maps-open" data-id="${p.id}" title="地図">地図</span>
       </div>
@@ -3354,13 +3364,15 @@ function postDetailHTML(p){
     ?`<button type="button" class="pd-follow" id="pdFollowBtn" data-uid="${esc(p.user_id)}">フォロー</button>`
     :"";
   const moreItems=[];
-  moreItems.push(`<button type="button" class="cmt-btn" data-id="${p.id}">コメント</button>`);
   if(isSelf){
     moreItems.push(`<button type="button" class="edit-btn" data-id="${p.id}">編集</button>`);
     moreItems.push(`<button type="button" class="del-btn danger" data-id="${p.id}">削除</button>`);
   }else{
     moreItems.push(`<button type="button" class="report" data-id="${p.id}">通報</button>`);
   }
+  const liked=MYLIKES.has(String(p.id));
+  const likeCls=liked?"like liked":"like";
+  const likeIc=liked?PD_IC.heart:PD_IC.heartOutline;
   const likersBox=isSelf
     ?`<div class="pd-likers" id="pdLikers"><div class="pd-likers-h">いいねした人（自分の投稿のみ表示）</div><div class="pd-likers-b" id="pdLikersBody"><span class="pd-likers-empty">読み込み中…</span></div></div>`
     :"";
@@ -3389,6 +3401,10 @@ function postDetailHTML(p){
       ${affButtonsHTML(p)}
       <div class="tags">${tags}</div>
       ${likersBox}
+    </div>
+    <div class="pd-actions">
+      <span class="${likeCls}" data-id="${p.id}" title="いいね">${likeIc}<span>${p.likes||0}</span></span>
+      <span class="cmt-btn" data-id="${p.id}" title="コメント">${PD_IC.comment}<span>コメント</span></span>
     </div>`;
 }
 function refreshPostDetail(p){
@@ -3711,10 +3727,16 @@ document.getElementById('photoInput').addEventListener('change',e=>{
   if(skippedSize)notes.push(`12MB超 ${skippedSize}枚を除外`);
   if(valid.length>8)notes.push("写真は8枚まで。最初の8枚を使います");
   if(notes.length)msg.textContent=notes.join(" / ");
-  else if(valid.length)msg.textContent=`${valid.length}枚選択（投稿時に自動で軽くします）`;
+  else if(valid.length)msg.textContent=`${Math.min(valid.length,8)}枚選択（投稿時に自動で軽くします）`;
   pendingPhotos=valid.slice(0,8);
   prev.innerHTML=pendingPhotos.map(f=>`<img src="${URL.createObjectURL(f)}" alt="preview">`).join('');
   if(pendingPhotos.length)prev.classList.remove('hidden');
+  const em=document.getElementById('photoExistingMsg');
+  if(em&&editingPostId){
+    em.textContent=pendingPhotos.length
+      ?`新しく${pendingPhotos.length}枚を選択中（保存すると差し替わります）`
+      :"写真はまだ選ばれていません";
+  }
 });
 
 /* pin on map (Leaflet, full-screen page) */
@@ -3976,7 +3998,17 @@ function openEditModal(post){
     document.getElementById('pinMsg').textContent="ピンを設定しました（この地点で地図が開きます）";
   }
   const em=document.getElementById('photoExistingMsg');
-  if(em)em.textContent=(post.photos&&post.photos.length)?`現在の写真: ${post.photos.length}枚（新しく選ぶと差し替わります）`:"";
+  const prev=document.getElementById('photoPreview');
+  const n=(post.photos&&post.photos.length)||0;
+  if(em)em.textContent=n?`${n}枚選択済み（新しく選ぶと差し替わります）`:"写真はまだありません（下から追加できます）";
+  if(prev){
+    if(n){
+      prev.innerHTML=post.photos.map(u=>`<img src="${esc(u)}" alt="添付済み">`).join('');
+      prev.classList.remove('hidden');
+    }else{
+      prev.innerHTML="";prev.classList.add('hidden');
+    }
+  }
   document.querySelector('#modalBg h2').textContent="投稿を編集";
   document.querySelector('#postForm button[type="submit"]').textContent="変更を保存する";
   modalBg.classList.add('mp-modal');
