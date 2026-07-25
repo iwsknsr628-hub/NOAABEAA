@@ -125,7 +125,7 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - マップ機能 `openPvMap` はコード上残すがプロフィールUIからは外す。
 - **共有ボタン**: 投稿カード／詳細・プロフィール／マイページ右上に共有アイコン。`navigator.share`（不可時はリンクコピー）。ディープリンク復元は `restoreDeepLinksFromUrl()`（`?post=` 優先、なければ `?u=`）。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。
-  - ヒーロー右上イラスト: `/icons/thinking-girl-line.png`。CTA: **現在地で探す** / **全国で探す** / **気分で探す**（`searchNearNow` / `searchNationwide` / `openMoodPage`）。
+  - ヒーロー全面写真: `/icons/hero-field.png`（左右フルブリード）。旧イラスト `thinking-girl-line.png` は廃止。CTA: **現在地で探す** / **全国で探す** / **気分で探す**（`searchNearNow` / `searchNationwide` / `openMoodPage`）。
   - **気分で探す** `#moodPage`：全画面。丸カテゴリ（デート／ひとり／がっつり／癒し／美容）＋並び（おすすめ／新着／近い）＋画像オーバーレイカード（タイトル・一言・保存・場所・いいね）。
 - **投稿詳細の「いいねした人」**: 投稿者本人のみ表示（`loadPostLikers()`）。**DB側は `post_likes` RLS**（`supabase/post_likes_rls.sql`）で保護。クライアントの if だけに頼らない。
 - **設定UI**: マイページの三本線 → 右ドロワー → 項目選択で全画面（アカウント情報／アカウント設定／プライバシー／表示＝地図アプリ）。戻るでドロワー再表示。

@@ -1,5 +1,5 @@
 /* なんしよ？ PWA Service Worker — network-first（APIはキャッシュしない） */
-const CACHE = "nanshiyo-pwa-v19";
+const CACHE = "nanshiyo-pwa-v20";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -7,7 +7,7 @@ const PRECACHE = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon.svg",
-  "/icons/thinking-girl-line.png"
+  "/icons/hero-field.png"
 ];
 
 self.addEventListener("install", (event) => {

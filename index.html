@@ -131,17 +131,26 @@
   .post-cta-btn .cta-main{font-size:.88rem;font-weight:800}
   .post-cta-btn .cta-sub{font-size:.68rem;font-weight:600;opacity:.85}
   .post-cta-arrow{flex:0 0 auto;display:flex}
-  .hero-fv{display:flex;align-items:center;gap:10px;text-align:left}
-  .hero-fv .hero-fv-text{flex:1;min-width:0}
-  .hero-fv .hero-illust{flex:0 0 auto;width:112px;height:auto;max-height:112px}
-  .hero-fv .hero-illust img{width:100%;height:100%;max-height:112px;object-fit:contain;display:block}
+  .hero-fv{text-align:left;max-width:420px}
+  .hero-fv .hero-fv-text{min-width:0}
 
-  /* HERO FV */
-  .hero{position:relative;overflow:hidden;padding:18px 0 6px;text-align:center;background:#fff}
-  .hero-inner{position:relative;z-index:1}
-  .hero-empathy{color:var(--ink-soft);font-size:.8rem;font-weight:700;margin-bottom:8px}
-  .hero h1{font-size:clamp(1.3rem,5.4vw,1.6rem);line-height:1.28;font-weight:900;letter-spacing:-.02em;color:var(--ink)}
-  .hero h1 .hl{color:var(--accent)}
+  /* HERO FV — full-bleed photo background */
+  .hero{position:relative;overflow:hidden;padding:0;text-align:center;background:#fff}
+  .hero-banner{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+    min-height:248px;background:#2a3a2a url("/icons/hero-field.png") center 42%/cover no-repeat;
+    display:flex;align-items:flex-end}
+  .hero-banner::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.28) 40%,rgba(0,0,0,.55) 100%)}
+  .hero-inner{position:relative;z-index:1;width:100%;max-width:480px;margin:0 auto;padding:28px 16px 18px;box-sizing:border-box}
+  .hero-empathy{color:rgba(255,255,255,.92);font-size:.86rem;font-weight:700;margin:8px 0 0;
+    text-shadow:0 1px 8px rgba(0,0,0,.35)}
+  .hero h1{font-size:clamp(1.35rem,5.6vw,1.7rem);line-height:1.28;font-weight:900;letter-spacing:-.02em;color:#fff;
+    text-shadow:0 2px 12px rgba(0,0,0,.35)}
+  .hero h1 .hl{color:#fff}
+  .hero-banner .hero-cta{margin-top:16px}
+  .hero-banner .cta-card.btn-ghost{background:rgba(255,255,255,.94);border-color:transparent;color:#111}
+  .hero-banner .cta-card.btn-ghost:hover{border-color:transparent;color:var(--accent)}
+  .hero-below{padding:4px 0 6px}
   .searchbar.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
   .searchbar{position:relative;z-index:1;max-width:540px;width:100%;margin:18px auto 0;display:flex;align-items:center;gap:0;min-width:0;
     padding:5px 5px 5px 6px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow-sm)}
@@ -960,39 +969,40 @@
 
 <!-- HERO FV -->
 <section class="hero">
-  <div class="wrap hero-inner">
-    <div class="hero-fv">
-      <div class="hero-fv-text">
-        <h1><span class="hl">3秒で決まる</span><br>今日の過ごし方</h1>
-        <p class="hero-empathy">今すぐ行けるおすすめを見つけよう</p>
+  <div class="hero-banner">
+    <div class="wrap hero-inner">
+      <div class="hero-fv">
+        <div class="hero-fv-text">
+          <h1><span class="hl">3秒で決まる</span><br>今日の過ごし方</h1>
+          <p class="hero-empathy">今すぐ行けるおすすめを見つけよう</p>
+        </div>
       </div>
-      <div class="hero-illust" aria-hidden="true">
-        <img src="/icons/thinking-girl-line.png" alt="" width="400" height="400" decoding="async">
+      <div class="hero-cta">
+        <button type="button" class="btn btn-primary cta-card" onclick="searchNearNow()">
+          <span class="cta-row">
+            <span class="mood-ic" aria-hidden="true">📍</span>
+            <span class="cta-main">現在地で探す</span>
+          </span>
+          <span class="cta-sub">近くのおすすめを見る</span>
+        </button>
+        <button type="button" class="btn btn-ghost cta-card" onclick="searchNationwide()">
+          <span class="cta-row">
+            <span class="mood-ic" aria-hidden="true">🗾</span>
+            <span class="cta-main">全国で探す</span>
+          </span>
+          <span class="cta-sub">日本全国のおすすめ</span>
+        </button>
+        <button type="button" class="btn btn-ghost cta-card cta-mood" onclick="openMoodPage()">
+          <span class="cta-row">
+            <span class="mood-ic" aria-hidden="true">✨</span>
+            <span class="cta-main">気分で探す</span>
+          </span>
+          <span class="cta-sub">今の気分に合うものを探す</span>
+        </button>
       </div>
     </div>
-    <div class="hero-cta">
-      <button type="button" class="btn btn-primary cta-card" onclick="searchNearNow()">
-        <span class="cta-row">
-          <span class="mood-ic" aria-hidden="true">📍</span>
-          <span class="cta-main">現在地で探す</span>
-        </span>
-        <span class="cta-sub">近くのおすすめを見る</span>
-      </button>
-      <button type="button" class="btn btn-ghost cta-card" onclick="searchNationwide()">
-        <span class="cta-row">
-          <span class="mood-ic" aria-hidden="true">🗾</span>
-          <span class="cta-main">全国で探す</span>
-        </span>
-        <span class="cta-sub">日本全国のおすすめ</span>
-      </button>
-      <button type="button" class="btn btn-ghost cta-card cta-mood" onclick="openMoodPage()">
-        <span class="cta-row">
-          <span class="mood-ic" aria-hidden="true">✨</span>
-          <span class="cta-main">気分で探す</span>
-        </span>
-        <span class="cta-sub">今の気分に合うものを探す</span>
-      </button>
-    </div>
+  </div>
+  <div class="wrap hero-below">
     <div class="mood-rail" id="moodRail">
       <div class="mood-rail-head">
         <div class="mood-rail-label">気分で選ぶ (タップで探す)</div>
