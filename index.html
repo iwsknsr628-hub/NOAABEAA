@@ -4765,7 +4765,10 @@ function startNotifPoll(){
     notifPollTimer=setInterval(()=>{
       if(document.hidden)return;
       /* 一覧の丸ごと再描画はちらつきの原因なので、データ更新＋通知だけ（カテゴリ選択は維持） */
-      fetchPosts().then(()=>refreshNotifs()).catch(()=>{});
+      fetchPosts().then(()=>{
+        refreshNotifs();
+        if(placeMapIsOpen())refreshPlaceMapPins({keepView:true,silent:true}).catch(()=>{});
+      }).catch(()=>{});
     },90000);
   }
 }
@@ -5876,14 +5879,110 @@ function closePvMap(){
   const p=document.getElementById('pvMapPage');if(p)p.classList.remove('open');
 }
 
-/* 地名で探す（全投稿の位置付きピン） */
+/* 地名で探す（住所付き投稿をピン表示・開いている間は自動更新） */
 let placeMapObj=null,placeMapMarkers=[];
+let placeMapRefreshTimer=null;
+let placeMapGeocodeAt=0;
+const placeGeoCache={}; /* 住所文字列 → [lat,lng]（クライアント側のみ） */
+
+function placeMapIsOpen(){
+  const p=document.getElementById('placeMapPage');
+  return !!(p&&p.classList.contains('open'));
+}
+function placeMapPosts(){
+  return humanPosts().filter(p=>{
+    if(p.loc&&Array.isArray(p.loc)&&p.loc.length>=2)return true;
+    return !!(p.address&&String(p.address).trim());
+  });
+}
+function placeMapAddrKey(p){
+  return [p.pref,p.address].filter(Boolean).join(" ").trim().toLowerCase();
+}
+async function geocodeThrottled(q){
+  const wait=Math.max(0,1100-(Date.now()-placeMapGeocodeAt));
+  if(wait)await new Promise(r=>setTimeout(r,wait));
+  placeMapGeocodeAt=Date.now();
+  return geocode(q);
+}
+async function resolvePostLoc(p){
+  if(p.loc&&Array.isArray(p.loc)&&p.loc.length>=2)return p.loc;
+  const key=placeMapAddrKey(p);
+  if(!key)return null;
+  if(placeGeoCache[key]){p.loc=placeGeoCache[key];return placeGeoCache[key];}
+  const c=await geocodeThrottled(key);
+  if(c){placeGeoCache[key]=c;p.loc=c;return c;}
+  return null;
+}
+function stopPlaceMapLive(){
+  if(placeMapRefreshTimer){clearInterval(placeMapRefreshTimer);placeMapRefreshTimer=null;}
+}
+function startPlaceMapLive(){
+  stopPlaceMapLive();
+  placeMapRefreshTimer=setInterval(()=>{
+    if(document.hidden||!placeMapIsOpen())return;
+    refreshPlaceMapData({keepView:true,silent:true}).catch(()=>{});
+  },60000);
+}
 function closePlaceMap(){
+  stopPlaceMapLive();
   const p=document.getElementById('placeMapPage');
   if(p)p.classList.remove('open');
   document.body.style.overflow="";
 }
-function openPlaceMap(){
+async function refreshPlaceMapPins(opts){
+  if(!placeMapObj||!placeMapIsOpen())return;
+  const keepView=!!(opts&&opts.keepView);
+  const silent=!!(opts&&opts.silent);
+  const prevCenter=keepView?placeMapObj.getCenter():null;
+  const prevZoom=keepView?placeMapObj.getZoom():null;
+  const list=placeMapPosts();
+  const hint=document.getElementById('placeMapHint');
+  if(hint&&!silent)hint.textContent=list.length?`住所付き ${list.length}件を地図に載せる準備中…`:"住所付きの投稿がまだありません";
+  const resolved=[];
+  for(let i=0;i<list.length;i++){
+    if(!placeMapIsOpen())return;
+    const p=list[i];
+    if(hint&&!silent&&list.length>3)hint.textContent=`ピン準備中…(${i+1}/${list.length})`;
+    try{
+      const loc=await resolvePostLoc(p);
+      if(loc)resolved.push({p,loc});
+    }catch(e){console.warn("place pin",e);}
+  }
+  if(!placeMapIsOpen()||!placeMapObj)return;
+  placeMapMarkers.forEach(m=>placeMapObj.removeLayer(m));
+  placeMapMarkers=resolved.map(({p,loc})=>{
+    const m=L.circleMarker(loc,{radius:9,color:'#FF6A00',fillColor:'#FF8A3D',fillOpacity:.9,weight:2}).addTo(placeMapObj);
+    const sub=[p.spot,p.address||p.pref].filter(Boolean).join(" · ");
+    m.bindPopup(`<b>${esc(p.title||"")}</b><br>${esc(sub)}`);
+    m.on('click',()=>openPostView(p.id));
+    return m;
+  });
+  if(keepView&&prevCenter){
+    placeMapObj.setView(prevCenter,prevZoom);
+  }else if(resolved.length){
+    try{placeMapObj.fitBounds(L.latLngBounds(resolved.map(x=>x.loc)).pad(0.2));}catch(e){placeMapObj.setView([36.2,138.2],5);}
+  }else{
+    placeMapObj.setView([36.2,138.2],5);
+  }
+  if(hint){
+    if(!list.length)hint.textContent="住所付きの投稿がまだありません";
+    else if(!resolved.length)hint.textContent=`住所付き ${list.length}件ありますが、地図座標を取得できませんでした`;
+    else if(resolved.length<list.length)hint.textContent=`住所付き ${list.length}件中 ${resolved.length}件を表示 · ピンをタップで投稿を開く`;
+    else hint.textContent=`住所付き ${resolved.length}件 · ピンをタップすると投稿が見られます`;
+  }
+  if(!silent&&!list.length)showToast("住所付き投稿がまだありません");
+  setTimeout(()=>{if(placeMapObj)placeMapObj.invalidateSize();},150);
+}
+async function refreshPlaceMapData(opts){
+  if(!placeMapIsOpen())return;
+  try{await fetchPosts();}catch(e){console.warn(e);}
+  await refreshPlaceMapPins(opts);
+}
+function refreshPlaceMapIfOpen(){
+  if(!placeMapIsOpen())return;
+  refreshPlaceMapData({keepView:true,silent:true}).catch(()=>{});
+}
+async function openPlaceMap(){
   if(typeof L==="undefined"){showToast("地図を読み込めませんでした（通信環境をご確認ください）");return;}
   try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeSavedPage();closeMoodPage();closePvMap();}catch(e){}
   const page=document.getElementById('placeMapPage');
@@ -5894,34 +5993,24 @@ function openPlaceMap(){
     placeMapObj=L.map('placeMapContainer').setView([36.2,138.2],5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(placeMapObj);
     const inp=document.getElementById('placeMapSearch');
-    if(inp)inp.addEventListener('keydown',e=>{if(e.key==="Enter"){e.preventDefault();placeMapSearchGo();}});
+    if(inp&&!inp._placeMapBound){
+      inp._placeMapBound=true;
+      inp.addEventListener('keydown',e=>{if(e.key==="Enter"){e.preventDefault();placeMapSearchGo();}});
+    }
   }
-  const withLoc=humanPosts().filter(p=>p.loc&&Array.isArray(p.loc)&&p.loc.length>=2);
-  placeMapMarkers.forEach(m=>placeMapObj.removeLayer(m));
-  placeMapMarkers=withLoc.map(p=>{
-    const m=L.circleMarker(p.loc,{radius:9,color:'#FF6A00',fillColor:'#FF8A3D',fillOpacity:.9,weight:2}).addTo(placeMapObj);
-    const sub=[p.spot,p.address||p.pref].filter(Boolean).join(" · ");
-    m.bindPopup(`<b>${esc(p.title||"")}</b><br>${esc(sub)}`);
-    m.on('click',()=>openPostView(p.id));
-    return m;
-  });
   const hint=document.getElementById('placeMapHint');
-  if(withLoc.length){
-    try{placeMapObj.fitBounds(L.latLngBounds(withLoc.map(p=>p.loc)).pad(0.2));}catch(e){placeMapObj.setView([36.2,138.2],5);}
-    if(hint)hint.textContent=`位置付き投稿 ${withLoc.length}件 · ピンをタップすると投稿が見られます`;
-  }else{
-    placeMapObj.setView([36.2,138.2],5);
-    if(hint)hint.textContent="位置付きの投稿がまだありません";
-    showToast("位置付き投稿がまだありません");
-  }
-  setTimeout(()=>placeMapObj.invalidateSize(),150);
+  if(hint)hint.textContent="最新の投稿を読み込み中…";
+  setTimeout(()=>{if(placeMapObj)placeMapObj.invalidateSize();},80);
+  await refreshPlaceMapData({keepView:false,silent:false});
+  startPlaceMapLive();
 }
 async function placeMapSearchGo(){
   const inp=document.getElementById('placeMapSearch');
   const btn=document.getElementById('placeMapSearchBtn');
   const q=(inp&&inp.value||"").trim();
   if(!q){showToast("地名・住所を入力してください");return;}
-  if(!placeMapObj){openPlaceMap();return;}
+  if(!placeMapIsOpen()){await openPlaceMap();}
+  if(!placeMapObj)return;
   if(btn)btn.disabled=true;
   try{
     const c=await geocode(q);
@@ -6123,7 +6212,15 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
   submitBtn.disabled=true;submitBtn.textContent=isEdit?"保存中…":"投稿中…";
   try{
     if(pendingPin){post.loc=pendingPin;}
-    else if(post.address){submitBtn.textContent="地図を確認中…";const c=await geocode(post.address);if(c)post.loc=c;}
+    else if(post.address){
+      submitBtn.textContent="地図を確認中…";
+      const q=[post.pref,post.address].filter(Boolean).join(" ");
+      const c=await geocode(q);
+      if(c){
+        post.loc=c;
+        placeGeoCache[q.trim().toLowerCase()]=c;
+      }
+    }
     if(pendingPhotos.length){
       submitBtn.textContent="写真を送信中…";
       const urls=[];const failMsgs=[];
@@ -6164,6 +6261,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
       closeModal();
       render();renderMyPosts();
       showToast("変更を保存しました");
+      refreshPlaceMapIfOpen();
     }else{
       let saved;
       if(SERVER){saved=await addPostServer(post);}
@@ -6175,6 +6273,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
       closeModal();
       document.querySelector(`#filters .chip[data-cat="${cat}"]`).click();
       window.scrollTo({top:document.getElementById('board').offsetTop-40,behavior:'smooth'});
+      refreshPlaceMapIfOpen();
     }
   }catch(err){
     console.warn(err);
