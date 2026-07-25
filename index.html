@@ -48,6 +48,7 @@
   header.site{position:sticky;top:0;z-index:50;background:var(--header-bg);
     backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
   .navbar{display:flex;align-items:center;justify-content:space-between;height:52px;gap:8px}
+  .header-tagline{padding:0 0 8px;font-size:.74rem;font-weight:700;color:var(--ink-soft);text-align:center}
   .logo{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-weight:900;font-size:.92rem;letter-spacing:.02em;min-width:0;cursor:pointer}
   .logo .mark{width:24px;height:24px;display:grid;place-items:center;background:transparent;padding:0;border-radius:0;box-shadow:none;overflow:visible}
   .logo .mark svg{width:24px;height:24px;display:block}
@@ -88,7 +89,36 @@
   .btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
   .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
   .btn-sm{padding:9px 18px;font-size:.88rem}
-  .btn-block{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;min-height:52px;font-size:1.05rem}
+  .btn-block{display:flex;flex-direction:column;width:100%;align-items:center;justify-content:center;gap:2px;min-height:56px;font-size:1.05rem}
+  .btn-block .cta-main{font-weight:800;font-size:.98rem}
+  .btn-block .cta-sub{font-weight:600;font-size:.72rem;opacity:.8}
+  .new-sort-link{font-size:.78rem;font-weight:700;color:var(--ink-soft)}
+  .new-rail{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    margin:14px -22px 4px;padding:0 22px 6px}
+  .new-rail::-webkit-scrollbar{display:none}
+  .new-card{flex:0 0 auto;width:200px;cursor:pointer;text-align:left;background:none;border:none;padding:0;font-family:inherit}
+  .new-card-media{position:relative;border-radius:14px;overflow:hidden;background:var(--bg2);aspect-ratio:4/3}
+  .new-card-media img{width:100%;height:100%;object-fit:cover;display:block}
+  .new-card-media .new-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);font-size:.72rem;font-weight:700;padding:8px;text-align:center;
+    background:linear-gradient(160deg,var(--bg2),#ebe6dc)}
+  .new-badge{position:absolute;top:8px;font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:999px}
+  .new-badge.area{left:8px;background:rgba(255,255,255,.92);color:var(--ink)}
+  .new-badge.like{right:8px;background:rgba(255,255,255,.92);color:#e0245e}
+  .new-card-title{font-size:.86rem;font-weight:800;color:var(--ink);margin-top:8px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .new-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.72rem;color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .new-card-cat{font-weight:800;color:var(--accent);flex:0 0 auto}
+  .post-cta-sec{padding:8px 0 28px}
+  .post-cta-btn{display:flex;flex-direction:column;width:100%;align-items:center;justify-content:center;
+    gap:4px;min-height:64px;border-radius:16px}
+  .post-cta-btn .cta-main{font-size:1.05rem;font-weight:900}
+  .post-cta-btn .cta-sub{font-size:.78rem;font-weight:600;opacity:.85}
+  .hero-fv{display:flex;align-items:center;gap:12px;text-align:left}
+  .hero-fv .hero-fv-text{flex:1;min-width:0}
+  .hero-fv .hero-illust{flex:0 0 auto;width:88px;height:88px}
+  .hero-fv .hero-illust svg{width:100%;height:100%;display:block}
 
   /* HERO FV */
   .hero{position:relative;overflow:hidden;padding:20px 0 8px;text-align:center;background:#fff}
@@ -114,8 +144,11 @@
   .mood-chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;
     font-weight:800;font-size:.86rem;padding:10px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
   .mood-chip:active,.mood-chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-  .trust-strip{margin:14px 0 0;padding:10px 12px;border-radius:12px;background:var(--bg2);
-    font-size:.78rem;font-weight:700;color:var(--ink-soft);line-height:1.45}
+  .trust-strip{margin:14px 0 0;padding:14px 16px;border-radius:14px;background:#F3E9DC;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left}
+  .trust-strip-text p{font-size:.8rem;font-weight:700;color:#6b4e2e;line-height:1.7;margin:0}
+  .trust-strip-illust{flex:0 0 auto;width:48px;height:48px}
+  .trust-strip-illust svg{width:100%;height:100%;display:block}
 
   section{padding:16px 0}
   .sec-head{text-align:left;margin-bottom:12px}
@@ -719,6 +752,7 @@
       <button class="btn btn-ghost btn-sm" id="acctBtnTop" onclick="openAuth()">ログイン / 登録</button>
     </div>
   </div>
+  <div class="wrap header-tagline">何しよう？を3秒で解決</div>
 </header>
 
 <!-- BOTTOM TAB BAR — ホーム / ＋ / 保存 -->
@@ -742,11 +776,30 @@
 <!-- HERO FV -->
 <section class="hero">
   <div class="wrap hero-inner">
-    <p class="hero-empathy">探すの疲れた？ここで終わり</p>
-    <h1><span class="hl">3秒で決まる</span><br>今日の過ごし方</h1>
+    <div class="hero-fv">
+      <div class="hero-fv-text">
+        <h1><span class="hl">3秒で決まる</span><br>今日の過ごし方</h1>
+        <p class="hero-empathy">今すぐ行けるおすすめを見つけよう</p>
+      </div>
+      <div class="hero-illust" aria-hidden="true">
+        <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="44" cy="44" r="44" fill="var(--bg2)"/>
+          <circle cx="44" cy="30" r="12" fill="var(--accent2)"/>
+          <path d="M26 78c0-14 8-24 18-24s18 10 18 24" fill="var(--accent)"/>
+          <rect x="34" y="46" width="12" height="18" rx="3" fill="#fff" stroke="var(--ink)" stroke-width="2"/>
+          <circle cx="40" cy="60" r="1.4" fill="var(--ink)"/>
+        </svg>
+      </div>
+    </div>
     <div class="hero-cta">
-      <button type="button" class="btn btn-primary btn-block" onclick="searchNearNow()">📍 現在地で探す</button>
-      <button type="button" class="btn btn-ghost btn-block" onclick="focusMoodRail()">🎯 気分で探す</button>
+      <button type="button" class="btn btn-primary btn-block" onclick="searchNearNow()">
+        <span class="cta-main">📍 現在地で探す</span>
+        <span class="cta-sub">近くのおすすめを見る</span>
+      </button>
+      <button type="button" class="btn btn-ghost btn-block" onclick="focusMoodRail()">
+        <span class="cta-main">😊 気分で探す</span>
+        <span class="cta-sub">今の気分に合うものを探す</span>
+      </button>
     </div>
     <div class="mood-rail" id="moodRail">
       <div class="mood-rail-label">気分で選ぶ</div>
@@ -761,7 +814,19 @@
         <button type="button" class="mood-chip" data-mood="リラックス" onclick="pickMood('リラックス')">リラックス</button>
       </div>
     </div>
-    <div class="trust-strip">実際に行った人の投稿のみ · 迷ったら地図へ</div>
+    <div class="trust-strip">
+      <div class="trust-strip-text">
+        <p>実際に行った人の投稿だけ</p>
+        <p>PR・広告なし</p>
+        <p>最新のリアルな情報</p>
+      </div>
+      <div class="trust-strip-illust" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="20" r="10" fill="#fff"/>
+          <path d="M16 60c0-13 7-22 16-22s16 9 16 22" fill="#fff"/>
+        </svg>
+      </div>
+    </div>
     <!-- 既存検索ロジック維持（画面上は非表示） -->
     <div class="searchbar sr-only" aria-hidden="true">
       <input id="search" type="search" enterkeyhint="search" autocomplete="off" tabindex="-1"
@@ -780,9 +845,14 @@
   <div class="wrap">
     <div class="sec-head">
       <div class="kicker">Board</div>
-      <h2>みんなのおすすめ</h2>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+        <h2>みんなのおすすめ</h2>
+        <span class="new-sort-link">新着順</span>
+      </div>
       <p>画像を見て、見る・保存・地図で次へ。</p>
     </div>
+
+    <div class="new-rail" id="newRail"></div>
 
     <div class="locbar loading" id="locbar">
       <span class="txt" id="locTxt">現在地を確認しています…<small>位置情報を許可すると、近くのおすすめを表示します</small></span>
@@ -818,6 +888,16 @@
 
     <div class="result-count" id="count"></div>
     <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- 投稿CTA -->
+<section class="post-cta-sec">
+  <div class="wrap">
+    <button type="button" class="btn btn-primary post-cta-btn" onclick="openModal()">
+      <span class="cta-main">おすすめを投稿する</span>
+      <span class="cta-sub">みんなにシェアして、参考にしてもらおう！</span>
+    </button>
   </div>
 </section>
 
@@ -2265,8 +2345,30 @@ function render(){
   });
   grid.innerHTML=html.join('');
   activateAds();
+  renderNewRail();
   /* 再描画でスクロールが跳ねないように維持（カテゴリ切替・定期更新時のあたふた防止） */
   if(Math.abs(window.scrollY-keepY)>1)window.scrollTo(0,keepY);
+}
+function newCardHTML(p){
+  const cover=(p.photos||[])[0]||"";
+  const media=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
+    :`<span class="new-ph">${esc(p.title||p.spot||CAT_LABEL[p.cat]||"投稿")}</span>`;
+  const area=p.pref||p.genre||"";
+  return `<button type="button" class="new-card" onclick="openPostView('${esc(String(p.id))}')" title="${esc(p.title||"")}">
+    <div class="new-card-media">
+      ${media}
+      ${area?`<span class="new-badge area">${esc(area)}</span>`:""}
+      <span class="new-badge like">♡ ${p.likes||0}</span>
+    </div>
+    <div class="new-card-title">${esc(p.title||"")}</div>
+    <div class="new-card-meta"><span class="new-card-cat">${esc(CAT_LABEL[p.cat]||"")}</span><span>by ${esc(p.author||"匿名")}</span></div>
+  </button>`;
+}
+function renderNewRail(){
+  const rail=document.getElementById('newRail');
+  if(!rail)return;
+  const list=humanPosts().slice().sort((a,b)=>b.ts-a.ts).slice(0,10);
+  rail.innerHTML=list.map(newCardHTML).join('');
 }
 function mapLinks(p){
   const addr=p.address&&p.address.trim();
