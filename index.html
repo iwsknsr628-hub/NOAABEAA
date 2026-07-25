@@ -422,57 +422,71 @@
   .ig-stats b{display:block;font-size:1.05rem;font-weight:900}
   .ig-stats span{display:block;font-size:.7rem;color:var(--ink-soft);margin-top:2px}
 
-  /* プロフィール画面（他人・本人共通のPV画面）— 信用→投稿→保存/マップ */
+  /* プロフィール画面 — 参照モック準拠 */
   #pvPage{background:#fff}
-  #pvPage .full-page-body{padding:16px 16px 12px;background:#fff}
+  #pvPage .full-page-body{padding:16px 16px calc(20px + env(safe-area-inset-bottom));background:#fff}
   #pvPage .mp-wrap{max-width:480px}
-  #pvPage .mp-section{border:none;border-radius:0;box-shadow:none;padding:0;margin-bottom:16px;background:transparent}
-  .pv-top{display:flex;align-items:flex-start;gap:12px;text-align:left}
-  .pv-avatar.avatar-lg{width:64px;height:64px;flex:0 0 64px;margin:0;font-size:1.4rem}
+  #pvPage .mp-section{border:none;border-radius:0;box-shadow:none;padding:0;margin-bottom:14px;background:transparent}
+  .pv-top{display:flex;align-items:flex-start;gap:14px;text-align:left}
+  .pv-avatar.avatar-lg{width:80px;height:80px;flex:0 0 80px;margin:0;font-size:1.6rem}
   .pv-top-main{flex:1;min-width:0}
-  #pvPage #pvName{margin:0;font-size:1.125rem;font-weight:900;line-height:1.3;color:#111;
-    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  #pvPage .mp-handle-view{text-align:left;margin-top:2px}
-  .pv-bio{color:#666;font-size:.875rem;font-weight:700;line-height:1.4;margin-top:6px;
-    white-space:normal;word-break:break-word}
-  .pv-area{font-size:.8125rem;font-weight:700;color:#666;margin-top:4px}
-  .pv-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px}
-  #pvFollowBtn.btn-primary{background:#FF6A00;border-color:#FF6A00}
-  #pvFollowBtn.btn-ghost{background:#fff;color:#111;border:1.5px solid #111}
-  .pv-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .pv-follower-line{font-size:.78rem;font-weight:700;color:#666;margin-top:10px}
-  .pv-stats.ig-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;justify-content:stretch;
-    margin:12px 0 0;padding:12px 0;border-top:1px solid #E8E8E8;border-bottom:1px solid #E8E8E8}
-  .pv-stats.ig-stats>button,.pv-stats.ig-stats>div{text-align:center;border:none;background:transparent;
-    font:inherit;color:inherit;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .pv-stats.ig-stats b{display:block;font-size:1.125rem;font-weight:900;color:#111;line-height:1.2}
-  .pv-stats.ig-stats span{display:block;font-size:.7rem;font-weight:700;color:#666;margin-top:2px}
-  .pv-trust{margin-top:12px;font-size:.8125rem;font-weight:700;color:#666;line-height:1.4}
+  .pv-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .pv-name-block{flex:1;min-width:0}
+  #pvPage #pvName{margin:0;font-size:1.2rem;font-weight:900;line-height:1.3;color:#111}
+  #pvPage .mp-handle-view{text-align:left;margin-top:4px;font-size:.82rem;color:#555;font-weight:700}
+  .pv-follow-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:92px}
+  .pv-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:0}
+  #pvFollowBtn.btn-primary{background:#111;border-color:#111;color:#fff;border-radius:999px;padding:8px 14px;font-size:.78rem;white-space:nowrap}
+  #pvFollowBtn.btn-ghost{background:#fff;color:#111;border:1.5px solid #111;border-radius:999px;padding:8px 14px;font-size:.78rem}
+  #pvEditBtn{border-radius:999px;font-size:.78rem;padding:8px 14px}
+  #pvNotifyBtn{border-radius:999px;font-size:.72rem;padding:6px 10px}
+  .pv-follow-count{font-size:.68rem;font-weight:700;color:#666;text-align:center;line-height:1.3}
+  .pv-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .pv-stats.ig-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:14px 0 0;padding:0;
+    border:1px solid #E8E8E8;border-radius:14px;overflow:hidden;background:#fff}
+  .pv-stats.ig-stats>button{text-align:center;border:none;border-right:1px solid #E8E8E8;background:#fff;
+    font:inherit;color:inherit;padding:12px 4px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pv-stats.ig-stats>button:last-child{border-right:none}
+  .pv-stats .pv-stat-ic{display:block;margin:0 auto 4px;width:16px;height:16px;color:#666}
+  .pv-stats .pv-stat-ic svg{width:16px;height:16px;display:block}
+  .pv-stats.ig-stats span{display:block;font-size:.62rem;font-weight:700;color:#888;margin-top:0}
+  .pv-stats.ig-stats b{display:block;font-size:.92rem;font-weight:900;color:#111;line-height:1.25;margin-top:2px}
+  .pv-bio-card{margin-top:12px;padding:14px 14px;border-radius:14px;background:#F7F3EC;display:flex;gap:10px;align-items:flex-start}
+  .pv-bio{flex:1;min-width:0;color:#333;font-size:.84rem;font-weight:600;line-height:1.55;margin:0;
+    white-space:pre-wrap;word-break:break-word}
+  .pv-trust-badge{flex:0 0 auto;max-width:88px;background:#fff;border:1px solid #E5E5E5;border-radius:10px;
+    padding:8px 6px;font-size:.58rem;font-weight:800;color:#555;line-height:1.35;text-align:center}
+  .pv-trust-badge svg{width:14px;height:14px;display:block;margin:0 auto 4px;color:#2db87a}
   .pv-filters{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;margin:0 -16px 12px;padding:0 16px 2px}
+    scrollbar-width:none;margin:4px 0 12px;padding:0 0 2px}
   .pv-filters::-webkit-scrollbar{display:none}
-  .pv-filters .chip{flex:0 0 auto;border:1px solid #E8E8E8;background:#fff;color:#111;padding:8px 14px;
-    border-radius:999px;font-size:.86rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .pv-filters .chip{flex:0 0 auto;border:1px solid #E0E0E0;background:#fff;color:#111;padding:8px 14px;
+    border-radius:999px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
   .pv-filters .chip.active{background:#111;color:#fff;border-color:#111}
-  .pv-grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin:0 -16px}
+  .pv-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0}
   .pv-grid2 .empty{grid-column:1/-1;padding:36px 16px;margin:0;color:#666;text-align:center;font-size:.88rem;font-weight:700}
   .pv-card{position:relative;border:none;padding:0;font-family:inherit;text-align:left;color:inherit;
-    background:#F7F7F7;border-radius:0;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .pv-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-  .pv-card .pv-ph{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
-    padding:8px;text-align:center;font-size:.7rem;font-weight:700;color:#666;line-height:1.35;background:#F7F7F7}
-  .pv-card-meta{position:absolute;left:0;right:0;bottom:0;padding:20px 8px 8px;
-    background:linear-gradient(0deg,rgba(17,17,17,.72),rgba(17,17,17,0));display:flex;align-items:flex-end;gap:6px}
-  .pv-card-title{flex:1;min-width:0;font-size:.75rem;font-weight:800;color:#fff;line-height:1.25;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pv-card-save{flex:0 0 auto;font-size:.7rem;color:#fff;font-weight:800;opacity:.95}
-  .pv-bottom-cta{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
-    padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;
-    border-top:1px solid #E8E8E8;box-shadow:0 -2px 12px rgba(0,0,0,.05)}
-  .pv-bottom-cta button{border:1.5px solid #111;background:#fff;color:#111;font-family:inherit;
-    font-weight:800;font-size:.8rem;min-height:52px;padding:12px 4px;border-radius:12px;cursor:pointer}
-  .pv-bottom-cta button:active{transform:scale(.96)}
-  .pv-bottom-cta button.primary{background:#FF6A00;color:#fff;border-color:#FF6A00}
+    background:transparent;border-radius:14px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pv-card-media{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#F0F0F0}
+  .pv-card img{width:100%;height:100%;object-fit:cover;display:block}
+  .pv-card .pv-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    padding:10px;text-align:center;font-size:.72rem;font-weight:700;color:#666;line-height:1.35;background:#F0F0F0}
+  .pv-card-cat{position:absolute;top:8px;left:8px;z-index:2;font-size:.62rem;font-weight:800;color:#fff;
+    background:rgba(17,17,17,.55);border-radius:999px;padding:3px 8px}
+  .pv-card-bm{position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:50%;
+    background:rgba(255,255,255,.92);display:grid;place-items:center;color:#111}
+  .pv-card-bm svg{width:14px;height:14px;display:block}
+  .pv-card-meta{position:absolute;left:0;right:0;bottom:0;padding:28px 10px 10px;
+    background:linear-gradient(0deg,rgba(17,17,17,.78),rgba(17,17,17,0));display:flex;flex-direction:column;gap:3px}
+  .pv-card-title{font-size:.78rem;font-weight:800;color:#fff;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pv-card-bot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:2px}
+  .pv-card-loc{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .pv-card-like{flex:0 0 auto;font-size:.66rem;font-weight:800;color:#fff}
+  .pv-more{display:flex;width:100%;align-items:center;justify-content:center;gap:6px;margin-top:12px;
+    border:1px solid #E0E0E0;background:#fff;color:#111;font-family:inherit;font-weight:800;font-size:.86rem;
+    padding:12px;border-radius:12px;cursor:pointer}
+  .pv-more[hidden]{display:none!important}
   .pv-menu-list{display:flex;flex-direction:column;gap:8px}
   .pv-menu-item{width:100%;text-align:left;border:1px solid #E8E8E8;background:#fff;color:#111;
     font-family:inherit;font-weight:800;font-size:.92rem;padding:14px 14px;border-radius:12px;cursor:pointer}
@@ -1318,45 +1332,56 @@
         <div class="pv-top">
           <div id="pvAvatar" class="avatar-lg pv-avatar" role="button" tabindex="0" title="プロフィール画像を見る" aria-label="プロフィール画像を見る"></div>
           <div class="pv-top-main">
-            <h2 id="pvName">プロフィール</h2>
-            <div id="pvHandle" class="mp-handle-view"></div>
-            <p id="pvBio" class="pv-bio"></p>
-            <div id="pvArea" class="pv-area"></div>
-            <div class="pv-actions">
-              <button id="pvEditBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="openProfileEditPopup()">編集</button>
-              <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
-              <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
+            <div class="pv-name-row">
+              <div class="pv-name-block">
+                <h2 id="pvName">プロフィール</h2>
+                <div id="pvHandle" class="mp-handle-view"></div>
+              </div>
+              <div class="pv-follow-col">
+                <div class="pv-actions">
+                  <button id="pvEditBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="openProfileEditPopup()">編集</button>
+                  <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
+                  <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
+                </div>
+                <div class="pv-follow-count">フォロワー <b id="pvStatFollowers">0</b> 人</div>
+              </div>
             </div>
           </div>
         </div>
         <div id="pvLinks" class="pv-links"></div>
-        <div class="pv-follower-line">フォロワー <b id="pvStatFollowers">0</b>・フォロー中 <b id="pvStatFollowing">0</b></div>
         <div class="ig-stats pv-stats" role="group" aria-label="実績">
           <button type="button" onclick="scrollPvPosts()" title="投稿一覧へ">
-            <b id="pvStatPosts">0</b><span>投稿</span>
+            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg></span>
+            <span>投稿数</span><b id="pvStatPosts">0</b>
           </button>
           <button type="button" onclick="scrollPvPosts('saves')" title="保存が多い順">
-            <b id="pvStatSaves">0</b><span>保存</span>
+            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></span>
+            <span>保存数</span><b id="pvStatSaves">0</b>
           </button>
           <button type="button" onclick="scrollPvPosts('likes')" title="いいねが多い順">
-            <b id="pvStatLikes">0</b><span>いいね</span>
+            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg></span>
+            <span>いいね数</span><b id="pvStatLikes">0</b>
           </button>
           <button type="button" onclick="scrollPvPosts('spots')" title="スポット付き投稿">
-            <b id="pvStatSpots">0</b><span>スポット</span>
+            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.3"></circle></svg></span>
+            <span>訪れた場所</span><b id="pvStatSpots">0</b>
           </button>
         </div>
-        <div class="pv-trust">実体験のみ · PRなし</div>
+        <div class="pv-bio-card">
+          <p id="pvBio" class="pv-bio"></p>
+          <div class="pv-trust-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.2 8.4-7 10-3.8-1.6-7-5-7-10V6l7-3z"></path><path d="M9 12l2 2 4-4"></path></svg>
+            実体験のみ投稿<br>PR・広告なし
+          </div>
+        </div>
+        <div class="pv-follow-count" style="display:none">フォロー中 <b id="pvStatFollowing">0</b></div>
       </div>
       <div class="mp-section ig-posts" id="pvPostsSec">
         <div class="pv-filters" id="pvFilters"></div>
         <div class="pv-grid2" id="pvPostsGrid"></div>
+        <button type="button" class="pv-more" id="pvMoreBtn" hidden onclick="showMorePvPosts()">もっと見る ▾</button>
       </div>
     </div>
-  </div>
-  <div class="pv-bottom-cta">
-    <button type="button" onclick="openSavedPage()">保存一覧</button>
-    <button type="button" class="primary" onclick="openPvMap()">マップで見る</button>
-    <button type="button" onclick="openPvSummary()">まとめを見る</button>
   </div>
 </div>
 
@@ -4742,13 +4767,17 @@ let pvCatFilter='all';
 let pvSortMode='new'; /* new | saves | likes | spots */
 const PV_FILTERS=[
   {id:'all',label:'すべて',cats:null},
-  {id:'gourmet',label:'グルメ',cats:['food','drink']},
-  {id:'play',label:'遊び',cats:['travel','fun']},
+  {id:'gourmet',label:'グルメ',cats:['food']},
+  {id:'cafe',label:'カフェ',cats:['drink']},
   {id:'beauty',label:'美容',cats:['beauty']},
-  {id:'chill',label:'まったり',cats:['life']},
+  {id:'study',label:'勉強',cats:['study']},
+  {id:'out',label:'おでかけ',cats:['travel','fun']},
 ];
+let pvPostsLimit=6;
+const PV_PAGE_SIZE=6;
 function setPvFilter(cat){
   pvCatFilter=cat;
+  pvPostsLimit=PV_PAGE_SIZE;
   if(pvUserId)renderPvPosts(pvUserId);
 }
 function pvFilterChipsHTML(){
@@ -4761,22 +4790,44 @@ function clipText(s,n){
   if(!t)return "";
   return t.length>n?t.slice(0,n)+"…":t;
 }
+function pvCardCatLabel(p){
+  const map={travel:"おでかけ",fun:"おでかけ",food:"グルメ",drink:"カフェ",beauty:"美容",study:"勉強",life:"まったり",finance:"お金"};
+  return map[p.cat]||(CAT_LABEL[p.cat]||"投稿");
+}
+function pvCardLocLabel(p){
+  const addr=String(p.address||"");
+  const m=addr.match(/([^\s\d]{1,12}[市区町村])/)||addr.match(/([^\s]{2,8}区)/);
+  if(m)return m[1];
+  if(p.spot)return clipText(p.spot,14);
+  if(p.pref)return String(p.pref).replace(/(都|道|府|県)$/,"");
+  return "";
+}
 function pvCardHTML(p){
   const cover=(p.photos||[])[0]||"";
-  const title=clipText(p.title||p.spot||"",12);
+  const title=p.title||p.spot||"";
   const body=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
-    :`<span class="pv-ph">${esc(title||CAT_LABEL[p.cat]||"投稿")}</span>`;
-  return `<button type="button" class="pv-card ig-thumb" data-id="${esc(String(p.id))}" title="${esc(p.title||"")}">
-    ${body}
-    <div class="pv-card-meta">
-      <span class="pv-card-title">${esc(title)}</span>
-      <span class="pv-card-save">♡ ${p.saves||0}</span>
+    :`<span class="pv-ph">${esc(clipText(title,16)||CAT_LABEL[p.cat]||"投稿")}</span>`;
+  const loc=pvCardLocLabel(p);
+  const bm=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+  return `<button type="button" class="pv-card ig-thumb" data-id="${esc(String(p.id))}" title="${esc(title)}">
+    <div class="pv-card-media">
+      ${body}
+      <span class="pv-card-cat">${esc(pvCardCatLabel(p))}</span>
+      <span class="pv-card-bm" aria-hidden="true">${bm}</span>
+      <div class="pv-card-meta">
+        <span class="pv-card-title">${esc(title)}</span>
+        <div class="pv-card-bot">
+          <span class="pv-card-loc">${loc?esc("📍 "+loc):""}</span>
+          <span class="pv-card-like">♡ ${p.likes||0}</span>
+        </div>
+      </div>
     </div>
   </button>`;
 }
 function renderPvPosts(userId){
   const grid=document.getElementById('pvPostsGrid');
   const filters=document.getElementById('pvFilters');
+  const more=document.getElementById('pvMoreBtn');
   if(filters)filters.innerHTML=pvFilterChipsHTML();
   let mine=POSTS.filter(p=>p.user_id&&p.user_id===userId);
   const f=PV_FILTERS.find(x=>x.id===pvCatFilter);
@@ -4785,12 +4836,19 @@ function renderPvPosts(userId){
   else if(pvSortMode==='likes')mine.sort((a,b)=>(b.likes||0)-(a.likes||0)||(b.ts||0)-(a.ts||0));
   else if(pvSortMode==='spots')mine=mine.filter(p=>p.loc||p.address||p.pref).sort((a,b)=>(b.ts||0)-(a.ts||0));
   else mine.sort((a,b)=>(b.ts||0)-(a.ts||0));
-  grid.innerHTML=mine.length?mine.map(pvCardHTML).join('')
+  const shown=mine.slice(0,pvPostsLimit);
+  grid.innerHTML=shown.length?shown.map(pvCardHTML).join('')
     :`<div class="empty">まだ投稿がありません。</div>`;
+  if(more)more.hidden=!(mine.length>pvPostsLimit);
+}
+function showMorePvPosts(){
+  pvPostsLimit+=PV_PAGE_SIZE;
+  if(pvUserId)renderPvPosts(pvUserId);
 }
 function scrollPvPosts(mode){
   if(mode==='saves'||mode==='likes'||mode==='spots')pvSortMode=mode;
   else pvSortMode='new';
+  pvPostsLimit=PV_PAGE_SIZE;
   if(pvUserId)renderPvPosts(pvUserId);
   const sec=document.getElementById('pvPostsSec');
   const body=document.querySelector('#pvPage .full-page-body');
@@ -4798,13 +4856,6 @@ function scrollPvPosts(mode){
     const top=sec.offsetTop-8;
     body.scrollTo({top:Math.max(0,top),behavior:'smooth'});
   }
-}
-function openPvSummary(){
-  pvCatFilter='all';
-  pvSortMode='new';
-  scrollPvPosts();
-  const n=pvUserId?POSTS.filter(p=>p.user_id===pvUserId).length:0;
-  showToast(n?`投稿 ${n} 件を表示`:"投稿はまだありません");
 }
 function setPvHeadTitle(name){
   const el=document.getElementById('pvHeadTitle');
@@ -4817,6 +4868,7 @@ async function openProfileView(userId,fallbackName,opts){
   pvUserId=userId||null;
   pvCatFilter='all';
   pvSortMode='new';
+  pvPostsLimit=PV_PAGE_SIZE;
   const page=document.getElementById('pvPage');
   const nm=fallbackName||"プロフィール";
   document.getElementById('pvName').textContent=nm;
@@ -4831,7 +4883,6 @@ async function openProfileView(userId,fallbackName,opts){
   document.getElementById('pvStatLikes').textContent="—";
   document.getElementById('pvStatSaves').textContent="—";
   document.getElementById('pvStatSpots').textContent="—";
-  document.getElementById('pvArea').textContent="";
   const av=document.getElementById('pvAvatar');setAvatarEl(av,"");
   const editBtn=document.getElementById('pvEditBtn');if(editBtn){editBtn.style.display="none";}
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
@@ -4855,13 +4906,12 @@ async function openProfileView(userId,fallbackName,opts){
   if(!SERVER||!userId){document.getElementById('pvBio').textContent="このユーザーのプロフィールはまだありません。";return;}
 
   const st=statsForUser(userId);
-  document.getElementById('pvStatPosts').textContent=st.posts;
-  document.getElementById('pvStatLikes').textContent=st.likes;
-  document.getElementById('pvStatSaves').textContent=st.saves;
-  document.getElementById('pvStatSpots').textContent=st.spots;
-  document.getElementById('pvArea').textContent=st.area?`${st.area}周辺`:"";
+  document.getElementById('pvStatPosts').textContent=`${st.posts} 件`;
+  document.getElementById('pvStatLikes').textContent=`${st.likes} 件`;
+  document.getElementById('pvStatSaves').textContent=`${st.saves} 件`;
+  document.getElementById('pvStatSpots').textContent=`${st.spots} スポット`;
   fetchFollowCounts(userId).then(fc=>{
-    document.getElementById('pvStatFollowers').textContent=fc.followers;
+    document.getElementById('pvStatFollowers').textContent=fc.followers.toLocaleString("ja-JP");
     document.getElementById('pvStatFollowing').textContent=fc.following;
   });
 
@@ -4897,9 +4947,7 @@ async function openProfileView(userId,fallbackName,opts){
       return;
     }
     const bioRaw=(p.bio||"").trim();
-    const bioEl=document.getElementById('pvBio');
-    bioEl.textContent=bioRaw?clipText(bioRaw,30):"";
-    if(bioRaw&&bioRaw.length>30)bioEl.title=bioRaw;
+    document.getElementById('pvBio').textContent=bioRaw||"自己紹介はまだありません。";
     const defs=[["Instagram","instagram"],["TikTok","tiktok"],["X","x"],["YouTube","youtube"],["サイト","website"]];
     const html=defs.map(([label,key])=>{const u=socialUrl(key,p[key]);return u?`<a class="sns-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`:"";}).join("");
     document.getElementById('pvLinks').innerHTML=html||"";
@@ -4907,7 +4955,7 @@ async function openProfileView(userId,fallbackName,opts){
 }
 function setFollowBtnState(btn,following){
   btn.dataset.following=following?"1":"0";
-  btn.textContent=following?"フォロー中":"フォロー";
+  btn.textContent=following?"フォロー中":"フォローする";
   btn.className="btn btn-sm "+(following?"btn-ghost":"btn-primary");
 }
 async function togglePvFollow(userId){

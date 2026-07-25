@@ -110,6 +110,8 @@ git push origin main   # → GitHub Pages が自動デプロイ
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。URL は `?post=<id>`（再読み込み・共有用）。閉じ方: ✕／背景タップ／**左→右スワイプ**。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。z-index 200。URL は `?u=<user_id>`。
   - **タブ「プロフィール」**も同じ `#pvPage` を開く（`openMyPage()` → `openProfileView(session.uid)`）。旧 `#myPage` は残すがメイン導線ではない。自分のときは「編集」＋⋯（設定/お知らせ/リンクコピー）。
+  - 構成: 80pxアイコン・名前・@ID・フォロー（黒）・実績4カード・自己紹介全文＋信頼バッジ・フィルター・2列投稿（カテゴリ/保存アイコン/タイトル/場所/いいね）・もっと見る。**位置情報行なし。下部CTA（保存一覧/マップ/まとめ）なし。**
+  - マップ機能 `openPvMap` はコード上残すがプロフィールUIからは外す。
 - **共有ボタン**: 投稿カード／詳細・プロフィール／マイページ右上に共有アイコン。`navigator.share`（不可時はリンクコピー）。ディープリンク復元は `restoreDeepLinksFromUrl()`（`?post=` 優先、なければ `?u=`）。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。
 - **投稿詳細の「いいねした人」**: 投稿者本人のみ表示（`loadPostLikers()`）。**DB側は `post_likes` RLS**（`supabase/post_likes_rls.sql`）で保護。クライアントの if だけに頼らない。
