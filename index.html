@@ -95,7 +95,6 @@
   .btn-sm{padding:9px 18px;font-size:.88rem}
   .btn-block{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;min-height:52px;font-size:1.05rem}
   .hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px auto 0;max-width:400px}
-  .hero-cta .cta-mood{grid-column:1 / -1}
   .cta-card{flex:1;display:flex;flex-direction:column;align-items:flex-start;text-align:left;
     gap:3px;padding:11px 12px;border-radius:12px}
   .ui-ic{display:inline-flex;flex:0 0 auto;color:inherit;line-height:0}
@@ -1013,6 +1012,13 @@
         </span>
         <span class="cta-sub">日本全国のおすすめ</span>
       </button>
+      <button type="button" class="btn btn-ghost cta-card" onclick="openPlaceMap()">
+        <span class="cta-row">
+          <span class="ui-ic c-map" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6-3V4l6 3 6-3 6 3v11l-6-3-6 3z"></path><path d="M9 7v11M15 4v11"></path></svg></span>
+          <span class="cta-main">地名で探す</span>
+        </span>
+        <span class="cta-sub">住所付きのおすすめを地図で</span>
+      </button>
       <button type="button" class="btn btn-ghost cta-card cta-mood" onclick="openMoodPage()">
         <span class="cta-row">
           <span class="ui-ic c-spark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 6.2L20 11l-5.8 1.8L12 19l-2.2-6.2L4 11l5.8-1.8z"></path></svg></span>
@@ -1590,6 +1596,21 @@
     <div class="full-page-head-icons"></div>
   </div>
   <div id="pvMapContainer" class="pin-page-map"></div>
+</div>
+
+<!-- 地名で探す（住所付き投稿ピン） -->
+<div class="full-page" id="placeMapPage">
+  <div class="full-page-head">
+    <button type="button" class="pin-back" onclick="closePlaceMap()" title="戻る" aria-label="戻る">←</button>
+    <span class="pin-page-title">地名で探す</span>
+    <div class="full-page-head-icons"></div>
+  </div>
+  <div class="pin-search">
+    <input id="placeMapSearch" type="text" placeholder="地名・住所で地図を移動（例: 岡山市 / 渋谷）" autocomplete="off">
+    <button type="button" id="placeMapSearchBtn" onclick="placeMapSearchGo()">検索</button>
+  </div>
+  <div id="placeMapContainer" class="pin-page-map"></div>
+  <div class="pin-page-hint" id="placeMapHint">ピンをタップすると投稿が見られます</div>
 </div>
 
 <!-- SEARCH PAGE -->
@@ -4177,16 +4198,18 @@ function goHome(){
   try{closeSavedPage();}catch(e){}
   try{closeContactPage();}catch(e){}
   try{closeMoodPage();}catch(e){}
+  try{closePlaceMap();}catch(e){}
+  try{closePvMap();}catch(e){}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function searchNearNow(){
-  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();closeMoodPage();}catch(e){}
+  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();closeMoodPage();closePlaceMap();}catch(e){}
   requestLoc({mode:"nearby"});
   const b=document.getElementById('board');
   if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function searchNationwide(){
-  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();closeMoodPage();}catch(e){}
+  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();closeMoodPage();closePlaceMap();}catch(e){}
   showAll();
   const b=document.getElementById('board');
   if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
@@ -4223,7 +4246,7 @@ function closeMoodPage(){
   document.body.style.overflow="";
 }
 function openMoodPage(catId){
-  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeSavedPage();}catch(e){}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeSavedPage();closePlaceMap();}catch(e){}
   if(catId&&MOOD_DEFS.some(m=>m.id===catId))moodCatId=catId;
   else if(!MOOD_DEFS.some(m=>m.id===moodCatId))moodCatId=MOOD_DEFS[0].id;
   renderMoodCats();
@@ -4340,7 +4363,7 @@ function renderMoodFeed(){
 
 function openSavedPage(){
   if(!requireLogin("保存一覧を見るにはログインが必要です"))return;
-  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeMoodPage();}catch(e){}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeMoodPage();closePlaceMap();}catch(e){}
   renderSavedPage();
   document.getElementById('savedPage').classList.add('open');
   document.body.style.overflow="hidden";
@@ -5141,7 +5164,7 @@ function closeMyPage(){
 
 /* ---------- 検索ページ（タグ／キーワード／アカウント＋常時おすすめ） ---------- */
 function openSearchPage(opts){
-  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeMoodPage();}catch(e){}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeMoodPage();closePlaceMap();}catch(e){}
   renderSearchResults();
   document.getElementById('searchPage').classList.add('open');
   document.body.style.overflow="hidden";
@@ -5589,6 +5612,7 @@ async function openProfileView(userId,fallbackName,opts){
   closePostView();closeMyPage();closeSearchPage();closeNotifs();
   try{closeSavedPage();}catch(e){}
   try{closeMoodPage();}catch(e){}
+  try{closePlaceMap();}catch(e){}
   try{closePvMap();}catch(e){}
   pvUserId=userId||null;
   pvCatFilter='all';
@@ -5850,6 +5874,61 @@ function openPvMap(){
 }
 function closePvMap(){
   const p=document.getElementById('pvMapPage');if(p)p.classList.remove('open');
+}
+
+/* 地名で探す（全投稿の位置付きピン） */
+let placeMapObj=null,placeMapMarkers=[];
+function closePlaceMap(){
+  const p=document.getElementById('placeMapPage');
+  if(p)p.classList.remove('open');
+  document.body.style.overflow="";
+}
+function openPlaceMap(){
+  if(typeof L==="undefined"){showToast("地図を読み込めませんでした（通信環境をご確認ください）");return;}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeSavedPage();closeMoodPage();closePvMap();}catch(e){}
+  const page=document.getElementById('placeMapPage');
+  if(!page)return;
+  page.classList.add('open');
+  document.body.style.overflow="hidden";
+  if(!placeMapObj){
+    placeMapObj=L.map('placeMapContainer').setView([36.2,138.2],5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(placeMapObj);
+    const inp=document.getElementById('placeMapSearch');
+    if(inp)inp.addEventListener('keydown',e=>{if(e.key==="Enter"){e.preventDefault();placeMapSearchGo();}});
+  }
+  const withLoc=humanPosts().filter(p=>p.loc&&Array.isArray(p.loc)&&p.loc.length>=2);
+  placeMapMarkers.forEach(m=>placeMapObj.removeLayer(m));
+  placeMapMarkers=withLoc.map(p=>{
+    const m=L.circleMarker(p.loc,{radius:9,color:'#FF6A00',fillColor:'#FF8A3D',fillOpacity:.9,weight:2}).addTo(placeMapObj);
+    const sub=[p.spot,p.address||p.pref].filter(Boolean).join(" · ");
+    m.bindPopup(`<b>${esc(p.title||"")}</b><br>${esc(sub)}`);
+    m.on('click',()=>openPostView(p.id));
+    return m;
+  });
+  const hint=document.getElementById('placeMapHint');
+  if(withLoc.length){
+    try{placeMapObj.fitBounds(L.latLngBounds(withLoc.map(p=>p.loc)).pad(0.2));}catch(e){placeMapObj.setView([36.2,138.2],5);}
+    if(hint)hint.textContent=`位置付き投稿 ${withLoc.length}件 · ピンをタップすると投稿が見られます`;
+  }else{
+    placeMapObj.setView([36.2,138.2],5);
+    if(hint)hint.textContent="位置付きの投稿がまだありません";
+    showToast("位置付き投稿がまだありません");
+  }
+  setTimeout(()=>placeMapObj.invalidateSize(),150);
+}
+async function placeMapSearchGo(){
+  const inp=document.getElementById('placeMapSearch');
+  const btn=document.getElementById('placeMapSearchBtn');
+  const q=(inp&&inp.value||"").trim();
+  if(!q){showToast("地名・住所を入力してください");return;}
+  if(!placeMapObj){openPlaceMap();return;}
+  if(btn)btn.disabled=true;
+  try{
+    const c=await geocode(q);
+    if(!c){showToast("場所が見つかりませんでした");return;}
+    placeMapObj.setView(c,13);
+    showToast("地図を移動しました");
+  }finally{if(btn)btn.disabled=false;}
 }
 
 /* ---------- comments ---------- */
