@@ -390,6 +390,51 @@
   .full-page-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;
     background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm);z-index:1}
   .full-page-body{flex:1;overflow-y:auto;padding:24px 16px 28px}
+  /* 気分で探す */
+  #moodPage{background:#FAF8F5}
+  #moodPage .full-page-body{padding:12px 0 20px;background:#FAF8F5}
+  .mood-cats{display:flex;gap:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    padding:6px 16px 14px}
+  .mood-cats::-webkit-scrollbar{display:none}
+  .mood-cat{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;
+    font-family:inherit;cursor:pointer;padding:0;color:#333;-webkit-tap-highlight-color:transparent}
+  .mood-cat .mood-cat-ic{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.35rem;
+    box-shadow:inset 0 0 0 0 transparent;transition:transform .12s,box-shadow .12s}
+  .mood-cat.on .mood-cat-ic{box-shadow:0 0 0 2.5px #FF6A00;transform:scale(1.04)}
+  .mood-cat .mood-cat-lb{font-size:.72rem;font-weight:800;letter-spacing:.02em}
+  .mood-sorts{display:flex;gap:22px;padding:0 18px;border-bottom:1px solid #E8E4DE;margin:0 0 14px}
+  .mood-sort{border:none;background:none;font-family:inherit;font-size:.9rem;font-weight:700;color:#999;
+    padding:10px 0 12px;cursor:pointer;position:relative}
+  .mood-sort.on{color:#FF6A00;font-weight:900}
+  .mood-sort.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:#FF6A00}
+  .mood-feed{display:flex;flex-direction:column;gap:16px;padding:0 16px 8px}
+  .mood-feed .empty{text-align:center;color:#888;font-weight:700;padding:40px 16px;font-size:.9rem}
+  .mood-card{position:relative;border:none;padding:0;background:transparent;border-radius:18px;overflow:hidden;
+    cursor:pointer;font-family:inherit;color:#fff;display:block;width:100%;text-align:left;-webkit-tap-highlight-color:transparent}
+  .mood-card:active{opacity:.94}
+  .mood-card-media{position:relative;width:100%;aspect-ratio:5/3;border-radius:18px;overflow:hidden;background:#222}
+  .mood-card-media img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+  .mood-card-media .mood-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    padding:16px;text-align:center;font-size:.9rem;font-weight:800;color:#ccc;background:linear-gradient(160deg,#333,#1a1a1a)}
+  .mood-card-media::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,transparent 35%,transparent 45%,rgba(0,0,0,.55) 100%)}
+  .mood-card-save{position:absolute;top:12px;right:12px;z-index:3;width:34px;height:34px;border:none;padding:0;
+    background:transparent;color:#fff;cursor:pointer;display:grid;place-items:center;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,.45));-webkit-tap-highlight-color:transparent}
+  .mood-card-save svg{width:20px;height:20px;display:block}
+  .mood-card-save.saved{color:#FF6A00}
+  .mood-card-copy{position:absolute;left:16px;right:52px;top:38%;transform:translateY(-50%);z-index:2;pointer-events:none}
+  .mood-card-copy .t{font-size:1.12rem;font-weight:900;line-height:1.35;color:#fff;
+    text-shadow:0 2px 10px rgba(0,0,0,.45);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .mood-card-copy .b{margin-top:4px;font-size:.88rem;font-weight:800;line-height:1.35;color:rgba(255,255,255,.95);
+    text-shadow:0 1px 6px rgba(0,0,0,.4);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}
+  .mood-card-bot{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:flex-end;
+    justify-content:space-between;gap:10px;padding:12px 14px;pointer-events:none}
+  .mood-card-loc{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.95);text-shadow:0 1px 3px rgba(0,0,0,.4);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .mood-card-likes{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:800;color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .mood-card-likes svg{width:14px;height:14px;display:block}
   .search-page-bar input{width:100%;border:1px solid var(--line);border-radius:14px;padding:13px 16px;
     font-family:inherit;font-size:1rem;outline:none;background:#fff}
   .search-page-bar input:focus{border-color:var(--accent)}
@@ -931,7 +976,7 @@
         </span>
         <span class="cta-sub">日本全国のおすすめ</span>
       </button>
-      <button type="button" class="btn btn-ghost cta-card cta-mood" onclick="focusMoodRail()">
+      <button type="button" class="btn btn-ghost cta-card cta-mood" onclick="openMoodPage()">
         <span class="cta-row">
           <span class="mood-ic" aria-hidden="true">✨</span>
           <span class="cta-main">気分で探す</span>
@@ -942,7 +987,7 @@
     <div class="mood-rail" id="moodRail">
       <div class="mood-rail-head">
         <div class="mood-rail-label">気分で選ぶ (タップで探す)</div>
-        <span class="mood-rail-all" onclick="openSearchPage()">すべて見る ›</span>
+        <span class="mood-rail-all" onclick="openMoodPage()">すべて見る ›</span>
       </div>
       <div class="mood-scroll" role="list">
         <button type="button" class="mood-chip" data-mood="デート" onclick="pickMood('デート')"><span class="mood-ic" aria-hidden="true">❤️</span>デート</button>
@@ -1531,6 +1576,24 @@
       <h3 id="searchRecTitle" class="search-sec">おすすめ</h3>
       <div class="grid" id="searchRecGrid" style="gap:14px"></div>
     </div>
+  </div>
+</div>
+
+<!-- 気分で探す -->
+<div class="full-page" id="moodPage">
+  <div class="full-page-head" style="background:#FAF8F5;border-bottom:none;box-shadow:none">
+    <button type="button" class="pin-back" onclick="closeMoodPage()" title="戻る" aria-label="戻る">‹</button>
+    <span class="pin-page-title">気分で探す</span>
+    <div class="full-page-head-icons"></div>
+  </div>
+  <div class="full-page-body">
+    <div class="mood-cats" id="moodCats" role="list"></div>
+    <div class="mood-sorts" id="moodSorts" role="tablist">
+      <button type="button" class="mood-sort on" data-sort="rec">おすすめ順</button>
+      <button type="button" class="mood-sort" data-sort="new">新着順</button>
+      <button type="button" class="mood-sort" data-sort="near">近い順</button>
+    </div>
+    <div class="mood-feed" id="moodFeed"></div>
   </div>
 </div>
 
@@ -3938,39 +4001,164 @@ function goHome(){
   try{closeSearchPage();}catch(e){}
   try{closeSavedPage();}catch(e){}
   try{closeContactPage();}catch(e){}
+  try{closeMoodPage();}catch(e){}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function searchNearNow(){
-  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();}catch(e){}
+  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();closeMoodPage();}catch(e){}
   requestLoc({mode:"nearby"});
   const b=document.getElementById('board');
   if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function searchNationwide(){
-  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();}catch(e){}
+  try{closeSearchPage();closeSavedPage();closeMyPage();closeNotifs();closeMoodPage();}catch(e){}
   showAll();
   const b=document.getElementById('board');
   if(b)b.scrollIntoView({behavior:'smooth',block:'start'});
   showToast("全国のおすすめを表示中");
 }
 function focusMoodRail(){
-  const el=document.getElementById('moodRail');
-  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
-  showToast("気分タグをタップして探す");
+  openMoodPage();
 }
 function pickMood(mood){
   const q=String(mood||"").trim();
-  if(!q)return;
-  document.querySelectorAll('.mood-chip').forEach(c=>{
-    c.classList.toggle('active',(c.dataset.mood||"")===q);
-  });
-  const search=document.getElementById('search');
-  if(search)search.value=q;
-  runAssistant();
+  const map={"デート":"date","ひとりで":"solo","がっつり飯":"hearty","カフェ":"date","リラックス":"heal","暇つぶし":"solo","美容":"beauty","勉強":"solo"};
+  openMoodPage(map[q]||null);
 }
+
+/* ---------- 気分で探す ---------- */
+const MOOD_DEFS=[
+  {id:"date",label:"デート",keys:["デート","デート向き","恋人"],bg:"#FFD0D8",ic:"❤️"},
+  {id:"solo",label:"ひとり",keys:["ひとり","一人","ソロ","ひとりで"],bg:"#D6ECFF",ic:"👤"},
+  {id:"hearty",label:"がっつり",keys:["がっつり","飯","ランチ","ご飯","グルメ"],bg:"#FFE0C2",ic:"🍜"},
+  {id:"heal",label:"癒し",keys:["癒し","リラックス","まったり","癒"],bg:"#D8F0D8",ic:"🍃"},
+  {id:"beauty",label:"美容",keys:["美容","コスメ","スキンケア"],bg:"#FFD6EB",ic:"✨"}
+];
+let moodCatId="date", moodSort="rec";
+function closeMoodPage(){
+  const p=document.getElementById('moodPage');
+  if(p)p.classList.remove('open');
+  document.body.style.overflow="";
+}
+function openMoodPage(catId){
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeSavedPage();}catch(e){}
+  if(catId&&MOOD_DEFS.some(m=>m.id===catId))moodCatId=catId;
+  else if(!MOOD_DEFS.some(m=>m.id===moodCatId))moodCatId=MOOD_DEFS[0].id;
+  renderMoodCats();
+  renderMoodSorts();
+  renderMoodFeed();
+  document.getElementById('moodPage').classList.add('open');
+  document.body.style.overflow="hidden";
+  const body=document.querySelector('#moodPage .full-page-body');
+  if(body)body.scrollTop=0;
+}
+function renderMoodCats(){
+  const el=document.getElementById('moodCats');if(!el)return;
+  el.innerHTML=MOOD_DEFS.map(m=>
+    `<button type="button" class="mood-cat${moodCatId===m.id?' on':''}" data-mood="${m.id}">
+      <span class="mood-cat-ic" style="background:${m.bg}">${m.ic}</span>
+      <span class="mood-cat-lb">${esc(m.label)}</span>
+    </button>`
+  ).join('');
+}
+function renderMoodSorts(){
+  document.querySelectorAll('#moodSorts .mood-sort').forEach(b=>{
+    b.classList.toggle('on',b.dataset.sort===moodSort);
+  });
+}
+function moodMatchesPost(p,mood){
+  if(!mood)return true;
+  const hay=[p.title,p.spot,p.desc,p.pref,p.genre,CAT_LABEL[p.cat],normalizeTagsList(p.tags).join(' ')]
+    .filter(Boolean).join(' ').toLowerCase();
+  return mood.keys.some(k=>hay.includes(String(k).toLowerCase()));
+}
+function moodLocLabel(p){
+  const spot=String(p.spot||"").trim();
+  const pref=p.pref?String(p.pref).replace(/(都|道|府|県)$/,""):"";
+  if(spot&&pref)return clipText(`${pref}・${spot}`,18);
+  if(spot)return clipText(spot,18);
+  if(p.address){
+    const m=String(p.address).match(/([^\s\d]{1,10}[市区町村])/)||String(p.address).match(/([^\s]{2,8}区)/);
+    if(m)return m[1];
+  }
+  return pref||"";
+}
+function moodCardHTML(p){
+  const photos=p.photos||[];
+  const cover=photos[0]||"";
+  const title=String(p.title||p.spot||"").trim();
+  const comment=String(p.desc||"").trim().replace(/\s+/g," ");
+  const blurb=comment?(comment.length>22?comment.slice(0,22)+"…":comment):"";
+  const media=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
+    :`<span class="mood-ph">${esc(clipText(title,20)||"投稿")}</span>`;
+  const saved=MYSAVES.has(String(p.id));
+  const loc=moodLocLabel(p);
+  const likes=Number(p.likes||0).toLocaleString("ja-JP");
+  return `<div class="mood-card" data-id="${esc(String(p.id))}" role="button" tabindex="0">
+    <div class="mood-card-media">
+      ${media}
+      <button type="button" class="mood-card-save save${saved?" saved":""}" data-id="${esc(String(p.id))}" title="保存" aria-label="保存">${saved?PV_SAVE_ON_SVG:PV_SAVE_SVG}</button>
+      <div class="mood-card-copy">
+        ${title?`<div class="t">${esc(clipText(title,28))}</div>`:""}
+        ${blurb?`<div class="b">${esc(blurb)}</div>`:""}
+      </div>
+      <div class="mood-card-bot">
+        <span class="mood-card-loc">${esc(loc||" ")}</span>
+        <span class="mood-card-likes">${PV_HEART_SVG}${likes}</span>
+      </div>
+    </div>
+  </div>`;
+}
+function moodScore(p){
+  const now=Date.now();
+  const ageDays=Math.max(0,(now-(p.ts||0))/864e5);
+  const recency=Math.max(0,30-ageDays)/30;
+  return (p.likes||0)*3+recency*10+((p.photos&&p.photos.length)?2:0);
+}
+function renderMoodFeed(){
+  const feed=document.getElementById('moodFeed');if(!feed)return;
+  const mood=MOOD_DEFS.find(m=>m.id===moodCatId)||MOOD_DEFS[0];
+  let list=humanPosts().filter(p=>moodMatchesPost(p,mood));
+  if(moodSort==="near"&&userLoc){
+    list=list.slice().sort((a,b)=>{
+      const da=a.loc?distKm(userLoc,a.loc):Infinity;
+      const db=b.loc?distKm(userLoc,b.loc):Infinity;
+      return da-db||(b.ts||0)-(a.ts||0);
+    });
+  }else if(moodSort==="new"){
+    list=list.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  }else{
+    list=list.slice().sort((a,b)=>moodScore(b)-moodScore(a)||(b.ts||0)-(a.ts||0));
+  }
+  feed.innerHTML=list.length?list.map(moodCardHTML).join('')
+    :`<div class="empty">この気分の投稿はまだありません。<br>別の気分を選ぶか、最初の投稿をしてみませんか？</div>`;
+}
+(function bindMoodPage(){
+  const cats=document.getElementById('moodCats');
+  if(cats)cats.addEventListener('click',e=>{
+    const btn=e.target.closest('.mood-cat');if(!btn)return;
+    moodCatId=btn.dataset.mood||moodCatId;
+    renderMoodCats();
+    renderMoodFeed();
+  });
+  const sorts=document.getElementById('moodSorts');
+  if(sorts)sorts.addEventListener('click',e=>{
+    const btn=e.target.closest('.mood-sort');if(!btn)return;
+    moodSort=btn.dataset.sort||"rec";
+    renderMoodSorts();
+    renderMoodFeed();
+  });
+  const feed=document.getElementById('moodFeed');
+  if(feed)feed.addEventListener('click',async e=>{
+    if(await handleCardInteractions(e,()=>{renderMoodFeed();render();}))return;
+    const card=e.target.closest('.mood-card');
+    if(card&&card.dataset.id)openPostView(card.dataset.id);
+  });
+})();
+
 function openSavedPage(){
   if(!requireLogin("保存一覧を見るにはログインが必要です"))return;
-  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();}catch(e){}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeSearchPage();closeMoodPage();}catch(e){}
   renderSavedPage();
   document.getElementById('savedPage').classList.add('open');
   document.body.style.overflow="hidden";
@@ -4771,7 +4959,7 @@ function closeMyPage(){
 
 /* ---------- 検索ページ（タグ／キーワード／アカウント＋常時おすすめ） ---------- */
 function openSearchPage(opts){
-  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();}catch(e){}
+  try{closeMyPage();closeProfileView();closePostView();closeModal();closeNotifs();closeMoodPage();}catch(e){}
   renderSearchResults();
   document.getElementById('searchPage').classList.add('open');
   document.body.style.overflow="hidden";
@@ -5218,6 +5406,7 @@ function setPvHeadTitle(name){
 async function openProfileView(userId,fallbackName,opts){
   closePostView();closeMyPage();closeSearchPage();closeNotifs();
   try{closeSavedPage();}catch(e){}
+  try{closeMoodPage();}catch(e){}
   try{closePvMap();}catch(e){}
   pvUserId=userId||null;
   pvCatFilter='all';
