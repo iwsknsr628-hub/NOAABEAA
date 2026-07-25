@@ -68,16 +68,12 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - 優先順位: `DIRECT_ADS` があればそれを表示、無ければ AdSense。両方空なら枠は出ない（`slotHTMLForIndex()`/`directAdHTML()`）。
 
 送客ボタン: `affButtonsHTML()`。投稿詳細ポップアップとガチャ結果に表示。`PR` ラベル＋`rel="sponsored"` 付与済み（規約・景表法対策）。
-- **投稿者リンク優先**: `posts.aff_url` があればそれ1つだけ（運営の自動リンクは出さない）。
-- **運営の自動PRは必要なカテゴリだけ**（`AFF_AUTO_CATS`）: `travel` / `study` / `fun` / `life` / `beauty` / `finance`。
-  - `food` / `drink`（ご飯屋・呑み屋など現地店舗）は自動PRなし（地図リンクで十分）。
-  - `travel` → 楽天トラベル「宿・ホテル」のみ。検索語は **スポット名＋県**（`travelHotelKeyword()`）。県だけだと投稿と無関係な宿ばかりになるため使わない。
-  - 上記以外の自動PR対象 → 楽天市場＋Amazon。検索語はスポット名・ジャンルなど投稿内容優先（`shopKeyword()`）。
-- 楽天トラベル宿検索: `kw.travel.rakuten.co.jp/keyword/Search.do?charset=utf-8&f_query=`（**`charset=utf-8` 必須**。無いと文字化け・0件）。
+- **投稿者リンクがあるときだけ表示**: `posts.aff_url` が空なら PR 行は出さない（運営の自動楽天/Amazonリンクは出さない）。
+- 楽天アフィ／Amazon検索ヘルパー（`rakutenAff`/`rakutenTravel`/`amazonSearch` 等）はコード上残置（将来用）。
 
 ### 投稿者アフィリンク（`posts.aff_url`）
 
-投稿フォームに「🔗 アフィリエイトリンク（任意）」欄あり。投稿者が自分のアフィリンク（楽天/Amazon/A8等）を貼ると、その投稿の送客ボタンは**投稿者の成果**になる（`affButtonsHTML()` は `p.aff_url` があればそれ1つだけ表示、無ければ運営の自動リンク）。ドメインでラベル自動判定（`affLinkMeta()`）、`http/https` のみ許可（`normalizeAffUrl()`）。
+投稿フォームに「🔗 アフィリエイトリンク（任意）」欄あり。投稿者が自分のアフィリンク（楽天/Amazon/A8等）を貼ると、その投稿にだけ PR ボタンが出る（`affButtonsHTML()`）。ドメインでラベル自動判定（`affLinkMeta()`）、`http/https` のみ許可（`normalizeAffUrl()`）。
 
 - **要スキーマ**: `posts` に `aff_url text` 列が必要。Supabase → SQL Editor で:
   ```sql
@@ -108,9 +104,10 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - `body{padding-bottom:74px}` でバー分の余白を確保済み。
 - **未ログインは閲覧・検索OK**：ヒーロー検索／さがす／投稿一覧・詳細・写真・プロフィール・コメント一覧の表示は誰でも可。投稿・コメント投稿・フォロー・通知・**いいね・通報**は要ログイン（`requireLogin(msg)` → `showToast` ＋ `openAuth()`）。
 - **投稿詳細ポップアップ** `#postViewBg`（`openPostView()`/`postDetailHTML()`）：カードをタップすると全文をモーダル表示。z-index 230。URL は `?post=<id>`（再読み込み・共有用）。閉じ方: ✕／背景タップ／**左→右スワイプ**。
+  - 画像は Instagram 風: `object-fit:contain`・高さ上限 `min(56vh,420px)`・複数は横スワイプ＋ドット（`bindPdGallery()`）。切り抜きで見切さない。
 - **プロフィールは全画面ページ** `#pvPage`（`openProfileView()`/`closeProfileView()`）：投稿カードの著者名/アバターから遷移。z-index 200。URL は `?u=<user_id>`。
   - **タブ「プロフィール」**も同じ `#pvPage` を開く（`openMyPage()` → `openProfileView(session.uid)`）。旧 `#myPage` は残すがメイン導線ではない。自分のときは「編集」＋⋯（設定/お知らせ/リンクコピー）。
-  - 構成: 80pxアイコン・名前・@ID・フォロー（黒）・実績4カード・自己紹介全文＋信頼バッジ・フィルター・2列投稿（カテゴリ/保存アイコン/タイトル/場所/いいね）・もっと見る。**位置情報行なし。下部CTA（保存一覧/マップ/まとめ）なし。**
+  - 構成: 80pxアイコン・名前・@ID・**ベル通知→フォロー**の順・実績4カード・自己紹介全文＋信頼バッジ・フィルター・**Instagram風3列グリッド**（正方形・余白2px・複数写真マーク）・もっと見る（9件ずつ）。**位置情報行なし。下部CTAなし。**
   - マップ機能 `openPvMap` はコード上残すがプロフィールUIからは外す。
 - **共有ボタン**: 投稿カード／詳細・プロフィール／マイページ右上に共有アイコン。`navigator.share`（不可時はリンクコピー）。ディープリンク復元は `restoreDeepLinksFromUrl()`（`?post=` 優先、なければ `?u=`）。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。

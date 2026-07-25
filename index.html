@@ -250,8 +250,6 @@
   .card-gallery.g1 img{height:min(56vw,280px)}
   .card-gallery.g3 img:first-child{grid-column:1 / 3}
   .card-gallery.g5 img:first-child,.card-gallery.g7 img:first-child{grid-column:1 / 3}
-  .pd-gallery.g2,.pd-gallery.g3,.pd-gallery.g4,.pd-gallery.g5,.pd-gallery.g6,.pd-gallery.g7,.pd-gallery.g8{grid-template-columns:1fr 1fr}
-  .pd-gallery.g3 img:first-child,.pd-gallery.g5 img:first-child,.pd-gallery.g7 img:first-child{grid-column:1/3}
 
   /* LIGHTBOX */
   .lightbox-bg{position:fixed;inset:0;background:rgba(10,8,6,.92);z-index:300;display:none}
@@ -434,12 +432,16 @@
   .pv-name-block{flex:1;min-width:0}
   #pvPage #pvName{margin:0;font-size:1.2rem;font-weight:900;line-height:1.3;color:#111}
   #pvPage .mp-handle-view{text-align:left;margin-top:4px;font-size:.82rem;color:#555;font-weight:700}
-  .pv-follow-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:92px}
-  .pv-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:0}
+  .pv-follow-col{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}
+  .pv-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin:0}
+  .pv-action-row{display:flex;align-items:center;gap:8px}
   #pvFollowBtn.btn-primary{background:#111;border-color:#111;color:#fff;border-radius:999px;padding:8px 14px;font-size:.78rem;white-space:nowrap}
   #pvFollowBtn.btn-ghost{background:#fff;color:#111;border:1.5px solid #111;border-radius:999px;padding:8px 14px;font-size:.78rem}
   #pvEditBtn{border-radius:999px;font-size:.78rem;padding:8px 14px}
-  #pvNotifyBtn{border-radius:999px;font-size:.72rem;padding:6px 10px}
+  #pvNotifyBtn{width:36px;height:36px;padding:0;border-radius:50%;display:grid;place-items:center;flex:0 0 36px;line-height:0}
+  #pvNotifyBtn svg{width:18px;height:18px;display:block}
+  #pvNotifyBtn.btn-ghost{background:#fff;color:#111;border:1.5px solid #E0E0E0}
+  #pvNotifyBtn.btn-primary{background:#111;color:#fff;border:1.5px solid #111}
   .pv-follow-count{font-size:.68rem;font-weight:700;color:#666;text-align:center;line-height:1.3}
   .pv-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .pv-stats.ig-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:14px 0 0;padding:0;
@@ -458,32 +460,24 @@
     padding:8px 6px;font-size:.58rem;font-weight:800;color:#555;line-height:1.35;text-align:center}
   .pv-trust-badge svg{width:14px;height:14px;display:block;margin:0 auto 4px;color:#2db87a}
   .pv-filters{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;margin:4px 0 12px;padding:0 0 2px}
+    scrollbar-width:none;margin:4px 0 12px;padding:0 16px 2px}
   .pv-filters::-webkit-scrollbar{display:none}
   .pv-filters .chip{flex:0 0 auto;border:1px solid #E0E0E0;background:#fff;color:#111;padding:8px 14px;
     border-radius:999px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
   .pv-filters .chip.active{background:#111;color:#fff;border-color:#111}
-  .pv-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0}
+  #pvPostsSec{margin-left:-16px;margin-right:-16px}
+  .pv-grid2{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:0}
   .pv-grid2 .empty{grid-column:1/-1;padding:36px 16px;margin:0;color:#666;text-align:center;font-size:.88rem;font-weight:700}
   .pv-card{position:relative;border:none;padding:0;font-family:inherit;text-align:left;color:inherit;
-    background:transparent;border-radius:14px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .pv-card-media{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#F0F0F0}
+    background:transparent;border-radius:0;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pv-card-media{position:relative;aspect-ratio:1;border-radius:0;overflow:hidden;background:#F0F0F0}
   .pv-card img{width:100%;height:100%;object-fit:cover;display:block}
   .pv-card .pv-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-    padding:10px;text-align:center;font-size:.72rem;font-weight:700;color:#666;line-height:1.35;background:#F0F0F0}
-  .pv-card-cat{position:absolute;top:8px;left:8px;z-index:2;font-size:.62rem;font-weight:800;color:#fff;
-    background:rgba(17,17,17,.55);border-radius:999px;padding:3px 8px}
-  .pv-card-bm{position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:50%;
-    background:rgba(255,255,255,.92);display:grid;place-items:center;color:#111}
-  .pv-card-bm svg{width:14px;height:14px;display:block}
-  .pv-card-meta{position:absolute;left:0;right:0;bottom:0;padding:28px 10px 10px;
-    background:linear-gradient(0deg,rgba(17,17,17,.78),rgba(17,17,17,0));display:flex;flex-direction:column;gap:3px}
-  .pv-card-title{font-size:.78rem;font-weight:800;color:#fff;line-height:1.3;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .pv-card-bot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:2px}
-  .pv-card-loc{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .pv-card-like{flex:0 0 auto;font-size:.66rem;font-weight:800;color:#fff}
-  .pv-more{display:flex;width:100%;align-items:center;justify-content:center;gap:6px;margin-top:12px;
+    padding:8px;text-align:center;font-size:.62rem;font-weight:700;color:#666;line-height:1.35;background:#F0F0F0}
+  .pv-card-multi{position:absolute;top:6px;right:6px;z-index:2;width:18px;height:18px;color:#fff;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+  .pv-card-multi svg{width:18px;height:18px;display:block}
+  .pv-more{display:flex;width:calc(100% - 32px);align-items:center;justify-content:center;gap:6px;margin:12px 16px 0;
     border:1px solid #E0E0E0;background:#fff;color:#111;font-family:inherit;font-weight:800;font-size:.86rem;
     padding:12px;border-radius:12px;cursor:pointer}
   .pv-more[hidden]{display:none!important}
@@ -710,9 +704,18 @@
   .notif-tx .w{font-size:.74rem;color:var(--ink-soft);margin-top:2px}
   #postViewBg .modal{max-width:560px;padding:0;overflow:hidden;touch-action:pan-y;will-change:transform}
   .pd-scroll{max-height:90vh;overflow-y:auto;padding:0 0 22px;overscroll-behavior:contain}
-  .pd-gallery{display:grid;gap:3px;background:var(--bg2)}
-  .pd-gallery img{width:100%;max-height:340px;object-fit:cover;display:block;cursor:zoom-in}
-  .pd-body{padding:20px 24px 0}
+  /* 投稿詳細画像: Instagram風 — 全体が見える contain、高さは画面の約半分まで（4:5上限） */
+  .pd-gallery{display:flex;flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;background:#111;position:relative}
+  .pd-gallery::-webkit-scrollbar{display:none}
+  .pd-gallery img{flex:0 0 100%;width:100%;height:min(56vh,420px);max-height:min(56vh,420px);
+    object-fit:contain;object-position:center;display:block;cursor:zoom-in;scroll-snap-align:start;background:#111}
+  .pd-gallery.g1{overflow:hidden}
+  .pd-dots{display:flex;justify-content:center;gap:5px;padding:8px 0 0;margin:0}
+  .pd-dots[hidden]{display:none!important}
+  .pd-dot{width:6px;height:6px;border-radius:50%;background:#D0D0D0;border:none;padding:0;cursor:pointer}
+  .pd-dot.on{background:#111}
+  .pd-body{padding:16px 20px 0}
   #postViewBg .close{z-index:2;background:rgba(255,255,255,.9);border-radius:50%;width:34px;height:34px}
   #postViewBg.pd-swiping .close{pointer-events:none}
   .pd-body h2{font-size:1.35rem;font-weight:900;margin:8px 0 2px;line-height:1.3}
@@ -1340,8 +1343,10 @@
               <div class="pv-follow-col">
                 <div class="pv-actions">
                   <button id="pvEditBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="openProfileEditPopup()">編集</button>
-                  <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
-                  <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
+                  <div class="pv-action-row">
+                    <button type="button" id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る" aria-label="通知"></button>
+                    <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
+                  </div>
                 </div>
                 <div class="pv-follow-count">フォロワー <b id="pvStatFollowers">0</b> 人</div>
               </div>
@@ -2591,27 +2596,12 @@ function affLinkMeta(u){
   if(/a8\.net|px\.a8|moshimo|valuecommerce|linksynergy/.test(host))return {label:"公式・詳細を見る"};
   return {label:"おすすめリンク"};
 }
-/* 運営の自動PRを出すカテゴリのみ（ご飯・呑みなど現地店舗向けは地図で十分なので出さない） */
-const AFF_AUTO_CATS=["travel","study","fun","life","beauty","finance"];
+/* 投稿者が貼ったリンクがあるときだけ PR を表示（無いときは出さない） */
 function affButtonsHTML(p){
-  /* 投稿者が自分のアフィリンクを貼っていれば、それを最優先（投稿者の成果）。運営リンクは出さない。 */
-  if(p.aff_url){
-    const m=affLinkMeta(p.aff_url);
-    return `<div class="aff-row"><span class="aff-label">PR</span>`
-      +`<a class="aff-btn r" href="${esc(p.aff_url)}" target="_blank" rel="noopener sponsored">${m.label}</a></div>`;
-  }
-  if(!AFF_AUTO_CATS.includes(p.cat))return "";
-  const out=[];
-  if(p.cat==="travel"){
-    /* 投稿の宿・スポット名で検索（県だけだと投稿と無関係な宿ばかりになる） */
-    out.push(`<a class="aff-btn r" href="${rakutenTravel(travelHotelKeyword(p))}" target="_blank" rel="noopener sponsored">宿・ホテル</a>`);
-  }else{
-    const kw=shopKeyword(p);
-    out.push(`<a class="aff-btn r" href="${rakutenIchiba(kw)}" target="_blank" rel="noopener sponsored">楽天</a>`);
-    out.push(`<a class="aff-btn a" href="${amazonSearch(kw)}" target="_blank" rel="noopener sponsored">Amazon</a>`);
-  }
-  if(!out.length)return "";
-  return `<div class="aff-row"><span class="aff-label">PR</span>${out.join('')}</div>`;
+  if(!p||!p.aff_url)return "";
+  const m=affLinkMeta(p.aff_url);
+  return `<div class="aff-row"><span class="aff-label">PR</span>`
+    +`<a class="aff-btn r" href="${esc(p.aff_url)}" target="_blank" rel="noopener sponsored">${m.label}</a></div>`;
 }
 /* 楽天トラベル用。スポット名を優先し、県を足して絞る（投稿の宿に近い結果を狙う） */
 function travelHotelKeyword(p){
@@ -3029,7 +3019,10 @@ function postDetailHTML(p){
   const showMaps=LOCATION_CATS.includes(p.cat)&&(p.loc||p.address||p.spot);
   const maps=showMaps?`<div class="maps-row"><span class="maps-label">地図で開く</span>${order.map(k=>btns[k]).join('')}</div>`:"";
   const imgs=(p.photos||[]).slice(0,8);
-  const gallery=imgs.length?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`:"";
+  const gallery=imgs.length
+    ?`<div class="pd-gallery g${imgs.length}" data-photos='${esc(JSON.stringify(imgs))}'>${imgs.map((u,i)=>`<img src="${esc(u)}" alt="" loading="lazy" data-idx="${i}">`).join('')}</div>`
+      +(imgs.length>1?`<div class="pd-dots" role="tablist" aria-label="写真">${imgs.map((_,i)=>`<button type="button" class="pd-dot${i===0?' on':''}" data-pd-dot="${i}" aria-label="写真 ${i+1}"></button>`).join('')}</div>`:"")
+    :"";
   const addr=p.address?`<div class="addr">${esc(p.address)}</div>`:"";
   const av=avatarOf(p.user_id);
   const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:''}></span>`;
@@ -3064,6 +3057,22 @@ function postDetailHTML(p){
     </div>`;
 }
 let pvPostId=null;
+function syncPdGalleryDots(){
+  const root=document.getElementById('pdScroll');
+  if(!root)return;
+  const gal=root.querySelector('.pd-gallery');
+  const dots=root.querySelectorAll('.pd-dot');
+  if(!gal||!dots.length)return;
+  const w=gal.clientWidth||1;
+  const i=Math.max(0,Math.min(dots.length-1,Math.round(gal.scrollLeft/w)));
+  dots.forEach((d,di)=>d.classList.toggle('on',di===i));
+}
+function bindPdGallery(){
+  const gal=document.querySelector('#pdScroll .pd-gallery');
+  if(!gal||gal.dataset.bound==="1")return;
+  gal.dataset.bound="1";
+  gal.addEventListener('scroll',()=>{requestAnimationFrame(syncPdGalleryDots)},{passive:true});
+}
 async function loadPostLikers(postId){
   const body=document.getElementById('pdLikersBody');if(!body||!SERVER)return;
   try{
@@ -3087,6 +3096,7 @@ function openPostView(id,opts){
   const p=POSTS.find(x=>x.id===id);if(!p)return;
   pvPostId=id;
   document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
+  bindPdGallery();
   const bg=document.getElementById('postViewBg');
   const modal=bg.querySelector('.modal');
   if(modal){modal.style.transition='';modal.style.transform='';modal.style.opacity='';}
@@ -3174,11 +3184,21 @@ function closePostView(opts){
 })();
 document.getElementById('postViewBg').addEventListener('click',async e=>{
   if(e.target.id==="postViewBg"){closePostView();return;}
+  const dot=e.target.closest('[data-pd-dot]');
+  if(dot){
+    const gal=document.querySelector('#pdScroll .pd-gallery');
+    if(gal){
+      const i=+dot.dataset.pdDot||0;
+      gal.scrollTo({left:i*(gal.clientWidth||0),behavior:'smooth'});
+    }
+    return;
+  }
   const handled=await handleCardInteractions(e,()=>{
     if(pvPostId){
       const p=POSTS.find(x=>x.id===pvPostId);
       if(p){
         document.getElementById('pdScroll').innerHTML=postDetailHTML(p);
+        bindPdGallery();
         if(session&&p.user_id&&session.uid===p.user_id)loadPostLikers(p.id);
       }
     }
@@ -4773,8 +4793,8 @@ const PV_FILTERS=[
   {id:'study',label:'勉強',cats:['study']},
   {id:'out',label:'おでかけ',cats:['travel','fun']},
 ];
-let pvPostsLimit=6;
-const PV_PAGE_SIZE=6;
+let pvPostsLimit=9;
+const PV_PAGE_SIZE=9;
 function setPvFilter(cat){
   pvCatFilter=cat;
   pvPostsLimit=PV_PAGE_SIZE;
@@ -4803,25 +4823,16 @@ function pvCardLocLabel(p){
   return "";
 }
 function pvCardHTML(p){
-  const cover=(p.photos||[])[0]||"";
+  const photos=p.photos||[];
+  const cover=photos[0]||"";
   const title=p.title||p.spot||"";
   const body=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
     :`<span class="pv-ph">${esc(clipText(title,16)||CAT_LABEL[p.cat]||"投稿")}</span>`;
-  const loc=pvCardLocLabel(p);
-  const bm=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+  const multi=photos.length>1
+    ?`<span class="pv-card-multi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h12a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V6zm4-2h12a2 2 0 0 1 2 2v10h-2V6a2 2 0 0 0-2-2H8V4z"/></svg></span>`
+    :"";
   return `<button type="button" class="pv-card ig-thumb" data-id="${esc(String(p.id))}" title="${esc(title)}">
-    <div class="pv-card-media">
-      ${body}
-      <span class="pv-card-cat">${esc(pvCardCatLabel(p))}</span>
-      <span class="pv-card-bm" aria-hidden="true">${bm}</span>
-      <div class="pv-card-meta">
-        <span class="pv-card-title">${esc(title)}</span>
-        <div class="pv-card-bot">
-          <span class="pv-card-loc">${loc?esc("📍 "+loc):""}</span>
-          <span class="pv-card-like">♡ ${p.likes||0}</span>
-        </div>
-      </div>
-    </div>
+    <div class="pv-card-media">${body}${multi}</div>
   </button>`;
 }
 function renderPvPosts(userId){
@@ -4924,7 +4935,7 @@ async function openProfileView(userId,fallbackName,opts){
     followBtn.style.display="inline-block";
     setFollowBtnState(followBtn,amFollowing);
     followBtn.onclick=()=>togglePvFollow(userId);
-    notifyBtn.style.display="inline-block";
+    notifyBtn.style.display="grid";
     setNotifyBtnState(notifyBtn,!!(row&&row.notify));
     notifyBtn.onclick=()=>togglePvNotify(userId);
   }
@@ -4980,10 +4991,13 @@ async function togglePvFollow(userId){
   }catch(e){alert("処理に失敗しました");}
   finally{btn.disabled=false;}
 }
+const PV_BELL_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
 function setNotifyBtnState(btn,on){
+  if(!btn)return;
   btn.dataset.notify=on?"1":"0";
-  btn.textContent=on?"通知オン":"通知オフ";
+  btn.innerHTML=PV_BELL_SVG;
   btn.title=on?"通知をオフにする":"新しい投稿を通知で受け取る";
+  btn.setAttribute("aria-label",on?"通知オン":"通知オフ");
   btn.className="btn btn-sm "+(on?"btn-primary":"btn-ghost");
 }
 async function togglePvNotify(userId){
