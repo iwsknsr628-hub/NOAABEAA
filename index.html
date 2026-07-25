@@ -102,24 +102,27 @@
   .cta-card .cta-main{font-weight:800;font-size:.82rem}
   .cta-card .cta-sub{font-weight:600;font-size:.64rem;opacity:.85;text-align:left}
   .new-sort-link{font-size:.74rem;font-weight:700;color:var(--ink-soft)}
-  .new-rail{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-    margin:12px -22px 4px;padding:0 22px 6px}
+  .new-rail{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    margin:4px -16px 8px;padding:2px 16px 10px}
   .new-rail::-webkit-scrollbar{display:none}
-  .new-card{flex:0 0 auto;width:128px;cursor:pointer;text-align:left;background:none;border:none;padding:0;font-family:inherit}
-  .new-card-media{position:relative;height:96px;border-radius:12px;overflow:hidden;background:var(--bg2);
-    border:1px solid var(--line)}
+  .new-card{flex:0 0 auto;width:152px;cursor:pointer;text-align:left;background:none;border:none;padding:0;font-family:inherit}
+  .new-card-inner{border:1px solid #E5E5E5;border-radius:14px;overflow:hidden;background:#fff}
+  .new-card-media{position:relative;height:148px;overflow:hidden;background:var(--bg2)}
   .new-card-media img{width:100%;height:100%;object-fit:cover;display:block}
   .new-card-media .new-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
     color:var(--ink-soft);font-size:.68rem;font-weight:700;padding:8px;text-align:center;
     background:linear-gradient(160deg,var(--bg2),#ebe6dc)}
-  .new-badge{position:absolute;top:6px;font-size:.62rem;font-weight:800;padding:2px 7px;border-radius:999px}
-  .new-badge.area{left:6px;background:rgba(24,20,16,.6);color:#fff}
-  .new-badge.like{right:6px;background:rgba(255,255,255,.92);color:#e0245e}
-  .new-card-title{font-size:.78rem;font-weight:800;color:var(--ink);margin-top:6px;line-height:1.35;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .new-card-meta{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:.66rem;color:var(--ink-soft);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .new-card-cat{font-weight:800;color:var(--accent);flex:0 0 auto}
+  .new-badge{position:absolute;top:8px;font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:999px;line-height:1.2}
+  .new-badge.area{left:8px;background:rgba(17,17,17,.55);color:#fff}
+  .new-badge.like{right:8px;background:rgba(255,255,255,.95);color:#111;display:inline-flex;align-items:center;gap:3px}
+  .new-badge.like svg{width:11px;height:11px;display:block}
+  .new-card-body{padding:10px 10px 11px;display:flex;flex-direction:column;gap:6px}
+  .new-card-title{font-size:.82rem;font-weight:800;color:#111;line-height:1.35;margin:0;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em}
+  .new-card-tag{display:inline-block;align-self:flex-start;font-size:.66rem;font-weight:700;color:#666;
+    background:#F3F3F3;border-radius:999px;padding:3px 8px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .new-card-author{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:700;color:#666;margin-top:2px}
+  .new-card-author .mini-av{width:18px;height:18px;border-radius:50%;flex:0 0 18px;background:var(--bg2) center/cover no-repeat;border:1px solid #E5E5E5}
   .post-cta-sec{padding:6px 0 24px}
   .post-cta-btn{display:flex;width:100%;align-items:center;gap:10px;
     min-height:52px;border-radius:12px;text-align:left;padding:12px 14px}
@@ -149,15 +152,15 @@
     background:var(--accent);color:#fff;cursor:pointer;display:grid;place-items:center}
 
   .mood-rail{margin:14px 0 0;text-align:left}
-  .mood-rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px}
+  .mood-rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 10px}
   .mood-rail-label{font-size:.8rem;font-weight:800;color:var(--ink)}
   .mood-rail-all{font-size:.72rem;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap}
-  .mood-scroll{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0 0 2px}
-  .mood-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;
-    font-weight:700;font-size:.68rem;padding:5px 8px;border-radius:999px;cursor:pointer;white-space:nowrap;line-height:1.2}
-  .mood-chip .neon-ic svg{width:11px;height:11px}
-  .mood-chip.active .neon-ic{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff)}
-  .mood-chip:active,.mood-chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .mood-scroll{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0}
+  .mood-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;border:none;background:#F3F3F3;font-family:inherit;
+    font-weight:800;font-size:.72rem;padding:8px 11px;border-radius:12px;cursor:pointer;white-space:nowrap;line-height:1.2}
+  .mood-chip .neon-ic{display:inline-flex}
+  .mood-chip .neon-ic svg{width:13px;height:13px}
+  .mood-chip.active{outline:2px solid #111;outline-offset:1px}
   .trust-strip{margin:12px 0 0;padding:11px 14px;border-radius:12px;background:#F3E9DC;text-align:left}
   .trust-strip-text p{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:#6b4e2e;line-height:1.6;margin:0}
   .trust-strip-text .neon-ic svg{width:14px;height:14px}
@@ -866,18 +869,18 @@
     </div>
     <div class="mood-rail" id="moodRail">
       <div class="mood-rail-head">
-        <div class="mood-rail-label">気分で選ぶ</div>
+        <div class="mood-rail-label">気分で選ぶ (タップで探す)</div>
         <span class="mood-rail-all" onclick="openSearchPage()">すべて見る ›</span>
       </div>
       <div class="mood-scroll" role="list">
-        <button type="button" class="mood-chip" data-mood="デート" onclick="pickMood('デート')"><span class="neon-ic" style="color:#ff5fd3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg></span>デート</button>
-        <button type="button" class="mood-chip" data-mood="ひとり" onclick="pickMood('ひとり')"><span class="neon-ic" style="color:#4dff9e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l4 6h-2.5l3 5H7.5l3-5H8z"></path><line x1="12" y1="14" x2="12" y2="20"></line></svg></span>ひとり</button>
-        <button type="button" class="mood-chip" data-mood="暇つぶし" onclick="pickMood('暇つぶし')"><span class="neon-ic" style="color:#ffce4d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M8.5 13.5s1.5 2 3.5 2 3.5-2 3.5-2"></path><circle cx="9" cy="10" r=".6" fill="currentColor" stroke="none"></circle><circle cx="15" cy="10" r=".6" fill="currentColor" stroke="none"></circle></svg></span>暇つぶし</button>
-        <button type="button" class="mood-chip" data-mood="がっつり飯" onclick="pickMood('がっつり飯')"><span class="neon-ic" style="color:#ff8a3d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2v8a2 2 0 0 1-2-2V2m4 0v6a2 2 0 0 1-2 2M7 10v12"></path><path d="M17 2c-1.6 0-3 2.2-3 5s1.4 5 3 5v9"></path></svg></span>がっつり飯</button>
-        <button type="button" class="mood-chip" data-mood="カフェ" onclick="pickMood('カフェ')"><span class="neon-ic" style="color:#c68a4d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"></path><path d="M15 9h2a2.3 2.3 0 0 1 0 4.6h-2"></path></svg></span>カフェ</button>
-        <button type="button" class="mood-chip" data-mood="美容" onclick="pickMood('美容')"><span class="neon-ic" style="color:#c86bff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13c2-4 6-5 8-5s6 1 8 5c-2 3-6 4-8 4s-6-1-8-4z"></path><path d="M4 13c2 1 6 1.5 8 1.5s6-.5 8-1.5"></path></svg></span>美容</button>
-        <button type="button" class="mood-chip" data-mood="勉強" onclick="pickMood('勉強')"><span class="neon-ic" style="color:#4d9fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1.5"></rect><line x1="12" y1="4" x2="12" y2="20"></line></svg></span>勉強</button>
-        <button type="button" class="mood-chip" data-mood="リラックス" onclick="pickMood('リラックス')"><span class="neon-ic" style="color:#4de8c8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"></path><path d="M5 19c2-3 5-6 9-9"></path></svg></span>リラックス</button>
+        <button type="button" class="mood-chip" style="color:#ff5fd3" data-mood="デート" onclick="pickMood('デート')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg></span>デート</button>
+        <button type="button" class="mood-chip" style="color:#ff8a3d" data-mood="がっつり飯" onclick="pickMood('がっつり飯')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v7a2 2 0 0 1-2 2H5V2m3 9v11"></path><path d="M16 2c0 4 2 6 2 9v11"></path><path d="M19 2c-1.5 0-3 2-3 5"></path></svg></span>がっつり飯</button>
+        <button type="button" class="mood-chip" style="color:#c68a4d" data-mood="カフェ" onclick="pickMood('カフェ')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"></path><path d="M15 9h2a2.3 2.3 0 0 1 0 4.6h-2"></path></svg></span>カフェ</button>
+        <button type="button" class="mood-chip" style="color:#4caf70" data-mood="ひとりで" onclick="pickMood('ひとりで')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22V10"></path><path d="M7 13l5-9 5 9H7z"></path><path d="M5 22h14"></path></svg></span>ひとりで</button>
+        <button type="button" class="mood-chip" style="color:#c86bff" data-mood="美容" onclick="pickMood('美容')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"></circle><path d="M12 14v7"></path><path d="M9 21h6"></path></svg></span>美容</button>
+        <button type="button" class="mood-chip" style="color:#4d9fff" data-mood="勉強" onclick="pickMood('勉強')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v14H4z"></path><path d="M13 5h7v14h-7z"></path><path d="M11 5c1.2 1 1.2 3 0 4"></path><path d="M13 5c-1.2 1-1.2 3 0 4"></path></svg></span>勉強</button>
+        <button type="button" class="mood-chip" style="color:#e6a800" data-mood="暇つぶし" onclick="pickMood('暇つぶし')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M8.5 13.5s1.5 2 3.5 2 3.5-2 3.5-2"></path><circle cx="9" cy="10" r=".6" fill="currentColor" stroke="none"></circle><circle cx="15" cy="10" r=".6" fill="currentColor" stroke="none"></circle></svg></span>暇つぶし</button>
+        <button type="button" class="mood-chip" style="color:#2db8a0" data-mood="リラックス" onclick="pickMood('リラックス')"><span class="neon-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"></path><path d="M5 19c2-3 5-6 9-9"></path></svg></span>リラックス</button>
       </div>
     </div>
     <div class="trust-strip">
@@ -2452,19 +2455,41 @@ function render(){
   /* 再描画でスクロールが跳ねないように維持（カテゴリ切替・定期更新時のあたふた防止） */
   if(Math.abs(window.scrollY-keepY)>1)window.scrollTo(0,keepY);
 }
+function newCardAreaLabel(p){
+  const addr=String(p.address||"");
+  const m=addr.match(/([^\s\d]{1,10}[市区町村])/)||addr.match(/([^\s]{2,8}区)/);
+  if(m)return m[1];
+  if(p.pref)return String(p.pref).replace(/(都|道|府|県)$/,"");
+  const spot=String(p.spot||"").trim();
+  return spot.length>6?spot.slice(0,6)+"…":spot;
+}
+function newCardCatShort(p){
+  const map={travel:"遊び",fun:"遊び",food:"ご飯",drink:"カフェ",beauty:"美容",study:"勉強",life:"まったり",finance:"お金"};
+  return map[p.cat]||(CAT_LABEL[p.cat]||"おすすめ");
+}
 function newCardHTML(p){
   const cover=(p.photos||[])[0]||"";
   const media=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
     :`<span class="new-ph">${esc(p.title||p.spot||CAT_LABEL[p.cat]||"投稿")}</span>`;
-  const area=p.pref||p.genre||"";
+  const area=newCardAreaLabel(p);
+  const tagLoc=area||(p.pref?String(p.pref).replace(/(都|道|府|県)$/,""):"");
+  const tag=`${newCardCatShort(p)}${tagLoc?"・"+tagLoc:""}`;
+  const av=avatarOf(p.user_id);
+  const avHTML=`<span class="mini-av"${av?` style="background-image:url(${esc(av)})"`:""}></span>`;
+  const heart=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg>`;
   return `<button type="button" class="new-card" onclick="openPostView('${esc(String(p.id))}')" title="${esc(p.title||"")}">
-    <div class="new-card-media">
-      ${media}
-      ${area?`<span class="new-badge area">${esc(area)}</span>`:""}
-      <span class="new-badge like">♡ ${p.likes||0}</span>
+    <div class="new-card-inner">
+      <div class="new-card-media">
+        ${media}
+        ${area?`<span class="new-badge area">${esc(area)}</span>`:""}
+        <span class="new-badge like">${heart}${p.likes||0}</span>
+      </div>
+      <div class="new-card-body">
+        <div class="new-card-title">${esc(p.title||"")}</div>
+        <span class="new-card-tag">${esc(tag)}</span>
+        <div class="new-card-author">${avHTML}<span>by ${esc(p.author||"匿名")}</span></div>
+      </div>
     </div>
-    <div class="new-card-title">${esc(p.title||"")}</div>
-    <div class="new-card-meta"><span class="new-card-cat">${esc(CAT_LABEL[p.cat]||"")}</span><span>by ${esc(p.author||"匿名")}</span></div>
   </button>`;
 }
 function renderNewRail(){
