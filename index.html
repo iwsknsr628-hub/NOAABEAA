@@ -1268,7 +1268,7 @@
         <textarea name="desc" maxlength="600" placeholder="どこが・どう良かったかを教えてください（空欄でもOK）"></textarea>
       </div>
       <div class="field">
-        <label>写真（任意・8枚まで）</label>
+        <label>写真（任意・8枚まで・大きい写真は自動で軽くします）</label>
         <input type="file" name="photo" id="photoInput" accept="image/*" multiple>
         <div id="photoPreview" class="photo-preview hidden"></div>
         <span id="photoMsg" style="font-size:.78rem;color:var(--ink-soft)"></span>
@@ -2215,14 +2215,47 @@ async function autofillPrefFromPin(latlng,preferredAddr){
   const hint=document.getElementById('pinPageHint');
   if(hint&&(pref||best))hint.textContent=`${pref||""}${pref&&best?"・":""}${best||""}を自動で入力しました。よければ右上の「この場所に決定」を押してください`;
 }
+/* スマホ写真は数MBになりがち。投稿前にJPEGへリサイズ圧縮する（失敗時は元ファイル） */
+const PHOTO_SELECT_MAX=12*1024*1024; /* 選択時の上限（圧縮前） */
+const PHOTO_MAX_EDGE=1600;
+async function compressImageFile(file){
+  if(!file||!/^image\//.test(file.type)||/gif|svg/i.test(file.type))return file;
+  try{
+    const url=URL.createObjectURL(file);
+    const img=await new Promise((resolve,reject)=>{
+      const im=new Image();
+      im.onload=()=>resolve(im);im.onerror=reject;im.src=url;
+    });
+    URL.revokeObjectURL(url);
+    let w=img.naturalWidth||0,h=img.naturalHeight||0;
+    if(!w||!h)return file;
+    if(w>PHOTO_MAX_EDGE||h>PHOTO_MAX_EDGE){
+      const r=Math.min(PHOTO_MAX_EDGE/w,PHOTO_MAX_EDGE/h);
+      w=Math.round(w*r);h=Math.round(h*r);
+    }
+    const canvas=document.createElement('canvas');
+    canvas.width=w;canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.82));
+    if(!blob)return file;
+    let out=blob;
+    if(out.size>2.5*1024*1024){
+      const smaller=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.68));
+      if(smaller)out=smaller;
+    }
+    const base=(file.name||'photo').replace(/\.[^.]+$/,'')||'photo';
+    return new File([out],base+'.jpg',{type:'image/jpeg'});
+  }catch(e){console.warn('compress',e);return file;}
+}
 async function uploadPhoto(file){
   if(!SERVER) return null;
   const token=await freshToken();
   if(!token||!session) throw new Error("写真のアップロードにはログインが必要です");
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+  const ready=await compressImageFile(file);
+  const ext=(ready.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
   const name=`${session.uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
   const res=await fetch(`${SUPABASE_URL}/storage/v1/object/photos/${name}`,{method:"POST",
-    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+token},body:file});
+    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+token},body:ready});
   if(!res.ok) throw new Error("photo upload "+res.status);
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${name}`;
 }
@@ -3660,20 +3693,25 @@ const genreField=document.getElementById('genreField');
 const spotLabel=document.getElementById('spotLabel');
 const spotInput=document.getElementById('spotInput');
 
-/* photo select + preview (up to 8) */
+/* photo select + preview (up to 8; oversized phone photos are compressed on upload) */
 let pendingPhotos=[];
 document.getElementById('photoInput').addEventListener('change',e=>{
   const files=[...e.target.files];
   const msg=document.getElementById('photoMsg'),prev=document.getElementById('photoPreview');
   pendingPhotos=[];prev.classList.add('hidden');prev.innerHTML="";msg.textContent="";
   if(!files.length)return;
-  const valid=[];
+  const valid=[];let skippedType=0,skippedSize=0;
   for(const f of files){
-    if(!/^image\//.test(f.type)){msg.textContent="画像ファイルのみ選べます";continue;}
-    if(f.size>3*1024*1024){msg.textContent="1枚あたり3MB以下にしてください";continue;}
+    if(!/^image\//.test(f.type)){skippedType++;continue;}
+    if(f.size>PHOTO_SELECT_MAX){skippedSize++;continue;}
     valid.push(f);
   }
-  if(valid.length>8)msg.textContent="写真は8枚まで。最初の8枚を使います";
+  const notes=[];
+  if(skippedType)notes.push(`画像以外 ${skippedType}枚を除外`);
+  if(skippedSize)notes.push(`12MB超 ${skippedSize}枚を除外`);
+  if(valid.length>8)notes.push("写真は8枚まで。最初の8枚を使います");
+  if(notes.length)msg.textContent=notes.join(" / ");
+  else if(valid.length)msg.textContent=`${valid.length}枚選択（投稿時に自動で軽くします）`;
   pendingPhotos=valid.slice(0,8);
   prev.innerHTML=pendingPhotos.map(f=>`<img src="${URL.createObjectURL(f)}" alt="preview">`).join('');
   if(pendingPhotos.length)prev.classList.remove('hidden');
