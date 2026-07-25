@@ -373,6 +373,34 @@
   .ig-stats>div{text-align:center}
   .ig-stats b{display:block;font-size:1.05rem;font-weight:900}
   .ig-stats span{display:block;font-size:.7rem;color:var(--ink-soft);margin-top:2px}
+
+  /* プロフィール画面（他人・本人共通のPV画面）追加要素 */
+  .pv-area{font-size:.8rem;color:var(--ink-soft);margin-top:4px}
+  .pv-follower-line{font-size:.78rem;color:var(--ink-soft);margin-top:8px}
+  .trust-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .trust-badge{font-size:.76rem;font-weight:800;color:var(--ink);background:var(--bg2);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+  .pv-filters{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;margin:0 -16px 16px;padding:0 16px 2px}
+  .pv-filters::-webkit-scrollbar{display:none}
+  .pv-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pv-grid2 .empty{grid-column:1/-1;padding:36px 16px;margin:0;color:var(--ink-soft);text-align:center;font-size:.88rem}
+  .pv-card{position:relative;border:none;padding:0;font-family:inherit;text-align:left;color:inherit;
+    background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pv-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+  .pv-card .pv-ph{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    padding:8px;text-align:center;font-size:.7rem;font-weight:700;color:var(--ink-soft);line-height:1.35;
+    background:linear-gradient(160deg,var(--bg2),#ebe6dc)}
+  .pv-card-title{font-size:.78rem;font-weight:800;color:var(--ink);padding:7px 8px 2px;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .pv-card-save{font-size:.7rem;color:var(--ink-soft);padding:0 8px 8px;font-weight:700}
+  .pv-bottom-cta{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;
+    border-top:1px solid var(--line);box-shadow:0 -2px 12px rgba(0,0,0,.05)}
+  .pv-bottom-cta button{border:1px solid var(--line);background:#fff;color:var(--ink);font-family:inherit;
+    font-weight:800;font-size:.8rem;padding:12px 4px;border-radius:12px;cursor:pointer}
+  .pv-bottom-cta button:active{transform:scale(.96)}
+  .pv-bottom-cta button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
   .settings-section{padding-top:16px;margin-top:16px;border-top:1px solid var(--line)}
   .settings-section:first-of-type{border-top:none;margin-top:6px;padding-top:0}
   .settings-section h3{font-size:.95rem;margin-bottom:12px}
@@ -1131,6 +1159,7 @@
     <button type="button" class="pin-back" onclick="closeProfileView()" title="戻る" aria-label="戻る">←</button>
     <span class="pin-page-title">プロフィール</span>
     <div class="full-page-head-icons">
+      <span class="head-icon-btn" onclick="copyProfileLink()" title="メニュー" aria-label="メニュー">⋯</span>
       <span class="head-icon-btn share-ic" onclick="shareCurrentProfile()" title="共有" aria-label="共有">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
       </span>
@@ -1142,25 +1171,47 @@
         <div id="pvAvatar" class="avatar-lg" style="margin:0 auto" role="button" tabindex="0" title="プロフィール画像を見る" aria-label="プロフィール画像を見る"></div>
         <h2 id="pvName" style="margin-top:12px;font-size:1.15rem">プロフィール</h2>
         <div id="pvHandle" class="mp-handle-view" style="text-align:center"></div>
-        <div class="ig-stats">
-          <div><b id="pvStatPosts">0</b><span>投稿</span></div>
-          <div><b id="pvStatFollowers">0</b><span>フォロワー</span></div>
-          <div><b id="pvStatFollowing">0</b><span>フォロー中</span></div>
-          <div><b id="pvStatLikes">0</b><span>総いいね</span></div>
-        </div>
-        <p id="pvBio" style="color:var(--ink-soft);font-size:.95rem;white-space:pre-wrap;margin-top:4px"></p>
+        <div id="pvArea" class="pv-area"></div>
+        <p id="pvBio" style="color:var(--ink-soft);font-size:.95rem;white-space:pre-wrap;margin-top:8px"></p>
         <div id="pvLinks" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px"></div>
         <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
           <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
           <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
         </div>
+        <div class="pv-follower-line">フォロワー <b id="pvStatFollowers">0</b>・フォロー中 <b id="pvStatFollowing">0</b></div>
+        <div class="ig-stats" style="margin-top:16px">
+          <div><b id="pvStatPosts">0</b><span>投稿</span></div>
+          <div><b id="pvStatSaves">0</b><span>保存</span></div>
+          <div><b id="pvStatLikes">0</b><span>いいね</span></div>
+          <div><b id="pvStatSpots">0</b><span>訪問スポット</span></div>
+        </div>
+        <div class="trust-badges">
+          <span class="trust-badge">実体験のみ</span>
+          <span class="trust-badge">PRなし</span>
+        </div>
       </div>
       <div class="mp-section ig-posts">
         <h3 id="pvPostsTitle">投稿</h3>
-        <div class="ig-grid" id="pvPostsGrid"></div>
+        <div class="pv-filters" id="pvFilters"></div>
+        <div class="pv-grid2" id="pvPostsGrid"></div>
       </div>
     </div>
   </div>
+  <div class="pv-bottom-cta">
+    <button type="button" onclick="openSavedPage()">保存一覧</button>
+    <button type="button" class="primary" onclick="openPvMap()">マップで見る</button>
+    <button type="button" onclick="shareCurrentProfile()">共有</button>
+  </div>
+</div>
+
+<!-- プロフィール：マップで見る -->
+<div class="full-page" id="pvMapPage">
+  <div class="full-page-head">
+    <button type="button" class="pin-back" onclick="closePvMap()" title="戻る" aria-label="戻る">←</button>
+    <span class="pin-page-title">マップで見る</span>
+    <div class="full-page-head-icons"></div>
+  </div>
+  <div id="pvMapContainer" class="pin-page-map"></div>
 </div>
 
 <!-- SEARCH PAGE -->
@@ -1481,7 +1532,7 @@ let POSTS=[];
 function mapRow(r){
   return {id:r.id,ts:new Date(r.created_at).getTime(),cat:r.cat,pref:r.pref||undefined,
     genre:r.genre||undefined,title:r.title,spot:r.spot,desc:r.descr,author:r.author||"匿名",
-    likes:r.likes||0,reports:r.reports||0,tags:r.tags||[],address:r.address||undefined,user_id:r.user_id||undefined,
+    likes:r.likes||0,reports:r.reports||0,saves:r.saves||0,tags:r.tags||[],address:r.address||undefined,user_id:r.user_id||undefined,
     aff_url:r.aff_url||undefined,
     photos:(r.photos&&r.photos.length)?r.photos:(r.photo?[r.photo]:[]),
     loc:(r.lat!=null&&r.lng!=null)?[r.lat,r.lng]:undefined};
@@ -2477,6 +2528,15 @@ function shareProfile(userId,name){
 function shareCurrentProfile(){
   const name=(document.getElementById('pvName')||{}).textContent||"";
   shareProfile(pvUserId,name);
+}
+async function copyProfileLink(){
+  if(!pvUserId){showToast("共有できるプロフィールがありません");return;}
+  try{
+    await navigator.clipboard.writeText(profileShareUrl(pvUserId));
+    showToast("リンクをコピーしました");
+  }catch(e){
+    try{prompt("このリンクをコピーしてください",profileShareUrl(pvUserId));}catch(_){showToast("コピーできませんでした");}
+  }
 }
 function shareMyProfile(){
   if(!session){openAuth();return;}
@@ -4036,7 +4096,18 @@ function mpVal(id){return document.getElementById(id).value.trim()||null;}
 /* ---------- stats / follow helpers ---------- */
 function statsForUser(uid){
   const mine=POSTS.filter(p=>p.user_id===uid);
-  return {posts:mine.length, likes:mine.reduce((s,p)=>s+(p.likes||0),0)};
+  const spotSet=new Set(mine.map(p=>p.spot).filter(Boolean));
+  const prefCount={};
+  mine.forEach(p=>{if(p.pref)prefCount[p.pref]=(prefCount[p.pref]||0)+1;});
+  let topPref=null,topN=0;
+  for(const k in prefCount){if(prefCount[k]>topN){topN=prefCount[k];topPref=k;}}
+  return {
+    posts:mine.length,
+    likes:mine.reduce((s,p)=>s+(p.likes||0),0),
+    saves:mine.reduce((s,p)=>s+(p.saves||0),0),
+    spots:spotSet.size,
+    area:topPref
+  };
 }
 async function fetchFollowCounts(uid){
   try{
@@ -4414,16 +4485,41 @@ async function getFollowRow(uid){
   }catch(e){return null;}
 }
 let pvUserId=null;
+let pvCatFilter='all';
+function setPvFilter(cat){
+  pvCatFilter=cat;
+  if(pvUserId)renderPvPosts(pvUserId);
+}
+function pvFilterChipsHTML(){
+  const cats=[['all','すべて'],...Object.entries(CAT_LABEL)];
+  return cats.map(([k,label])=>
+    `<button type="button" class="chip${pvCatFilter===k?' active':''}" data-cat="${k}" onclick="setPvFilter('${k}')">${esc(label)}</button>`
+  ).join('');
+}
+function pvCardHTML(p){
+  const cover=(p.photos||[])[0]||"";
+  const body=cover?`<img src="${esc(cover)}" alt="" loading="lazy">`
+    :`<span class="pv-ph">${esc(p.title||p.spot||CAT_LABEL[p.cat]||"投稿")}</span>`;
+  return `<button type="button" class="pv-card ig-thumb" data-id="${esc(String(p.id))}" title="${esc(p.title||"")}">
+    ${body}
+    <div class="pv-card-title">${esc(p.title||p.spot||"")}</div>
+    <div class="pv-card-save">保存 ${p.saves||0}</div>
+  </button>`;
+}
 function renderPvPosts(userId){
   const grid=document.getElementById('pvPostsGrid');
-  const mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
+  const filters=document.getElementById('pvFilters');
+  if(filters)filters.innerHTML=pvFilterChipsHTML();
+  let mine=POSTS.filter(p=>p.user_id&&p.user_id===userId).sort((a,b)=>b.ts-a.ts);
+  if(pvCatFilter!=='all')mine=mine.filter(p=>p.cat===pvCatFilter);
   document.getElementById('pvPostsTitle').textContent=`投稿（${mine.length}）`;
-  grid.innerHTML=mine.length?mine.map(igThumbHTML).join('')
+  grid.innerHTML=mine.length?mine.map(pvCardHTML).join('')
     :`<div class="empty">まだ投稿がありません。</div>`;
 }
 async function openProfileView(userId,fallbackName,opts){
   closePostView();closeMyPage();closeSearchPage();closeNotifs();
   pvUserId=userId||null;
+  pvCatFilter='all';
   const page=document.getElementById('pvPage');
   document.getElementById('pvName').textContent=fallbackName||"プロフィール";
   {const pvh=document.getElementById('pvHandle');if(pvh)pvh.textContent="";}
@@ -4433,6 +4529,9 @@ async function openProfileView(userId,fallbackName,opts){
   document.getElementById('pvStatFollowers').textContent="—";
   document.getElementById('pvStatFollowing').textContent="—";
   document.getElementById('pvStatLikes').textContent="—";
+  document.getElementById('pvStatSaves').textContent="—";
+  document.getElementById('pvStatSpots').textContent="—";
+  document.getElementById('pvArea').textContent="";
   const av=document.getElementById('pvAvatar');setAvatarEl(av,"");
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
   const notifyBtn=document.getElementById('pvNotifyBtn');notifyBtn.style.display="none";notifyBtn.onclick=null;
@@ -4456,6 +4555,9 @@ async function openProfileView(userId,fallbackName,opts){
   const st=statsForUser(userId);
   document.getElementById('pvStatPosts').textContent=st.posts;
   document.getElementById('pvStatLikes').textContent=st.likes;
+  document.getElementById('pvStatSaves').textContent=st.saves;
+  document.getElementById('pvStatSpots').textContent=st.spots;
+  document.getElementById('pvArea').textContent=st.area?`よく投稿するエリア: ${st.area}`:"";
   fetchFollowCounts(userId).then(fc=>{
     document.getElementById('pvStatFollowers').textContent=fc.followers;
     document.getElementById('pvStatFollowing').textContent=fc.following;
@@ -4607,6 +4709,32 @@ document.getElementById('pvPostsGrid').addEventListener('click',async e=>{
   if(handleCardInteractions(e,renderPvPostsCurrent))return;
 });
 function renderPvPostsCurrent(){if(pvUserId)renderPvPosts(pvUserId);}
+
+/* プロフィール：マップで見る（このユーザーの位置情報付き投稿をピン表示） */
+let pvMapObj=null,pvMapMarkers=[];
+function openPvMap(){
+  if(!pvUserId){showToast("マップを表示できません");return;}
+  if(typeof L==="undefined"){showToast("地図を読み込めませんでした（通信環境をご確認ください）");return;}
+  const mine=POSTS.filter(p=>p.user_id===pvUserId&&p.loc);
+  if(!mine.length){showToast("位置情報付きの投稿がありません");return;}
+  document.getElementById('pvMapPage').classList.add('open');
+  if(!pvMapObj){
+    pvMapObj=L.map('pvMapContainer');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(pvMapObj);
+  }
+  pvMapMarkers.forEach(m=>pvMapObj.removeLayer(m));
+  pvMapMarkers=mine.map(p=>{
+    const m=L.circleMarker(p.loc,{radius:9,color:'#FF6A00',fillColor:'#FF8A3D',fillOpacity:.9,weight:2}).addTo(pvMapObj);
+    m.bindPopup(`<b>${esc(p.title||"")}</b><br>${esc(p.spot||"")}`);
+    m.on('click',()=>{closePvMap();openPostView(p.id);});
+    return m;
+  });
+  pvMapObj.fitBounds(L.latLngBounds(mine.map(p=>p.loc)).pad(0.2));
+  setTimeout(()=>pvMapObj.invalidateSize(),150);
+}
+function closePvMap(){
+  const p=document.getElementById('pvMapPage');if(p)p.classList.remove('open');
+}
 
 /* ---------- comments ---------- */
 let cmtPostId=null;

@@ -76,6 +76,7 @@ begin
   if current_setting('nanshiyo.allow_counters', true) is distinct from '1' then
     new.likes := old.likes;
     new.reports := old.reports;
+    new.saves := old.saves;
   end if;
   return new;
 end;
