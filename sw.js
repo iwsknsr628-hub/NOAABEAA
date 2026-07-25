@@ -1,5 +1,5 @@
 /* なんしよ？ PWA Service Worker — network-first（APIはキャッシュしない） */
-const CACHE = "nanshiyo-pwa-v27";
+const CACHE = "nanshiyo-pwa-v28";
 const PRECACHE = [
   "/",
   "/index.html",

@@ -1308,7 +1308,7 @@
       </div>
       <div class="field">
         <label>写真（任意・8枚まで・大きい写真は自動で軽くします）</label>
-        <input type="file" name="photo" id="photoInput" accept="image/*" multiple>
+        <input type="file" name="photo" id="photoInput" accept="image/*,image/heic,image/heif,.heic,.heif" multiple>
         <div id="photoPreview" class="photo-preview hidden"></div>
         <span id="photoMsg" style="font-size:.78rem;color:var(--ink-soft)"></span>
         <span id="photoExistingMsg" style="font-size:.78rem;color:var(--ink-soft);display:block"></span>
@@ -2252,48 +2252,122 @@ async function autofillPrefFromPin(latlng,preferredAddr){
   const hint=document.getElementById('pinPageHint');
   if(hint&&(pref||best))hint.textContent=`${pref||""}${pref&&best?"・":""}${best||""}を自動で入力しました。よければ右上の「この場所に決定」を押してください`;
 }
-/* スマホ写真は数MBになりがち。投稿前にJPEGへリサイズ圧縮する（失敗時は元ファイル） */
-const PHOTO_SELECT_MAX=12*1024*1024; /* 選択時の上限（圧縮前） */
+/* スマホ写真は数MB〜十数MBになりがち。選択時は緩めに受け、投稿前にJPEGへ必ず圧縮する */
+const PHOTO_SELECT_MAX=40*1024*1024; /* 選択時の上限（圧縮前・Proの高画質写真対策） */
 const PHOTO_MAX_EDGE=1600;
-async function compressImageFile(file){
-  if(!file||!/^image\//.test(file.type)||/gif|svg/i.test(file.type))return file;
+const PHOTO_UPLOAD_MAX=4*1024*1024; /* 圧縮後のアップロード上限 */
+function looksLikeImageFile(f){
+  if(!f)return false;
+  const t=(f.type||"").toLowerCase();
+  if(/^image\//.test(t) && !/svg/.test(t))return true;
+  /* iOS/Androidで type が空のことがある */
+  return !t && /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp)$/i.test(f.name||"");
+}
+function isHeicLike(f){
+  const t=(f.type||"").toLowerCase();
+  if(/heic|heif/.test(t))return true;
+  return /\.(heic|heif)$/i.test(f.name||"");
+}
+function canvasToJpegBlob(canvas,quality){
+  return new Promise(resolve=>{
+    let done=false;
+    const finish=b=>{if(done)return;done=true;resolve(b||null);};
+    try{
+      if(canvas.toBlob){
+        canvas.toBlob(finish,"image/jpeg",quality);
+        setTimeout(()=>{
+          if(done)return;
+          try{
+            const data=canvas.toDataURL("image/jpeg",quality);
+            const bin=atob(data.split(",")[1]||"");
+            const arr=new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+            finish(new Blob([arr],{type:"image/jpeg"}));
+          }catch(e){finish(null);}
+        },8000);
+        return;
+      }
+    }catch(e){}
+    try{
+      const data=canvas.toDataURL("image/jpeg",quality);
+      const bin=atob(data.split(",")[1]||"");
+      const arr=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+      finish(new Blob([arr],{type:"image/jpeg"}));
+    }catch(e){finish(null);}
+  });
+}
+async function loadImageSource(file){
+  if(typeof createImageBitmap==="function"){
+    try{return await createImageBitmap(file,{imageOrientation:"from-image"});}catch(e){}
+    try{return await createImageBitmap(file);}catch(e){}
+  }
+  const url=URL.createObjectURL(file);
   try{
-    const url=URL.createObjectURL(file);
     const img=await new Promise((resolve,reject)=>{
       const im=new Image();
-      im.onload=()=>resolve(im);im.onerror=reject;im.src=url;
+      im.onload=()=>resolve(im);im.onerror=()=>reject(new Error("decode"));im.src=url;
     });
-    URL.revokeObjectURL(url);
-    let w=img.naturalWidth||0,h=img.naturalHeight||0;
-    if(!w||!h)return file;
+    return img;
+  }finally{URL.revokeObjectURL(url);}
+}
+async function compressImageFile(file){
+  if(!file||!looksLikeImageFile(file))return file;
+  if(/gif/i.test(file.type||"")||/\.gif$/i.test(file.name||""))return file;
+  try{
+    const src=await loadImageSource(file);
+    let w=src.width||src.naturalWidth||0,h=src.height||src.naturalHeight||0;
+    if(!w||!h){
+      if(src.close)try{src.close();}catch(e){}
+      throw new Error("画像サイズを取得できません");
+    }
     if(w>PHOTO_MAX_EDGE||h>PHOTO_MAX_EDGE){
       const r=Math.min(PHOTO_MAX_EDGE/w,PHOTO_MAX_EDGE/h);
       w=Math.round(w*r);h=Math.round(h*r);
     }
-    const canvas=document.createElement('canvas');
+    const canvas=document.createElement("canvas");
     canvas.width=w;canvas.height=h;
-    canvas.getContext('2d').drawImage(img,0,0,w,h);
-    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.82));
-    if(!blob)return file;
-    let out=blob;
+    const ctx=canvas.getContext("2d",{alpha:false});
+    ctx.drawImage(src,0,0,w,h);
+    if(src.close)try{src.close();}catch(e){}
+    let out=await canvasToJpegBlob(canvas,0.82);
+    if(!out)throw new Error("JPEG変換に失敗");
     if(out.size>2.5*1024*1024){
-      const smaller=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.68));
+      const smaller=await canvasToJpegBlob(canvas,0.68);
       if(smaller)out=smaller;
     }
-    const base=(file.name||'photo').replace(/\.[^.]+$/,'')||'photo';
-    return new File([out],base+'.jpg',{type:'image/jpeg'});
-  }catch(e){console.warn('compress',e);return file;}
+    if(out.size>PHOTO_UPLOAD_MAX){
+      const smaller=await canvasToJpegBlob(canvas,0.5);
+      if(smaller)out=smaller;
+    }
+    if(out.size>PHOTO_UPLOAD_MAX)throw new Error("圧縮しても大きすぎます");
+    const base=(file.name||"photo").replace(/\.[^.]+$/,"")||"photo";
+    return new File([out],base+".jpg",{type:"image/jpeg",lastModified:Date.now()});
+  }catch(e){
+    console.warn("compress",e);
+    if(isHeicLike(file))throw new Error("この写真形式（HEIC）は変換できません。設定で「互換性優先（JPEG）」にするか、別の写真を選んでください");
+    throw new Error(e.message||"写真の圧縮に失敗しました");
+  }
 }
 async function uploadPhoto(file){
   if(!SERVER) return null;
   const token=await freshToken();
   if(!token||!session) throw new Error("写真のアップロードにはログインが必要です");
   const ready=await compressImageFile(file);
-  const ext=(ready.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-  const name=`${session.uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const name=`${session.uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
   const res=await fetch(`${SUPABASE_URL}/storage/v1/object/photos/${name}`,{method:"POST",
-    headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+token},body:ready});
-  if(!res.ok) throw new Error("photo upload "+res.status);
+    headers:{
+      apikey:SUPABASE_ANON_KEY,
+      Authorization:"Bearer "+token,
+      "Content-Type":ready.type||"image/jpeg",
+      "x-upsert":"true"
+    },
+    body:ready});
+  if(!res.ok){
+    let detail="";
+    try{detail=(await res.text()).slice(0,120);}catch(e){}
+    throw new Error("写真アップロード失敗("+res.status+")"+(detail?" "+detail:""));
+  }
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${name}`;
 }
 /* ログイン済みユーザーの投稿のみ（デモ／シード／user_id なしは出さない） */
@@ -3745,20 +3819,21 @@ document.getElementById('photoInput').addEventListener('change',e=>{
   const files=[...e.target.files];
   const msg=document.getElementById('photoMsg'),prev=document.getElementById('photoPreview');
   pendingPhotos=[];prev.classList.add('hidden');prev.innerHTML="";msg.textContent="";
+  e.target.value=""; /* 同じ写真を選び直せるように */
   if(!files.length)return;
   const valid=[];let skippedType=0,skippedSize=0;
   for(const f of files){
-    if(!/^image\//.test(f.type)){skippedType++;continue;}
+    if(!looksLikeImageFile(f)){skippedType++;continue;}
     if(f.size>PHOTO_SELECT_MAX){skippedSize++;continue;}
     valid.push(f);
   }
   const notes=[];
   if(skippedType)notes.push(`画像以外 ${skippedType}枚を除外`);
-  if(skippedSize)notes.push(`12MB超 ${skippedSize}枚を除外`);
+  if(skippedSize)notes.push(`40MB超 ${skippedSize}枚を除外`);
   if(valid.length>8)notes.push("写真は8枚まで。最初の8枚を使います");
-  if(notes.length)msg.textContent=notes.join(" / ");
-  else if(valid.length)msg.textContent=`${Math.min(valid.length,8)}枚選択（投稿時に自動で軽くします）`;
   pendingPhotos=valid.slice(0,8);
+  if(notes.length)msg.textContent=notes.join(" / ")+(pendingPhotos.length?` → ${pendingPhotos.length}枚選択`:" ");
+  else if(pendingPhotos.length)msg.textContent=`${pendingPhotos.length}枚選択（投稿時に自動で軽くします）`;
   prev.innerHTML=pendingPhotos.map(f=>`<img src="${URL.createObjectURL(f)}" alt="preview">`).join('');
   if(pendingPhotos.length)prev.classList.remove('hidden');
   const em=document.getElementById('photoExistingMsg');
@@ -5971,10 +6046,26 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
     else if(post.address){submitBtn.textContent="地図を確認中…";const c=await geocode(post.address);if(c)post.loc=c;}
     if(pendingPhotos.length){
       submitBtn.textContent="写真を送信中…";
-      const urls=[];
-      for(const file of pendingPhotos){try{const u=await uploadPhoto(file);if(u)urls.push(u);}catch(err){console.warn(err);}}
-      if(urls.length)post.photos=urls;
-      if(urls.length<pendingPhotos.length)alert("一部の写真をアップロードできませんでした。できた分で投稿します。");
+      const urls=[];const failMsgs=[];
+      for(let i=0;i<pendingPhotos.length;i++){
+        submitBtn.textContent=`写真を送信中…(${i+1}/${pendingPhotos.length})`;
+        try{
+          const u=await uploadPhoto(pendingPhotos[i]);
+          if(u)urls.push(u);
+          else failMsgs.push(`${i+1}枚目: 送信できませんでした`);
+        }catch(err){
+          console.warn(err);
+          failMsgs.push(`${i+1}枚目: ${(err&&err.message)||"失敗"}`);
+        }
+      }
+      if(!urls.length){
+        alert("写真をアップロードできませんでした。\n"+failMsgs.slice(0,3).join("\n")+(failMsgs.length>3?"\n…":""));
+        return;
+      }
+      post.photos=urls;
+      if(failMsgs.length){
+        alert(`${pendingPhotos.length}枚中 ${urls.length}枚だけ送れました。\n`+failMsgs.slice(0,3).join("\n")+(failMsgs.length>3?"\n…":"")+"\nできた分で投稿します。");
+      }
       submitBtn.textContent=isEdit?"保存中…":"投稿中…";
     }
     if(isEdit){
