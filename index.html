@@ -1967,8 +1967,16 @@ function toRow(p){
   return row;
 }
 async function geocode(q){
+  const s=String(q||"").trim();
+  if(!s)return null;
   try{
-    const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=jp&q="+encodeURIComponent(q));
+    const list=await geocodeList(s,{jpOnly:true,limit:3});
+    if(list&&list[0]!=null&&list[0].lat!=null&&list[0].lng!=null){
+      return [Number(list[0].lat),Number(list[0].lng)];
+    }
+  }catch(e){console.warn(e);}
+  try{
+    const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=jp&q="+encodeURIComponent(s));
     const a=await r.json();
     if(a&&a[0]) return [parseFloat(a[0].lat),parseFloat(a[0].lon)];
   }catch(e){console.warn(e);}
@@ -5895,22 +5903,50 @@ function placeMapPosts(){
     return !!(p.address&&String(p.address).trim());
   });
 }
-function placeMapAddrKey(p){
-  return [p.pref,p.address].filter(Boolean).join(" ").trim().toLowerCase();
+function placeMapQueryCandidates(p){
+  const addr=String(p.address||"").trim();
+  const pref=String(p.pref||"").trim();
+  const spot=String(p.spot||"").trim();
+  const qs=[];
+  if(pref&&addr)qs.push(pref+" "+addr);
+  if(addr)qs.push(addr);
+  if(spot&&pref)qs.push(spot+" "+pref);
+  if(spot&&addr)qs.push(spot+" "+addr);
+  if(spot&&pref&&addr)qs.push(spot+" "+pref+" "+addr);
+  return [...new Set(qs.map(s=>s.trim()).filter(Boolean))];
 }
 async function geocodeThrottled(q){
-  const wait=Math.max(0,1100-(Date.now()-placeMapGeocodeAt));
+  const gap=GOOGLE_MAPS_KEY?400:1100;
+  const wait=Math.max(0,gap-(Date.now()-placeMapGeocodeAt));
   if(wait)await new Promise(r=>setTimeout(r,wait));
   placeMapGeocodeAt=Date.now();
-  return geocode(q);
+  try{
+    const list=await geocodeList(q,{jpOnly:true,limit:3});
+    if(list&&list[0]!=null&&list[0].lat!=null&&list[0].lng!=null){
+      return [Number(list[0].lat),Number(list[0].lng)];
+    }
+  }catch(e){console.warn(e);}
+  return null;
 }
 async function resolvePostLoc(p){
   if(p.loc&&Array.isArray(p.loc)&&p.loc.length>=2)return p.loc;
-  const key=placeMapAddrKey(p);
-  if(!key)return null;
-  if(placeGeoCache[key]){p.loc=placeGeoCache[key];return placeGeoCache[key];}
-  const c=await geocodeThrottled(key);
-  if(c){placeGeoCache[key]=c;p.loc=c;return c;}
+  const queries=placeMapQueryCandidates(p);
+  if(!queries.length)return null;
+  for(const q of queries){
+    const key=q.toLowerCase();
+    if(placeGeoCache[key]){p.loc=placeGeoCache[key];return placeGeoCache[key];}
+  }
+  for(const q of queries){
+    if(!placeMapIsOpen())return null;
+    const c=await geocodeThrottled(q);
+    if(c){
+      const key=q.toLowerCase();
+      placeGeoCache[key]=c;
+      queries.forEach(x=>{placeGeoCache[x.toLowerCase()]=c;});
+      p.loc=c;
+      return c;
+    }
+  }
   return null;
 }
 function stopPlaceMapLive(){
@@ -5929,6 +5965,24 @@ function closePlaceMap(){
   if(p)p.classList.remove('open');
   document.body.style.overflow="";
 }
+function addPlaceMapMarker(p,loc){
+  if(!placeMapObj||!loc)return null;
+  const m=L.circleMarker(loc,{radius:9,color:'#FF6A00',fillColor:'#FF8A3D',fillOpacity:.9,weight:2}).addTo(placeMapObj);
+  const sub=[p.spot,p.address||p.pref].filter(Boolean).join(" · ");
+  m.bindPopup(`<b>${esc(p.title||"")}</b><br>${esc(sub)}`);
+  m.on('click',()=>openPostView(p.id));
+  placeMapMarkers.push(m);
+  return m;
+}
+function updatePlaceMapHint(total,shown,working){
+  const hint=document.getElementById('placeMapHint');
+  if(!hint)return;
+  if(!total){hint.textContent="住所付きの投稿がまだありません";return;}
+  if(working){hint.textContent=`住所付き ${total}件中 ${shown}件表示 · 残りを地図に載せる準備中…`;return;}
+  if(!shown){hint.textContent=`住所付き ${total}件ありますが、地図座標を取得できませんでした`;return;}
+  if(shown<total)hint.textContent=`住所付き ${total}件中 ${shown}件を表示 · ピンをタップで投稿を開く`;
+  else hint.textContent=`住所付き ${shown}件 · ピンをタップすると投稿が見られます`;
+}
 async function refreshPlaceMapPins(opts){
   if(!placeMapObj||!placeMapIsOpen())return;
   const keepView=!!(opts&&opts.keepView);
@@ -5936,41 +5990,50 @@ async function refreshPlaceMapPins(opts){
   const prevCenter=keepView?placeMapObj.getCenter():null;
   const prevZoom=keepView?placeMapObj.getZoom():null;
   const list=placeMapPosts();
-  const hint=document.getElementById('placeMapHint');
-  if(hint&&!silent)hint.textContent=list.length?`住所付き ${list.length}件を地図に載せる準備中…`:"住所付きの投稿がまだありません";
-  const resolved=[];
-  for(let i=0;i<list.length;i++){
+  placeMapMarkers.forEach(m=>placeMapObj.removeLayer(m));
+  placeMapMarkers=[];
+  if(!list.length){
+    placeMapObj.setView([36.2,138.2],5);
+    updatePlaceMapHint(0,0,false);
+    if(!silent)showToast("住所付き投稿がまだありません");
+    setTimeout(()=>{if(placeMapObj)placeMapObj.invalidateSize();},150);
+    return;
+  }
+  const ready=[];
+  const need=[];
+  list.forEach(p=>{
+    if(p.loc&&Array.isArray(p.loc)&&p.loc.length>=2)ready.push(p);
+    else need.push(p);
+  });
+  ready.forEach(p=>addPlaceMapMarker(p,p.loc));
+  updatePlaceMapHint(list.length,ready.length,need.length>0);
+  if(!keepView&&ready.length){
+    try{placeMapObj.fitBounds(L.latLngBounds(ready.map(p=>p.loc)).pad(0.2));}catch(e){}
+  }
+  setTimeout(()=>{if(placeMapObj)placeMapObj.invalidateSize();},80);
+
+  let shown=ready.length;
+  for(let i=0;i<need.length;i++){
     if(!placeMapIsOpen())return;
-    const p=list[i];
-    if(hint&&!silent&&list.length>3)hint.textContent=`ピン準備中…(${i+1}/${list.length})`;
+    const p=need[i];
     try{
       const loc=await resolvePostLoc(p);
-      if(loc)resolved.push({p,loc});
+      if(loc){addPlaceMapMarker(p,loc);shown++;}
     }catch(e){console.warn("place pin",e);}
+    updatePlaceMapHint(list.length,shown,i<need.length-1);
   }
   if(!placeMapIsOpen()||!placeMapObj)return;
-  placeMapMarkers.forEach(m=>placeMapObj.removeLayer(m));
-  placeMapMarkers=resolved.map(({p,loc})=>{
-    const m=L.circleMarker(loc,{radius:9,color:'#FF6A00',fillColor:'#FF8A3D',fillOpacity:.9,weight:2}).addTo(placeMapObj);
-    const sub=[p.spot,p.address||p.pref].filter(Boolean).join(" · ");
-    m.bindPopup(`<b>${esc(p.title||"")}</b><br>${esc(sub)}`);
-    m.on('click',()=>openPostView(p.id));
-    return m;
-  });
   if(keepView&&prevCenter){
     placeMapObj.setView(prevCenter,prevZoom);
-  }else if(resolved.length){
-    try{placeMapObj.fitBounds(L.latLngBounds(resolved.map(x=>x.loc)).pad(0.2));}catch(e){placeMapObj.setView([36.2,138.2],5);}
+  }else if(shown){
+    try{
+      const locs=placeMapMarkers.map(m=>m.getLatLng());
+      if(locs.length)placeMapObj.fitBounds(L.latLngBounds(locs).pad(0.2));
+    }catch(e){placeMapObj.setView([36.2,138.2],5);}
   }else{
     placeMapObj.setView([36.2,138.2],5);
   }
-  if(hint){
-    if(!list.length)hint.textContent="住所付きの投稿がまだありません";
-    else if(!resolved.length)hint.textContent=`住所付き ${list.length}件ありますが、地図座標を取得できませんでした`;
-    else if(resolved.length<list.length)hint.textContent=`住所付き ${list.length}件中 ${resolved.length}件を表示 · ピンをタップで投稿を開く`;
-    else hint.textContent=`住所付き ${resolved.length}件 · ピンをタップすると投稿が見られます`;
-  }
-  if(!silent&&!list.length)showToast("住所付き投稿がまだありません");
+  updatePlaceMapHint(list.length,shown,false);
   setTimeout(()=>{if(placeMapObj)placeMapObj.invalidateSize();},150);
 }
 async function refreshPlaceMapData(opts){
