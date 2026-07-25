@@ -587,9 +587,9 @@
   .note{max-width:560px;margin:8px auto 0;font-size:.8rem;opacity:.8}
   .legal-links{margin-top:16px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:.76rem}
   .legal-links a{color:var(--ink-soft);text-decoration:underline;cursor:pointer}
-  .contact-box{max-width:540px;margin:26px auto 4px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 20px;text-align:left;box-shadow:var(--shadow-sm)}
+  .contact-box{max-width:540px;margin:8px auto 4px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 20px;text-align:left;box-shadow:var(--shadow-sm)}
   .contact-box h3{font-size:1.05rem;font-weight:900;color:var(--ink);text-align:center;margin:0}
-  .contact-box .contact-lead{font-size:.84rem;color:var(--ink-soft);margin:6px 0 14px;text-align:center;line-height:1.7}
+  .contact-box .contact-lead{font-size:.84rem;color:var(--ink-soft);margin:0 0 14px;text-align:left;line-height:1.7}
   .contact-box input,.contact-box textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:.92rem;color:var(--ink);background:#fff;outline:none;margin-bottom:10px}
   .contact-box input:focus,.contact-box textarea:focus{border-color:var(--accent)}
   .contact-box textarea{resize:vertical;min-height:110px}
@@ -845,7 +845,7 @@
         <p class="hero-empathy">今すぐ行けるおすすめを見つけよう</p>
       </div>
       <div class="hero-illust" aria-hidden="true">
-        <img src="assets/mood-search.png" alt="" width="236" height="192" decoding="async">
+        <img src="/icons/mood-search.jpg" alt="" width="236" height="192" decoding="async">
       </div>
     </div>
     <div class="hero-cta">
@@ -1003,21 +1003,13 @@
     <p>すべての「何しよう」に、みんなのおすすめを。</p>
     <p class="note" id="footNote"></p>
 
-    <div class="contact-box" id="contact">
-      <h3>お問い合わせ</h3>
-      <p class="contact-lead">不具合の報告・ご質問・掲載や広告のご相談など、お気軽にどうぞ。運営が確認のうえ返信します。</p>
-      <input id="ctFrom" type="email" autocomplete="email" placeholder="返信用メールアドレス（任意）">
-      <textarea id="ctMsg" placeholder="お問い合わせ内容をご記入ください"></textarea>
-      <button class="btn btn-primary" type="button" onclick="sendContact()">メールを作成して送る</button>
-      <p class="contact-alt">ボタンでうまく開かない場合は <a href="mailto:support@nanshiyo.com">support@nanshiyo.com</a> まで直接お送りください。</p>
-    </div>
-
     <div class="legal-links">
       <a href="/privacy.html">プライバシーポリシー</a>
       <a onclick="openLegal('lg-disclaimer')">免責事項</a>
       <a onclick="openLegal('lg-copyright')">著作権について</a>
       <a onclick="openLegal('lg-trademark')">商標について</a>
       <a onclick="openLegal('lg-notice')">コンテンツに関する注意事項</a>
+      <a href="javascript:void(0)" onclick="openContactPage()">お問い合わせ</a>
     </div>
     <p style="margin-top:16px;font-weight:800;letter-spacing:.04em">運営会社　NOAABEAR</p>
     <p style="opacity:.6;font-size:.8rem;margin-top:2px">© 2026 NOAABEAR</p>
@@ -1387,6 +1379,27 @@
       <button type="button" class="pv-menu-item" id="pvMenuSettings" onclick="closePvMenu();openSettingsPopup()">設定</button>
       <button type="button" class="pv-menu-item" id="pvMenuAnnounce" onclick="closePvMenu();openAnnounce()">お知らせ</button>
       <button type="button" class="pv-menu-item" onclick="closePvMenu();copyProfileLink()">リンクをコピー</button>
+      <button type="button" class="pv-menu-item" onclick="closePvMenu();openContactPage()">お問い合わせ</button>
+    </div>
+  </div>
+</div>
+
+<!-- お問い合わせ -->
+<div class="full-page" id="contactPage">
+  <div class="full-page-head">
+    <button type="button" class="pin-back" onclick="closeContactPage()" title="戻る" aria-label="戻る">←</button>
+    <span class="pin-page-title">お問い合わせ</span>
+    <div class="full-page-head-icons"></div>
+  </div>
+  <div class="full-page-body">
+    <div class="mp-wrap">
+      <div class="contact-box" id="contact">
+        <p class="contact-lead">不具合の報告・ご質問・掲載や広告のご相談など、お気軽にどうぞ。運営が確認のうえ返信します。</p>
+        <input id="ctFrom" type="email" autocomplete="email" placeholder="返信用メールアドレス（任意）">
+        <textarea id="ctMsg" placeholder="お問い合わせ内容をご記入ください"></textarea>
+        <button class="btn btn-primary" type="button" onclick="sendContact()">メールを作成して送る</button>
+        <p class="contact-alt">ボタンでうまく開かない場合は <a href="mailto:support@nanshiyo.com">support@nanshiyo.com</a> まで直接お送りください。</p>
+      </div>
     </div>
   </div>
 </div>
@@ -1557,6 +1570,8 @@
       <button type="button" onclick="openSettingsPage('account')">アカウント設定<span class="chev">›</span></button>
       <button type="button" onclick="openSettingsPage('privacy')">プライバシー<span class="chev">›</span></button>
       <button type="button" onclick="openSettingsPage('display')">表示設定<span class="chev">›</span></button>
+      <div class="muted">サポート</div>
+      <button type="button" onclick="closeSettingsDrawer();openContactPage()">お問い合わせ<span class="chev">›</span></button>
       <div class="muted">アカウント</div>
       <button type="button" class="settings-menu-act" onclick="logout();closeSettingsDrawer();closeSettingsPage();closeMyPage();">ログアウト</button>
       <button type="button" class="settings-menu-act danger" onclick="openWithdrawPopup()">退会する</button>
@@ -3621,6 +3636,7 @@ function goHome(){
   try{closeModal();}catch(e){}
   try{closeSearchPage();}catch(e){}
   try{closeSavedPage();}catch(e){}
+  try{closeContactPage();}catch(e){}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function searchNearNow(){
@@ -4432,6 +4448,20 @@ function openPvMenu(){
   document.getElementById('pvMenuBg').classList.add('open');
 }
 function closePvMenu(){document.getElementById('pvMenuBg').classList.remove('open');}
+function openContactPage(){
+  try{closePvMenu();closeSettingsDrawer();closeSettingsPage();}catch(e){}
+  const p=document.getElementById('contactPage');
+  if(!p)return;
+  p.classList.add('open');
+  document.body.style.overflow="hidden";
+}
+function closeContactPage(){
+  const p=document.getElementById('contactPage');
+  if(p)p.classList.remove('open');
+  /* プロフィールや設定が開いていればそのスクロールロックを維持 */
+  const keep=document.querySelector('.full-page.open:not(#contactPage)');
+  if(!keep)document.body.style.overflow="";
+}
 function closeMyPage(){
   closeSettingsPopup();
   document.getElementById('myPage').classList.remove('open');
@@ -5023,6 +5053,7 @@ async function togglePvNotify(userId){
 function closeProfileView(opts){
   document.getElementById('pvPage').classList.remove('open');
   try{closePvMenu();}catch(e){}
+  try{closeContactPage();}catch(e){}
   pvUserId=null;
   document.body.style.overflow="";
   if(!(opts&&opts.fromPop)){

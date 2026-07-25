@@ -111,7 +111,7 @@ git push origin main   # → GitHub Pages が自動デプロイ
   - マップ機能 `openPvMap` はコード上残すがプロフィールUIからは外す。
 - **共有ボタン**: 投稿カード／詳細・プロフィール／マイページ右上に共有アイコン。`navigator.share`（不可時はリンクコピー）。ディープリンク復元は `restoreDeepLinksFromUrl()`（`?post=` 優先、なければ `?u=`）。
 - **デザイン**: 現行1系統のみ（コーラル／ネイビー／Zenフォント／ロゴ「なんしよ。」／すっきりヒーロー）。旧 classic テーマ・切替UIは廃止。
-  - ヒーロー右上イラスト: `assets/mood-search.png`。CTA: **現在地で探す** / **全国で探す** / **気分で探す**（`searchNearNow` / `searchNationwide` / `focusMoodRail`）。
+  - ヒーロー右上イラスト: `/icons/mood-search.jpg`。CTA: **現在地で探す** / **全国で探す** / **気分で探す**（`searchNearNow` / `searchNationwide` / `focusMoodRail`）。
 - **投稿詳細の「いいねした人」**: 投稿者本人のみ表示（`loadPostLikers()`）。**DB側は `post_likes` RLS**（`supabase/post_likes_rls.sql`）で保護。クライアントの if だけに頼らない。
 - **設定UI**: マイページの三本線 → 右ドロワー → 項目選択で全画面（アカウント情報／アカウント設定／プライバシー／表示＝地図アプリ）。戻るでドロワー再表示。
 - **カードのアバター**：`AVATARS` キャッシュに著者の `avatar_url`/`name` をまとめて取得（`fetchAvatars()`、`fetchPosts()` の後に実行）。`avatarOf(uid)` で参照。
@@ -201,7 +201,7 @@ URL: `https://nanshiyo.com/admin.html`（検索非公開 `noindex`）。
   - Auth「Confirm email」ON。登録 API は `email_redirect_to=https://nanshiyo.com/` を付与。未確認ではログインせず確認メール案内＋再送ボタン（`/auth/v1/resend`）。
   - 届かないときは迷惑メール・Resend ダッシュボードの送信ログ・SMTP パスワード有効期限を確認。
 - **問い合わせ返信**: Gmail(`syallman28`) の「他のアドレスから送信（Send mail as）」で `support@nanshiyo.com` を追加・確認済み。差出人名「なんしよ運営事務局」。「受信したアドレスから返信」ON なので、`support@` 宛の転送メールに返信すると差出人が自動で `support@nanshiyo.com` になる。
-- **サイト内の問い合わせフォーム**: フッター（`#contact`）に設置。`sendContact()` が `mailto:support@nanshiyo.com` を件名・本文付きで起動。
+- **サイト内の問い合わせフォーム**: プロフィールの ⋯ メニュー／設定ドロワー／フッターリンクから `#contactPage` を開く。`sendContact()` が `mailto:support@nanshiyo.com` を件名・本文付きで起動。フッター直下の大きなフォームは廃止。
 
 ### メール定型文（Gmail署名・必ず入れる文言）
 
