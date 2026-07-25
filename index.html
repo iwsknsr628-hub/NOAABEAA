@@ -1680,7 +1680,7 @@ let POSTS=[];
 function mapRow(r){
   return {id:r.id,ts:new Date(r.created_at).getTime(),cat:r.cat,pref:r.pref||undefined,
     genre:r.genre||undefined,title:r.title,spot:r.spot,desc:r.descr,author:r.author||"匿名",
-    likes:r.likes||0,reports:r.reports||0,saves:r.saves||0,tags:r.tags||[],address:r.address||undefined,user_id:r.user_id||undefined,
+    likes:r.likes||0,reports:r.reports||0,saves:r.saves||0,tags:normalizeTagsList(r.tags),address:r.address||undefined,user_id:r.user_id||undefined,
     aff_url:r.aff_url||undefined,
     photos:(r.photos&&r.photos.length)?r.photos:(r.photo?[r.photo]:[]),
     loc:(r.lat!=null&&r.lng!=null)?[r.lat,r.lng]:undefined};
@@ -2165,7 +2165,7 @@ function runAssistant(){
   const assistant=document.getElementById('assistant');
   if(!q){clearAssistant();return;}
   /* タグ検索は1つだけ。複数 # があっても先頭の1タグで絞る */
-  const hashTags=[...q.matchAll(/#([^\s#]+)/g)].map(m=>normalizeTag(m[1])).filter(Boolean);
+  const hashTags=extractHashTags(q);
   if(hashTags.length){
     if(hashTags.length>1){
       const search=document.getElementById('search');
@@ -2228,15 +2228,31 @@ function clearAssistant(){
   document.getElementById('assistant').classList.remove('show');
   render();
 }
-function normalizeTag(t){return String(t||"").replace(/^#+/,"").trim();}
+function normalizeTag(t){return String(t||"").replace(/^[#＃]+/,"").trim();}
 const TAG_MAX=8;
+/* クエリから #タグ を抽出。常に先頭1つだけ使う前提 */
+function extractHashTags(q){
+  return [...String(q||"").matchAll(/[#＃]([^\s#＃]+)/g)].map(m=>normalizeTag(m[1])).filter(Boolean);
+}
+/* DB/入力のゆれ（カンマ区切り・1要素に複数）を配列へ正規化 */
+function normalizeTagsList(tags){
+  const arr=Array.isArray(tags)?tags:(tags==null||tags===""?[]:[tags]);
+  const out=[];
+  arr.forEach(raw=>{
+    String(raw||"").split(/[,、\s　]+/).forEach(part=>{
+      const t=normalizeTag(part);
+      if(t&&!out.some(x=>x.toLowerCase()===t.toLowerCase()))out.push(t);
+    });
+  });
+  return out.slice(0,TAG_MAX);
+}
 let composeTags=[]; /* 投稿フォームに確定済みのタグ（#なし） */
 function syncTagsHidden(){
   const h=document.getElementById('tagsHidden');
   if(h)h.value=composeTags.join(',');
 }
 function setComposeTags(list){
-  composeTags=[...new Set((list||[]).map(normalizeTag).filter(Boolean))].slice(0,TAG_MAX);
+  composeTags=normalizeTagsList(list);
   syncTagsHidden();
   renderTagsPreview();
 }
@@ -2263,8 +2279,8 @@ function commitTagsFromInput(){
   const inp=document.getElementById('tagsInput');if(!inp)return;
   let v=inp.value;
   const parts=[];
-  if(/#/.test(v)){
-    v.split(/#+/).forEach(p=>{
+  if(/[#＃]/.test(v)){
+    v.split(/[#＃]+/).forEach(p=>{
       const chunk=p.split(/[\s,、]+/)[0];
       const t=normalizeTag(chunk);
       if(t)parts.push(t);
@@ -2277,7 +2293,7 @@ function commitTagsFromInput(){
   inp.value="";
 }
 function tagChipsHTML(tags,limit){
-  const list=Array.isArray(tags)?tags:[];
+  const list=normalizeTagsList(tags);
   const slice=limit!=null?list.slice(0,limit):list;
   return slice.map(t=>{
     const raw=normalizeTag(t);if(!raw)return "";
@@ -3125,7 +3141,7 @@ searchEl.addEventListener('input',e=>{if(!e.target.value.trim())clearAssistant()
 /* カード共通のクリック処理。処理したら true。rerender は いいね後の再描画関数。 */
 async function handleCardInteractions(e,rerender){
   const tg=e.target.closest('.tag-link');
-  if(tg){searchByTag(tg.dataset.tag||tg.textContent);return true;}
+  if(tg){searchByTag(tg.dataset.tag||tg.textContent.replace(/^[#＃]/,""));return true;}
   const vw=e.target.closest('.view-btn');
   if(vw){openPostView(vw.dataset.id);return true;}
   const mp=e.target.closest('.maps-open');
@@ -4343,13 +4359,13 @@ function closeSearchPage(){document.getElementById('searchPage').classList.remov
 function postMatches(p,q){
   const raw=(q||"").trim();
   if(!raw)return false;
-  /* #タグ は完全一致（1タグずつ） */
-  const hashTags=[...raw.matchAll(/#([^\s#]+)/g)].map(m=>normalizeTag(m[1])).filter(Boolean);
-  if(hashTags.length && /^#[^\s#]+$/.test(raw.replace(/\s+/g,""))){
+  /* #タグ は常に先頭1語だけ・タグ配列の完全一致（キーワード検索へ落とさない） */
+  const hashTags=extractHashTags(raw);
+  if(hashTags.length){
     const tl=hashTags[0].toLowerCase();
-    return (p.tags||[]).some(x=>normalizeTag(x).toLowerCase()===tl);
+    return normalizeTagsList(p.tags).some(x=>x.toLowerCase()===tl);
   }
-  const hay=[p.title,p.spot,p.desc,p.author,p.pref,p.genre,(p.tags||[]).join(' '),CAT_LABEL[p.cat]]
+  const hay=[p.title,p.spot,p.desc,p.author,p.pref,p.genre,normalizeTagsList(p.tags).join(' '),CAT_LABEL[p.cat]]
     .filter(Boolean).join(' ').toLowerCase();
   return hay.includes(raw.toLowerCase());
 }
@@ -4402,17 +4418,29 @@ async function renderSearchResults(){
   const userList=document.getElementById('searchUserList');
   if(!recGrid)return;
   const q=(document.getElementById('searchPageInput').value||'').trim();
+  const hashTags=extractHashTags(q);
+  /* 複数 # が付いていたら先頭1語に正規化 */
+  if(hashTags.length>1){
+    const only="#"+hashTags[0];
+    const inp=document.getElementById('searchPageInput');
+    if(inp&&inp.value.trim()!==only){
+      inp.value=only;
+      showToast("タグ検索は1つずつです（"+only+"）");
+    }
+  }
+  const tagQuery=hashTags.length?("#"+hashTags[0]):q;
   let hitIds=[];
-  if(q){
-    const list=humanPosts().filter(p=>postMatches(p,q));
+  if(tagQuery){
+    const list=humanPosts().filter(p=>postMatches(p,tagQuery));
     hitIds=list.map(p=>p.id);
     if(resultSec)resultSec.style.display="";
     if(title){
-      const tagOnly=/^#[^\s#]+$/.test(q.replace(/\s+/g,""));
-      title.textContent=tagOnly?`タグ ${q} の投稿（${list.length}）`:`「${q}」の投稿（${list.length}）`;
+      title.textContent=hashTags.length
+        ?`タグ #${hashTags[0]} の投稿（${list.length}）`
+        :`「${q}」の投稿（${list.length}）`;
     }
     if(grid)grid.innerHTML=list.length?list.map(cardHTML).join(''):'<div class="empty">該当する投稿が見つかりませんでした。</div>';
-    const wantAcct=!q.startsWith('#');
+    const wantAcct=!hashTags.length;
     if(userSec)userSec.style.display=wantAcct?"":"none";
     if(wantAcct){
       if(userList)userList.innerHTML='<div class="acct-empty">検索中…</div>';
@@ -5117,7 +5145,7 @@ document.getElementById('postForm').addEventListener('submit',async e=>{
   const post={
     cat,title:f.title.value.trim(),spot:f.spot.value.trim(),desc:f.desc.value.trim(),
     author:f.author.value.trim(),likes:0,user_id:session?session.uid:null,
-    tags:(composeTags.length?composeTags.slice():(f.tags.value||"").split(',').map(t=>normalizeTag(t)).filter(Boolean)).slice(0,TAG_MAX)
+    tags:(composeTags.length?composeTags.slice():normalizeTagsList((f.tags.value||"").split(','))).slice(0,TAG_MAX)
   };
   if(!post.author){alert("投稿者名（ユーザー名）を入力してください。");return;}
   const affRaw=(f.aff_url&&f.aff_url.value||"").trim();
