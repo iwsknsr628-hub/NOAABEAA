@@ -445,15 +445,24 @@
   #pvNotifyBtn.btn-primary{background:#111;color:#fff;border:1.5px solid #111}
   .pv-follow-count{font-size:.68rem;font-weight:700;color:#666;text-align:center;line-height:1.3}
   .pv-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .pv-stats.ig-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:14px 0 0;padding:0;
-    border:1px solid #E8E8E8;border-radius:14px;overflow:hidden;background:#fff}
-  .pv-stats.ig-stats>button{text-align:center;border:none;border-right:1px solid #E8E8E8;background:#fff;
-    font:inherit;color:inherit;padding:12px 4px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .pv-stats.ig-stats>button:last-child{border-right:none}
-  .pv-stats .pv-stat-ic{display:block;margin:0 auto 4px;width:16px;height:16px;color:#666}
-  .pv-stats .pv-stat-ic svg{width:16px;height:16px;display:block}
-  .pv-stats.ig-stats span{display:block;font-size:.62rem;font-weight:700;color:#888;margin-top:0}
-  .pv-stats.ig-stats b{display:block;font-size:.92rem;font-weight:900;color:#111;line-height:1.25;margin-top:2px}
+  .pv-stats.ig-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:14px 0 0;padding:10px 0;
+    border:1px solid #E6E6E6;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .pv-stats.ig-stats>button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;text-align:center;border:none;background:#fff;font:inherit;color:inherit;padding:8px 4px 10px;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0}
+  .pv-stats.ig-stats>button:not(:last-child)::after{content:"";position:absolute;right:0;top:18%;bottom:18%;
+    width:1px;background:#E8E8E8}
+  .pv-stats .pv-stat-top{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:0}
+  .pv-stats .pv-stat-ic{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center}
+  .pv-stats .pv-stat-ic svg{width:13px;height:13px;display:block}
+  .pv-stats .pv-stat-ic-posts{color:#E89A5C;background:rgba(232,154,92,.12)}
+  .pv-stats .pv-stat-ic-saves{color:#5B8DEF;background:rgba(91,141,239,.12)}
+  .pv-stats .pv-stat-ic-likes{color:#F071A5;background:rgba(240,113,165,.12)}
+  .pv-stats .pv-stat-ic-spots{color:#D4A05A;background:rgba(212,160,90,.12)}
+  .pv-stats .pv-stat-label{font-size:.68rem;font-weight:600;color:#444;line-height:1.2;white-space:nowrap}
+  .pv-stats .pv-stat-val{display:inline-flex;align-items:baseline;justify-content:center;gap:2px;line-height:1}
+  .pv-stats .pv-stat-val b{font-size:1.15rem;font-weight:800;color:#111;letter-spacing:-.02em}
+  .pv-stats .pv-stat-val small{font-size:.62rem;font-weight:600;color:#555}
   .pv-bio-card{margin-top:12px;padding:14px 14px;border-radius:14px;background:#F7F3EC;display:flex;gap:10px;align-items:flex-start}
   .pv-bio{flex:1;min-width:0;color:#333;font-size:.84rem;font-weight:600;line-height:1.55;margin:0;
     white-space:pre-wrap;word-break:break-word}
@@ -1335,20 +1344,32 @@
         <div id="pvLinks" class="pv-links"></div>
         <div class="ig-stats pv-stats" role="group" aria-label="実績">
           <button type="button" onclick="scrollPvPosts()" title="投稿一覧へ">
-            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M8 8h8M8 12h8M8 16h5"></path></svg></span>
-            <span>投稿数</span><b id="pvStatPosts">0</b>
+            <span class="pv-stat-top">
+              <span class="pv-stat-ic pv-stat-ic-posts" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.4 2.6a2.2 2.2 0 1 1 3.1 3.1L12.1 15.1 8 16.1l1-4.1Z"></path></svg></span>
+              <span class="pv-stat-label">投稿数</span>
+            </span>
+            <span class="pv-stat-val"><b id="pvStatPosts">0</b><small>件</small></span>
           </button>
           <button type="button" onclick="scrollPvPosts('saves')" title="保存が多い順">
-            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></span>
-            <span>保存数</span><b id="pvStatSaves">0</b>
+            <span class="pv-stat-top">
+              <span class="pv-stat-ic pv-stat-ic-saves" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></span>
+              <span class="pv-stat-label">保存数</span>
+            </span>
+            <span class="pv-stat-val"><b id="pvStatSaves">0</b><small>件</small></span>
           </button>
           <button type="button" onclick="scrollPvPosts('likes')" title="いいねが多い順">
-            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg></span>
-            <span>いいね数</span><b id="pvStatLikes">0</b>
+            <span class="pv-stat-top">
+              <span class="pv-stat-ic pv-stat-ic-likes" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-9-8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 5.5C19 15.5 12 20 12 20z"></path></svg></span>
+              <span class="pv-stat-label">いいね数</span>
+            </span>
+            <span class="pv-stat-val"><b id="pvStatLikes">0</b><small>件</small></span>
           </button>
           <button type="button" onclick="scrollPvPosts('spots')" title="スポット付き投稿">
-            <span class="pv-stat-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.3"></circle></svg></span>
-            <span>訪れた場所</span><b id="pvStatSpots">0</b>
+            <span class="pv-stat-top">
+              <span class="pv-stat-ic pv-stat-ic-spots" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.5 7-12a7 7 0 0 0-14 0c0 4.5 7 12 7 12z"></path><circle cx="12" cy="9" r="2.3"></circle></svg></span>
+              <span class="pv-stat-label">訪れた場所</span>
+            </span>
+            <span class="pv-stat-val"><b id="pvStatSpots">0</b><small>スポット</small></span>
           </button>
         </div>
         <div class="pv-bio-card">
@@ -4941,10 +4962,10 @@ async function openProfileView(userId,fallbackName,opts){
   if(!SERVER||!userId){document.getElementById('pvBio').textContent="このユーザーのプロフィールはまだありません。";return;}
 
   const st=statsForUser(userId);
-  document.getElementById('pvStatPosts').textContent=`${st.posts} 件`;
-  document.getElementById('pvStatLikes').textContent=`${st.likes} 件`;
-  document.getElementById('pvStatSaves').textContent=`${st.saves} 件`;
-  document.getElementById('pvStatSpots').textContent=`${st.spots} スポット`;
+  document.getElementById('pvStatPosts').textContent=Number(st.posts||0).toLocaleString("ja-JP");
+  document.getElementById('pvStatLikes').textContent=Number(st.likes||0).toLocaleString("ja-JP");
+  document.getElementById('pvStatSaves').textContent=Number(st.saves||0).toLocaleString("ja-JP");
+  document.getElementById('pvStatSpots').textContent=Number(st.spots||0).toLocaleString("ja-JP");
   fetchFollowCounts(userId).then(fc=>{
     document.getElementById('pvStatFollowers').textContent=fc.followers.toLocaleString("ja-JP");
     document.getElementById('pvStatFollowing').textContent=fc.following;
