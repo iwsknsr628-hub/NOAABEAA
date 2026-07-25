@@ -470,6 +470,10 @@
     font-weight:800;font-size:.8rem;min-height:52px;padding:12px 4px;border-radius:12px;cursor:pointer}
   .pv-bottom-cta button:active{transform:scale(.96)}
   .pv-bottom-cta button.primary{background:#FF6A00;color:#fff;border-color:#FF6A00}
+  .pv-menu-list{display:flex;flex-direction:column;gap:8px}
+  .pv-menu-item{width:100%;text-align:left;border:1px solid #E8E8E8;background:#fff;color:#111;
+    font-family:inherit;font-weight:800;font-size:.92rem;padding:14px 14px;border-radius:12px;cursor:pointer}
+  .pv-menu-item:active{background:#F7F7F7}
   .settings-section{padding-top:16px;margin-top:16px;border-top:1px solid var(--line)}
   .settings-section:first-of-type{border-top:none;margin-top:6px;padding-top:0}
   .settings-section h3{font-size:.95rem;margin-bottom:12px}
@@ -1302,7 +1306,7 @@
       <span class="head-icon-btn share-ic" onclick="shareCurrentProfile()" title="共有" aria-label="共有">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
       </span>
-      <span class="head-icon-btn" onclick="copyProfileLink()" title="メニュー" aria-label="メニュー">⋯</span>
+      <span class="head-icon-btn" onclick="openPvMenu()" title="メニュー" aria-label="メニュー">⋯</span>
     </div>
   </div>
   <div class="full-page-body">
@@ -1316,6 +1320,7 @@
             <p id="pvBio" class="pv-bio"></p>
             <div id="pvArea" class="pv-area"></div>
             <div class="pv-actions">
+              <button id="pvEditBtn" class="btn btn-ghost btn-sm" style="display:none" onclick="openProfileEditPopup()">編集</button>
               <button id="pvFollowBtn" class="btn btn-primary btn-sm" style="display:none"></button>
               <button id="pvNotifyBtn" class="btn btn-ghost btn-sm" style="display:none" title="新しい投稿を通知で受け取る">通知</button>
             </div>
@@ -1349,6 +1354,20 @@
     <button type="button" onclick="openSavedPage()">保存一覧</button>
     <button type="button" class="primary" onclick="openPvMap()">マップで見る</button>
     <button type="button" onclick="openPvSummary()">まとめを見る</button>
+  </div>
+</div>
+
+<!-- プロフィール ⋯ メニュー -->
+<div class="modal-bg" id="pvMenuBg" onclick="if(event.target===this)closePvMenu()">
+  <div class="modal" style="max-width:340px;padding:18px 16px 12px">
+    <button class="close" onclick="closePvMenu()">&times;</button>
+    <h2 style="font-size:1.05rem;margin-bottom:12px">メニュー</h2>
+    <div class="pv-menu-list">
+      <button type="button" class="pv-menu-item" id="pvMenuEdit" onclick="closePvMenu();openProfileEditPopup()">プロフィール編集</button>
+      <button type="button" class="pv-menu-item" id="pvMenuSettings" onclick="closePvMenu();openSettingsPopup()">設定</button>
+      <button type="button" class="pv-menu-item" id="pvMenuAnnounce" onclick="closePvMenu();openAnnounce()">お知らせ</button>
+      <button type="button" class="pv-menu-item" onclick="closePvMenu();copyProfileLink()">リンクをコピー</button>
+    </div>
   </div>
 </div>
 
@@ -3529,10 +3548,10 @@ function updateAcctUI(){
     if(session){top.style.display="none";}
     else{top.style.display="";top.textContent="ログイン / 登録";top.onclick=openAuth;}
   }
-  /* 下タブバーのアカウントボタン（アイコンは維持し、動作とタイトルのみ切替） */
+  /* 下タブバーのアカウントボタン（ログイン後は新プロフィールUI） */
   const tab=document.getElementById('tabAcct');
   if(tab){
-    if(session){tab.onclick=openMyPage;tab.title="マイページ";tab.setAttribute('aria-label','マイページ');}
+    if(session){tab.onclick=openMyPage;tab.title="プロフィール";tab.setAttribute('aria-label','プロフィール');}
     else{tab.onclick=openAuth;tab.title="ログイン / 登録";tab.setAttribute('aria-label','ログイン');}
   }
 }
@@ -4333,12 +4352,22 @@ function renderMyProfileView(){
 }
 function openMyPage(){
   if(!session){openAuth();return;}
-  closeProfileView();closePostView();closeSearchPage();closeNotifs();
-  renderMyProfileView();
-  document.getElementById('myPage').classList.add('open');
-  document.body.style.overflow="hidden";
-  renderMyPosts();
+  /* タブ「プロフィール」は新UIの #pvPage（自分）を開く。旧 #myPage は設定導線の受け皿として残す */
+  const name=(myProfile&&myProfile.name)||session.name||"";
+  openProfileView(session.uid,name);
 }
+function openPvMenu(){
+  if(!pvUserId){showToast("メニューを開けません");return;}
+  const isSelf=session&&session.uid===pvUserId;
+  const edit=document.getElementById('pvMenuEdit');
+  const settings=document.getElementById('pvMenuSettings');
+  const announce=document.getElementById('pvMenuAnnounce');
+  if(edit)edit.style.display=isSelf?"":"none";
+  if(settings)settings.style.display=isSelf?"":"none";
+  if(announce)announce.style.display=isSelf?"":"none";
+  document.getElementById('pvMenuBg').classList.add('open');
+}
+function closePvMenu(){document.getElementById('pvMenuBg').classList.remove('open');}
 function closeMyPage(){
   closeSettingsPopup();
   document.getElementById('myPage').classList.remove('open');
@@ -4601,6 +4630,7 @@ async function saveMyProfile(){
     session.name=name;saveSession(session);
     updateAcctUI();
     renderMyProfileView();
+    if(pvUserId&&session&&pvUserId===session.uid)openProfileView(session.uid,name,{fromUrl:true});
     msg.style.color="#3a7";msg.textContent="保存しました！";
     setTimeout(closeProfileEditPopup,700);
   }catch(err){msg.style.color="#d33";msg.textContent=err.message||"保存に失敗しました";}
@@ -4778,10 +4808,12 @@ async function openProfileView(userId,fallbackName,opts){
   document.getElementById('pvStatSpots').textContent="—";
   document.getElementById('pvArea').textContent="";
   const av=document.getElementById('pvAvatar');setAvatarEl(av,"");
+  const editBtn=document.getElementById('pvEditBtn');if(editBtn){editBtn.style.display="none";}
   const followBtn=document.getElementById('pvFollowBtn');followBtn.style.display="none";followBtn.onclick=null;
   const notifyBtn=document.getElementById('pvNotifyBtn');notifyBtn.style.display="none";notifyBtn.onclick=null;
   renderPvPosts(userId);
   page.classList.add('open');
+  document.body.style.overflow="hidden";
   const body=page.querySelector('.full-page-body');if(body)body.scrollTop=0;
   /* 再読み込みで戻れるよう URL に ?u= を残す（OAuth の hash とは独立） */
   if(userId&&!(opts&&opts.fromUrl)){
@@ -4809,6 +4841,7 @@ async function openProfileView(userId,fallbackName,opts){
   });
 
   const isSelf=session&&session.uid===userId;
+  if(editBtn)editBtn.style.display=isSelf?"":"none";
   let amFollowing=false;
   if(session&&!isSelf){
     const row=await getFollowRow(userId);
@@ -4908,7 +4941,9 @@ async function togglePvNotify(userId){
 }
 function closeProfileView(opts){
   document.getElementById('pvPage').classList.remove('open');
+  try{closePvMenu();}catch(e){}
   pvUserId=null;
+  document.body.style.overflow="";
   if(!(opts&&opts.fromPop)){
     try{
       const url=new URL(location.href);
